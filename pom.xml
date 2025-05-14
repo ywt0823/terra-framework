@@ -13,6 +13,7 @@
 		<module>terra-bedrock</module>
 		<module>terra-crust</module>
 		<module>terra-starter</module>
+		<module>terra-strata</module>
 	</modules>
 	
 
