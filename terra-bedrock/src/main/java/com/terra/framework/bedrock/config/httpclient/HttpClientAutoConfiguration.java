@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnProperty(prefix = "terra.httpclient", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties(HttpclientConnectProperties.class)
 @AutoConfiguration(after = ValhallaLogAutoConfiguration.class)
-public class HttpClientAutoconfiguration {
+public class HttpClientAutoConfiguration {
 
 
     @Bean

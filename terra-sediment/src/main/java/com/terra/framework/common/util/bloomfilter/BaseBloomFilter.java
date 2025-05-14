@@ -1,9 +1,8 @@
-package com.terra.framework.geyser.helper;
+package com.terra.framework.common.util.bloomfilter;
 
 import com.google.common.hash.Funnel;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.PrimitiveSink;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 
@@ -14,8 +13,7 @@ import javax.annotation.Nullable;
  * 3. 某个key加入集合时，用k个hash函数计算出k个散列值，并把数组中对应的比特位置为1
  * 4. 判断某个key是否在集合时，用k个hash函数计算出k个散列值，并查询数组中对应的比特位，如果所有的比特位都是1，认为在集合中。
  **/
-@Component
-public class BloomFilterHelper<T> {
+public abstract class BaseBloomFilter<T> {
 
     private int numHashFunctions;
 
@@ -30,11 +28,11 @@ public class BloomFilterHelper<T> {
         primitiveSink.putBytes(o.toString().getBytes());
     }
 
-    public BloomFilterHelper() {
-        this((Funnel) BloomFilterHelper::funnel, NUM_BITS, RATE);
+    public BaseBloomFilter() {
+        this((Funnel) BaseBloomFilter::funnel, NUM_BITS, RATE);
     }
 
-    public BloomFilterHelper(Funnel<T> funnel, int expectedInsertions, double fpp) {
+    public BaseBloomFilter(Funnel<T> funnel, int expectedInsertions, double fpp) {
         this.funnel = funnel;
         // 计算bit数组长度
         bitSize = optimalNumOfBits(expectedInsertions, fpp);
