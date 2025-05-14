@@ -9,7 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	
-	<artifactId>terra-common</artifactId>
+	<artifactId>terra-firma</artifactId>
 	<packaging>jar</packaging>
 	
 	<properties>
