@@ -20,7 +20,7 @@ public class CustomThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        Thread t = new Thread(group, r, "Valhalla-Thread-Group-" + index.getAndIncrement());
+        Thread t = new Thread(group, r, "TERRA-THREAD-GROUP-" + index.getAndIncrement());
         t.setDaemon(false);
         return t;
     }

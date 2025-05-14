@@ -1,8 +1,6 @@
 package com.terra.framework.common.log;
 
-/**
- * 白羊座日志模式
- */
+
 public class LogPattern {
 
     private static final String DEFAULT_MESSAGE_KEY = "message";

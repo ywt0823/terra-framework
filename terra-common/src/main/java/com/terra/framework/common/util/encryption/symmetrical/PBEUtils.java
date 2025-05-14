@@ -26,7 +26,7 @@ final class PBEUtils implements SymmetricalStrategy {
     /**
      * 加密盐
      */
-    private static final byte[] SALT = "valhalla".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] SALT = "terra".getBytes(StandardCharsets.UTF_8);
 
     private final static int SALT_COUNT = 100;
 
