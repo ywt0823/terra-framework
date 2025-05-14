@@ -7,7 +7,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>terra-geyser-starte</artifactId>
+    <artifactId>terra-geyser-starter</artifactId>
     <packaging>jar</packaging>
 
     <name>terra-geyser-starte</name>
