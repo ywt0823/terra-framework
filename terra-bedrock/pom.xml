@@ -10,7 +10,7 @@
 	<artifactId>terra-bedrock</artifactId>
 	<packaging>jar</packaging>
 	
-	<name>terra-boot</name>
+	<name>terra-bedrock</name>
 	
 	
 	<properties>
