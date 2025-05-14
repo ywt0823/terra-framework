@@ -1,7 +1,6 @@
 package com.terra.framework.crust.interceptor;
 
 import com.terra.framework.crust.customizer.HeaderCustomizer;
-import com.terra.framework.crust.customizer.RequestContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,11 +51,6 @@ public class RequestHandlerInterceptor implements HandlerInterceptor {
         return true;
     }
 
-
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
-        RequestContextHolder.remove();
-    }
 
     private boolean pathsMatch(HttpServletRequest request) {
         log.debug("GatewayRequestInterceptor白名单：{}", Arrays.toString(excludes));
