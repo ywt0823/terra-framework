@@ -24,7 +24,7 @@
 		
 		<dependency>
 			<groupId>com.terra.framework</groupId>
-			<artifactId>terra-firma</artifactId>
+			<artifactId>terra-sediment</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		

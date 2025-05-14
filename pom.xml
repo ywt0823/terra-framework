@@ -9,7 +9,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-		<module>terra-firma</module>
+		<module>terra-sediment</module>
 		<module>terra-bedrock</module>
 	</modules>
 	
