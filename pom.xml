@@ -14,7 +14,8 @@
 		<module>terra-crust</module>
 		<module>terra-starter</module>
 		<module>terra-strata</module>
-	</modules>
+        <module>terra-geyser</module>
+    </modules>
 	
 
 	
