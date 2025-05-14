@@ -17,7 +17,6 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.boot.version>3.2.4</spring.boot.version>
 	</properties>
 	
 	<dependencies>
@@ -41,7 +40,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-autoconfigure</artifactId>
 		</dependency>
-		
+	
 	</dependencies>
 	
 	<dependencyManagement>
@@ -63,7 +62,6 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
 
 
 </project>
