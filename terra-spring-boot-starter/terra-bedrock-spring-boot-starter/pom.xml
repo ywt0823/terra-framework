@@ -22,12 +22,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
-			<version>${spring.boot.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.terra.framework</groupId>
 			<artifactId>terra-bedrock</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 	

@@ -7,10 +7,10 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>terra-geyser-spring-boot-starter</artifactId>
+    <artifactId>terra-stream-spring-boot-starter</artifactId>
     <packaging>jar</packaging>
 
-    <name>terra-geyser-spring-boot-starter</name>
+    <name>terra-stream-spring-boot-starter</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,11 +19,16 @@
     <dependencies>
         <dependency>
             <groupId>com.terra.framework</groupId>
-            <artifactId>terra-geyser</artifactId>
+            <artifactId>terra-bedrock-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>com.terra.framework</groupId>
-            <artifactId>terra-bedrock-spring-boot-starter</artifactId>
+            <artifactId>terra-stream</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
     </dependencies>
 </project>

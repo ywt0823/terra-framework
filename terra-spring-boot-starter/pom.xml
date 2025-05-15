@@ -16,7 +16,8 @@
 		<module>terra-crust-spring-boot-starter</module>
 		<module>terra-strata-spring-boot-starter</module>
 		<module>terra-geyser-spring-boot-starter</module>
-	</modules>
+        <module>terra-stream-spring-boot-starter</module>
+    </modules>
 	
 	
 	<properties>
@@ -27,5 +28,83 @@
 		<spring.boot.version>3.2.4</spring.boot.version>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<!--内部依赖-->
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-stream</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-bedrock</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-crust</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-geyser</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-strata</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-bedrock-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+
+			<!--外部依赖-->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
+				<version>${spring.boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter</artifactId>
+				<version>${spring.boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-amqp</artifactId>
+				<version>${spring.boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-jdbc</artifactId>
+				<version>${spring.boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.baomidou</groupId>
+				<artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+				<version>3.5.5</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mybatis.spring.boot</groupId>
+				<artifactId>mybatis-spring-boot-starter</artifactId>
+				<version>2.2.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-redis</artifactId>
+				<version>${spring.boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.redisson</groupId>
+				<artifactId>redisson-spring-boot-starter</artifactId>
+				<version>3.33.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 </project>
