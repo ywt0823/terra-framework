@@ -6,7 +6,6 @@ import com.terra.framework.stream.core.MessageQueue;
 import com.terra.framework.stream.factory.DefaultMessageQueueFactory;
 import com.terra.framework.stream.factory.MessageQueueFactory;
 import com.terra.framework.stream.rabbitmq.RabbitMqMessageQueue;
-import com.terra.framework.stream.redis.RedisStreamMessageQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -16,7 +15,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -80,29 +78,5 @@ public class StreamAutoConfiguration {
             }
         }
     }
-    
-    /**
-     * Redis Stream配置
-     */
-    @Configuration
-    @ConditionalOnClass({RedisConnectionFactory.class})
-    @ConditionalOnProperty(prefix = "terra.stream.redis", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public static class RedisStreamConfiguration {
-        
-        @Bean("redisStreamMessageQueue")
-        public MessageQueue redisStreamMessageQueue(RedisConnectionFactory redisConnectionFactory,
-                                                   StreamProperties properties) {
-            log.info("初始化Redis Stream消息队列");
-            return new RedisStreamMessageQueue(redisConnectionFactory, properties.getRedis());
-        }
-        
-        @Bean
-        public void configureRedisStreamMessageQueue(MessageQueueFactory factory, 
-                                                    MessageQueue redisStreamMessageQueue) {
-            if (factory instanceof DefaultMessageQueueFactory) {
-                ((DefaultMessageQueueFactory) factory).registerMessageQueue("redis", redisStreamMessageQueue);
-                log.info("已向工厂注册Redis Stream消息队列");
-            }
-        }
-    }
+
 } 
