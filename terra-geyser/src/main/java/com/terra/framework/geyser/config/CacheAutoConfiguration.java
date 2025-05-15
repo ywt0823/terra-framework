@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author terra
  */
-@Configuration
 public class CacheAutoConfiguration {
 
     @Bean
