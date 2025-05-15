@@ -16,6 +16,7 @@
 		<module>terra-strata</module>
         <module>terra-geyser</module>
 		<module>terra-stream</module>
+		<module>terra-nova</module>
 	</modules>
 	
 
