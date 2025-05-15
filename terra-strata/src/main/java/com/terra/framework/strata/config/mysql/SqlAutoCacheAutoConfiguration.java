@@ -9,7 +9,6 @@ import com.terra.framework.strata.config.mysql.aspect.SqlAutoCacheAspect;
 import com.terra.framework.strata.config.mysql.configurer.MybatisSqlInterceptorConfigurer;
 import com.terra.framework.strata.config.mysql.interceptor.SqlMonitorInterceptor;
 import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
-import com.terra.framework.strata.config.redis.RedisCacheAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
