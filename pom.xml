@@ -15,7 +15,8 @@
 		<module>terra-spring-boot-starter</module>
 		<module>terra-strata</module>
         <module>terra-geyser</module>
-    </modules>
+		<module>terra-stream</module>
+	</modules>
 	
 
 	
