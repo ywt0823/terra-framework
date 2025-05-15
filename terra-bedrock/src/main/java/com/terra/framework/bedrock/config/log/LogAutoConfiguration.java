@@ -4,13 +4,11 @@ import com.terra.framework.bedrock.trace.MDCTraceIdProvider;
 import com.terra.framework.bedrock.trace.UUIDTraceId;
 import com.terra.framework.bedrock.trace.async.TraceRunnable;
 import com.terra.framework.common.log.LogPattern;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskDecorator;
 
-@AutoConfiguration
-public class ValhallaLogAutoConfiguration {
+public class LogAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(LogPattern.class)

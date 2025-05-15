@@ -1,7 +1,7 @@
 package com.terra.framework.crust.config;
 
 import com.terra.framework.bedrock.config.httpclient.HttpClientAutoConfiguration;
-import com.terra.framework.bedrock.config.log.ValhallaLogAutoConfiguration;
+import com.terra.framework.bedrock.config.log.LogAutoConfiguration;
 import com.terra.framework.bedrock.properties.httpclient.HttpclientConnectProperties;
 import com.terra.framework.common.log.LogPattern;
 import com.terra.framework.crust.customizer.HeaderCustomizer;
@@ -54,7 +54,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
 
 @ConditionalOnWebApplication(type = SERVLET)
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class, WebMvcConfigurer.class, CloseableHttpClient.class})
-@AutoConfigureAfter({ValhallaLogAutoConfiguration.class, HttpClientAutoConfiguration.class, JacksonAutoConfiguration.class
+@AutoConfigureAfter({LogAutoConfiguration.class, HttpClientAutoConfiguration.class, JacksonAutoConfiguration.class
 })
 @EnableConfigurationProperties({ValhallaLoggingProperties.class, HttpclientConnectProperties.class, ValhallaWebContextExcludeProperties.class})
 public class TerraWebAutoConfiguration {

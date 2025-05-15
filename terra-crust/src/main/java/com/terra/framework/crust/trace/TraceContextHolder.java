@@ -10,7 +10,15 @@ public class TraceContextHolder {
     private static final ThreadLocal<TraceContext> CONTEXT_HOLDER = ThreadLocal.withInitial(TraceContext::new);
     
     public String getTraceId() {
-        return CONTEXT_HOLDER.get().getTraceId();
+        String traceId = CONTEXT_HOLDER.get().getTraceId();
+        if (traceId == null) {
+            // 如果本地上下文没有，则尝试从MDC获取
+            traceId = MDCTraceManager.getTraceId();
+            if (traceId != null) {
+                setTraceId(traceId);
+            }
+        }
+        return traceId;
     }
     
     public void setTraceId(String traceId) {
@@ -18,7 +26,15 @@ public class TraceContextHolder {
     }
     
     public String getSpanId() {
-        return CONTEXT_HOLDER.get().getSpanId();
+        String spanId = CONTEXT_HOLDER.get().getSpanId();
+        if (spanId == null) {
+            // 如果本地上下文没有，则尝试从MDC获取
+            spanId = MDCTraceManager.getSpanId();
+            if (spanId != null) {
+                setSpanId(spanId);
+            }
+        }
+        return spanId;
     }
     
     public void setSpanId(String spanId) {
@@ -26,7 +42,15 @@ public class TraceContextHolder {
     }
     
     public String getParentSpanId() {
-        return CONTEXT_HOLDER.get().getParentSpanId();
+        String parentSpanId = CONTEXT_HOLDER.get().getParentSpanId();
+        if (parentSpanId == null) {
+            // 如果本地上下文没有，则尝试从MDC获取
+            parentSpanId = MDCTraceManager.getParentSpanId();
+            if (parentSpanId != null) {
+                setParentSpanId(parentSpanId);
+            }
+        }
+        return parentSpanId;
     }
     
     public void setParentSpanId(String parentSpanId) {

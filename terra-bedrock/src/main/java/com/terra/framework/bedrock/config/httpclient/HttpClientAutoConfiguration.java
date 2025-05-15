@@ -1,6 +1,6 @@
 package com.terra.framework.bedrock.config.httpclient;
 
-import com.terra.framework.bedrock.config.log.ValhallaLogAutoConfiguration;
+import com.terra.framework.bedrock.config.log.LogAutoConfiguration;
 import com.terra.framework.bedrock.properties.httpclient.HttpclientConnectProperties;
 import com.terra.framework.common.log.LogPattern;
 import com.terra.framework.common.util.httpclient.HttpClientUtils;
@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnClass(HttpclientConnectProperties.class)
 @ConditionalOnProperty(prefix = "terra.httpclient", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties(HttpclientConnectProperties.class)
-@AutoConfiguration(after = ValhallaLogAutoConfiguration.class)
+@AutoConfiguration(after = LogAutoConfiguration.class)
 public class HttpClientAutoConfiguration {
 
 

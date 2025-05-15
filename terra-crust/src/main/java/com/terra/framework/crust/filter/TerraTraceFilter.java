@@ -1,6 +1,7 @@
 package com.terra.framework.crust.filter;
 
 import com.terra.framework.bedrock.trace.LoggingContext;
+import com.terra.framework.crust.trace.MDCTraceManager;
 import com.terra.framework.crust.trace.TraceContextHolder;
 import com.terra.framework.crust.trace.TraceIdGenerator;
 import com.terra.framework.crust.web.WebUtil;
@@ -10,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
@@ -54,8 +54,9 @@ public class TerraTraceFilter extends OncePerRequestFilter {
             return;
         }
 
+        long startTime = System.currentTimeMillis();
         String traceId = extractTraceId(request);
-        String parentSpanId = request.getHeader("X-Parent-Span-Id");
+        String parentSpanId = request.getHeader(MDCTraceManager.X_PARENT_SPAN_ID);
         String spanId = traceIdGenerator.generateSpanId();
 
         try {
@@ -64,16 +65,12 @@ public class TerraTraceFilter extends OncePerRequestFilter {
             contextHolder.setParentSpanId(parentSpanId);
             contextHolder.setSpanId(spanId);
 
-            // 设置MDC，用于日志记录
-            MDC.put(LoggingContext.MDC_TRACE_KEY, traceId);
-            MDC.put("spanId", spanId);
-            if (parentSpanId != null) {
-                MDC.put("parentSpanId", parentSpanId);
-            }
+            // 通过统一的MDCTraceManager设置MDC
+            MDCTraceManager.setTraceInfo(traceId, spanId, parentSpanId);
 
             // 设置响应头，用于调试和跟踪
-            response.setHeader("X-Trace-Id", traceId);
-            response.setHeader("X-Span-Id", spanId);
+            response.setHeader(MDCTraceManager.X_TRACE_ID, traceId);
+            response.setHeader(MDCTraceManager.X_SPAN_ID, spanId);
 
             logger.debug("链路追踪: traceId={}, spanId={}, parentSpanId={}, uri={}",
                     traceId, spanId, parentSpanId, request.getRequestURI());
@@ -82,13 +79,16 @@ public class TerraTraceFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } finally {
+            // 记录请求完成时间
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("链路追踪完成: traceId={}, uri={}, duration={}ms", 
+                    traceId, request.getRequestURI(), duration);
+            
+            // 通过统一的MDCTraceManager清除MDC
+            MDCTraceManager.clearTraceInfo();
+            
             // 清理上下文
             contextHolder.clear();
-            MDC.remove(LoggingContext.MDC_TRACE_KEY);
-            MDC.remove("spanId");
-            MDC.remove("parentSpanId");
-
-            logger.debug("链路追踪完成: traceId={}, uri={}", traceId, request.getRequestURI());
         }
     }
 
@@ -96,7 +96,7 @@ public class TerraTraceFilter extends OncePerRequestFilter {
         // 优先从请求头获取
         String traceId = request.getHeader(LoggingContext.HTTP_TRACE_KEY);
         if (!StringUtils.hasText(traceId)) {
-            traceId = request.getHeader("X-Trace-Id");
+            traceId = request.getHeader(MDCTraceManager.X_TRACE_ID);
         }
 
         // 如果没有，则生成新的TraceId

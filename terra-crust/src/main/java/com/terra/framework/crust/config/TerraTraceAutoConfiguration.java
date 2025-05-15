@@ -1,6 +1,6 @@
 package com.terra.framework.crust.config;
 
-import com.terra.framework.bedrock.config.log.ValhallaLogAutoConfiguration;
+import com.terra.framework.bedrock.config.log.LogAutoConfiguration;
 import com.terra.framework.common.log.LogPattern;
 import com.terra.framework.crust.filter.TerraTraceFilter;
 import com.terra.framework.crust.properties.TerraTraceProperties;
@@ -18,7 +18,7 @@ import org.springframework.core.Ordered;
 
 @Configuration
 @EnableConfigurationProperties(TerraTraceProperties.class)
-@AutoConfigureAfter(ValhallaLogAutoConfiguration.class)
+@AutoConfigureAfter(LogAutoConfiguration.class)
 public class TerraTraceAutoConfiguration {
 
     @Bean
