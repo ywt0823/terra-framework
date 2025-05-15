@@ -1,11 +1,11 @@
-package com.terra.framework.strata.helper;
+package com.terra.framework.strata.config.mysql.adapter;
 
-import com.terra.framework.strata.helper.AutoCacheManager.MultiLevelCache;
-import com.terra.framework.strata.helper.SqlMetricsCollector.HotSqlInfo;
-import com.terra.framework.strata.helper.SqlMetricsCollector.HotTableInfo;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager.MultiLevelCache;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter.HotSqlInfo;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter.HotTableInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +15,14 @@ import java.util.concurrent.TimeUnit;
  * 缓存控制器
  * 提供缓存管理和控制功能的接口
  */
-@Component
 @Slf4j
 @RequiredArgsConstructor
-public class CacheController {
+public class CacheAdapter {
 
     private final AutoCacheManager cacheManager;
-    private final SqlMetricsCollector metricsCollector;
+    private final SqlMetricsAdapter metricsCollector;
+
+
 
     /**
      * 手动创建多级缓存

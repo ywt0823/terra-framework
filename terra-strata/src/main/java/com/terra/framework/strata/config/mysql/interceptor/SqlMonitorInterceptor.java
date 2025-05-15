@@ -1,8 +1,6 @@
-package com.terra.framework.strata.config.mysql;
+package com.terra.framework.strata.config.mysql.interceptor;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.baomidou.mybatisplus.core.toolkit.StringPool;
-import com.terra.framework.strata.helper.SqlMetricsCollector;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
@@ -17,9 +15,10 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.util.CollectionUtils;
 
-import java.sql.SQLException;
 import java.text.DateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,9 +35,9 @@ import java.util.regex.Pattern;
 public class SqlMonitorInterceptor implements Interceptor {
 
     private static final Pattern TABLE_PATTERN = Pattern.compile("\\s+FROM\\s+`?(\\w+)`?", Pattern.CASE_INSENSITIVE);
-    private final SqlMetricsCollector metricsCollector;
+    private final SqlMetricsAdapter metricsCollector;
 
-    public SqlMonitorInterceptor(SqlMetricsCollector metricsCollector) {
+    public SqlMonitorInterceptor(SqlMetricsAdapter metricsCollector) {
         this.metricsCollector = metricsCollector;
     }
 
@@ -57,7 +56,7 @@ public class SqlMonitorInterceptor implements Interceptor {
         String sqlId = mappedStatement.getId();
         Configuration configuration = mappedStatement.getConfiguration();
         String sql = getSql(configuration, boundSql);
-        
+
         // 执行原始方法
         Object result;
         try {
@@ -67,17 +66,17 @@ public class SqlMonitorInterceptor implements Interceptor {
             metricsCollector.recordErrorSql(sqlId, sql);
             throw e;
         }
-        
+
         // 收集SQL指标
         long executionTime = System.currentTimeMillis() - startTime;
         metricsCollector.recordSqlExecution(sqlId, sql, executionTime);
-        
+
         // 提取表名并记录
         String tableName = extractTableName(sql);
         if (tableName != null) {
             metricsCollector.recordTableAccess(tableName, executionTime);
         }
-        
+
         return result;
     }
 
@@ -97,11 +96,11 @@ public class SqlMonitorInterceptor implements Interceptor {
         Object parameterObject = boundSql.getParameterObject();
         List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
         String sql = boundSql.getSql().replaceAll("[\\s]+", " ");
-        
+
         if (CollectionUtils.isEmpty(parameterMappings) || parameterObject == null) {
             return sql;
         }
-        
+
         TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
         if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
             sql = sql.replaceFirst("\\?", getParameterValue(parameterObject));

@@ -1,23 +1,22 @@
-package com.terra.framework.strata.helper;
+package com.terra.framework.strata.config.mysql.aspect;
 
-import com.terra.framework.strata.helper.AutoCacheManager.MultiLevelCache;
+import com.terra.framework.strata.config.mysql.annonation.AutoCache;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager.MultiLevelCache;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 
 /**
  * 自动缓存切面
  * 处理使用AutoCache注解的方法
  */
 @Aspect
-@Component
 @Slf4j
 public class AutoCacheAspect {
 
@@ -32,12 +31,12 @@ public class AutoCacheAspect {
     /**
      * 拦截使用AutoCache注解的方法
      */
-    @Around("@annotation(com.terra.framework.strata.helper.AutoCache)")
+    @Around("@annotation(com.terra.framework.strata.config.mysql.annonation.AutoCache)")
     public Object aroundCachedMethod(ProceedingJoinPoint point) throws Throwable {
         MethodSignature signature = (MethodSignature) point.getSignature();
         Method method = signature.getMethod();
         AutoCache annotation = method.getAnnotation(AutoCache.class);
-        
+
         if (annotation == null) {
             return point.proceed();
         }
@@ -47,7 +46,7 @@ public class AutoCacheAspect {
         if (cacheName.isEmpty()) {
             cacheName = method.getDeclaringClass().getName() + "." + method.getName();
         }
-        
+
         // 生成缓存键
         String cacheKey = generateCacheKey(
                 annotation.keyPrefix().isEmpty() ? cacheName : annotation.keyPrefix(),
@@ -65,26 +64,23 @@ public class AutoCacheAspect {
         MultiLevelCache<String, Object> cache = cacheManager.getMultiLevelCache(cacheName);
         if (cache == null) {
             cache = cacheManager.createMultiLevelCache(
-                    cacheName, 
-                    annotation.localMaxSize(), 
-                    annotation.localExpireTime(), 
-                    annotation.redisExpireTime(), 
+                    cacheName,
+                    annotation.localMaxSize(),
+                    annotation.localExpireTime(),
+                    annotation.redisExpireTime(),
                     annotation.timeUnit()
             );
         }
 
         // 从缓存获取结果
-        return cache.get(cacheKey, new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                try {
-                    return point.proceed();
-                } catch (Throwable e) {
-                    if (e instanceof Exception) {
-                        throw (Exception) e;
-                    }
-                    throw new RuntimeException(e);
+        return cache.get(cacheKey, () -> {
+            try {
+                return point.proceed();
+            } catch (Throwable e) {
+                if (e instanceof Exception) {
+                    throw (Exception) e;
                 }
+                throw new RuntimeException(e);
             }
         });
     }
@@ -96,20 +92,20 @@ public class AutoCacheAspect {
         if (args == null || args.length == 0) {
             return prefix;
         }
-        
+
         StringBuilder sb = new StringBuilder(prefix).append(":");
-        
+
         for (Object arg : args) {
             if (arg == null) {
                 sb.append("null");
             } else if (arg.getClass().isArray()) {
                 sb.append(Arrays.deepToString((Object[]) arg));
             } else {
-                sb.append(arg.toString());
+                sb.append(arg);
             }
             sb.append(":");
         }
-        
+
         // 防止key过长
         String key = sb.toString();
         if (key.length() > 200) {

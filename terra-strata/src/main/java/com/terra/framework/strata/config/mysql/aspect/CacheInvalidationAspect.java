@@ -1,12 +1,13 @@
-package com.terra.framework.strata.helper;
+package com.terra.framework.strata.config.mysql.aspect;
 
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -20,14 +21,13 @@ import java.util.regex.Pattern;
  * 用于在数据变更时自动清除相关缓存
  */
 @Aspect
-@Component
 @Slf4j
 public class CacheInvalidationAspect {
 
     @Value("${terra.cache.invalidation.enabled:true}")
     private boolean invalidationEnabled;
 
-    private final SqlMetricsCollector metricsCollector;
+    private final SqlMetricsAdapter metricsCollector;
     private final AutoCacheManager cacheManager;
     
     // 存储表与缓存的映射关系，用于在表数据变更时快速查找需要清除的缓存
@@ -37,7 +37,7 @@ public class CacheInvalidationAspect {
     private static final Pattern WRITE_METHOD_PATTERN = Pattern.compile(
             "^(insert|update|delete|remove|add|edit|modify|save|create).*", Pattern.CASE_INSENSITIVE);
 
-    public CacheInvalidationAspect(SqlMetricsCollector metricsCollector, AutoCacheManager cacheManager) {
+    public CacheInvalidationAspect(SqlMetricsAdapter metricsCollector, AutoCacheManager cacheManager) {
         this.metricsCollector = metricsCollector;
         this.cacheManager = cacheManager;
     }
@@ -106,7 +106,7 @@ public class CacheInvalidationAspect {
         
         // 2. 清除热点表缓存
         if (metricsCollector.isHotTable(tableName)) {
-            SqlMetricsCollector.HotTableInfo hotTableInfo = metricsCollector.getHotTableInfo(tableName);
+            SqlMetricsAdapter.HotTableInfo hotTableInfo = metricsCollector.getHotTableInfo(tableName);
             if (hotTableInfo != null) {
                 hotTableInfo.getLocalCache().invalidateAll();
                 hotTableInfo.getRedisCache().invalidateAll();

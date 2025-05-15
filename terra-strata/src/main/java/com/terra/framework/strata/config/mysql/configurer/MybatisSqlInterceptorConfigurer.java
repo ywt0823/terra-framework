@@ -1,7 +1,8 @@
-package com.terra.framework.strata.config.mysql;
+package com.terra.framework.strata.config.mysql.configurer;
 
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.terra.framework.strata.config.mysql.interceptor.SqlMonitorInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;

@@ -1,22 +1,27 @@
 package com.terra.framework.strata.config.mysql;
 
 import com.terra.framework.geyser.factory.CacheFactory;
-import com.terra.framework.strata.helper.AutoCacheManager;
-import com.terra.framework.strata.helper.SqlMetricsCollector;
+import com.terra.framework.strata.config.mysql.adapter.CacheAdapter;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter;
+import com.terra.framework.strata.config.mysql.aspect.AutoCacheAspect;
+import com.terra.framework.strata.config.mysql.aspect.CacheInvalidationAspect;
+import com.terra.framework.strata.config.mysql.aspect.SqlAutoCacheAspect;
+import com.terra.framework.strata.config.mysql.configurer.MybatisSqlInterceptorConfigurer;
+import com.terra.framework.strata.config.mysql.interceptor.SqlMonitorInterceptor;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
+import com.terra.framework.strata.config.redis.RedisCacheAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * SQL自动缓存配置
  * 注册SQL监控和自动缓存相关组件
  */
 @Slf4j
-@Configuration
-@ConditionalOnProperty(prefix = "terra.cache", name = "enabled", havingValue = "true", matchIfMissing = true)
+@AutoConfigureAfter({RedisCacheAutoConfiguration.class, TerraDruidAutoConfiguration.class})
 public class SqlAutoCacheAutoConfiguration {
 
     /**
@@ -36,21 +41,30 @@ public class SqlAutoCacheAutoConfiguration {
      */
     @Bean
     @ConditionalOnBean(AutoCacheManager.class)
-    public SqlMetricsCollector sqlMetricsCollector(AutoCacheManager autoCacheManager) {
+    public SqlMetricsAdapter sqlMetricsCollector(AutoCacheManager autoCacheManager) {
         log.info("初始化SQL指标收集器");
-        return new SqlMetricsCollector(autoCacheManager);
+        return new SqlMetricsAdapter(autoCacheManager);
+    }
+
+    /**
+     * 注册缓存处理器
+     */
+    @Bean
+    public CacheAdapter cacheAdapter(AutoCacheManager autoCacheManager, SqlMetricsAdapter sqlMetricsAdapter) {
+        log.info("初始化缓存指标收集器");
+        return new CacheAdapter(autoCacheManager, sqlMetricsAdapter);
     }
 
     /**
      * 注册SQL监控拦截器
      */
     @Bean
-    @ConditionalOnBean(SqlMetricsCollector.class)
-    public SqlMonitorInterceptor sqlMonitorInterceptor(SqlMetricsCollector metricsCollector) {
+    @ConditionalOnBean(SqlMetricsAdapter.class)
+    public SqlMonitorInterceptor sqlMonitorInterceptor(SqlMetricsAdapter metricsCollector) {
         log.info("初始化SQL监控拦截器");
         return new SqlMonitorInterceptor(metricsCollector);
     }
-    
+
     /**
      * 将SQL监控拦截器加入MybatisPlus拦截器链
      */
@@ -58,5 +72,23 @@ public class SqlAutoCacheAutoConfiguration {
     @ConditionalOnBean(SqlMonitorInterceptor.class)
     public MybatisSqlInterceptorConfigurer mybatisSqlInterceptorConfigurer(SqlMonitorInterceptor sqlMonitorInterceptor) {
         return new MybatisSqlInterceptorConfigurer(sqlMonitorInterceptor);
+    }
+
+    @Bean
+    @ConditionalOnBean({AutoCacheManager.class, CacheInvalidationAspect.class})
+    public AutoCacheAspect autoCacheAspect(AutoCacheManager cacheManager, CacheInvalidationAspect invalidationAspect) {
+        return new AutoCacheAspect(cacheManager, invalidationAspect);
+    }
+
+    @Bean
+    @ConditionalOnBean({AutoCacheManager.class, SqlMetricsAdapter.class})
+    public CacheInvalidationAspect sqlMetricsAdapter(AutoCacheManager cacheManager, SqlMetricsAdapter sqlMetricsAdapter) {
+        return new CacheInvalidationAspect(sqlMetricsAdapter, cacheManager);
+    }
+
+    @Bean
+    @ConditionalOnBean({AutoCacheManager.class, SqlMetricsAdapter.class})
+    public SqlAutoCacheAspect sqlAutoCacheAspect(AutoCacheManager cacheManager, SqlMetricsAdapter sqlMetricsAdapter) {
+        return new SqlAutoCacheAspect(sqlMetricsAdapter, cacheManager);
     }
 } 

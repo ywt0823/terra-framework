@@ -1,4 +1,4 @@
-package com.terra.framework.strata.helper;
+package com.terra.framework.strata.config.mysql.manager;
 
 import com.terra.framework.geyser.factory.CacheFactory;
 import com.terra.framework.geyser.options.CacheOperation;
@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
  * 负责管理本地缓存和Redis缓存
  */
 @Slf4j
-@Component
 public class AutoCacheManager {
 
     // 本地缓存工厂

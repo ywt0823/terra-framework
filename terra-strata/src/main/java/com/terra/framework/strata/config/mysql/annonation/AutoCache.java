@@ -1,4 +1,4 @@
-package com.terra.framework.strata.helper;
+package com.terra.framework.strata.config.mysql.annonation;
 
 import java.lang.annotation.*;
 import java.util.concurrent.TimeUnit;

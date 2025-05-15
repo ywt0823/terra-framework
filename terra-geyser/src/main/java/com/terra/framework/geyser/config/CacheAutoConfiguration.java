@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Bean;
  */
 public class CacheAutoConfiguration {
 
-    @Bean
+    @Bean("defaultCacheFactory")
     @ConditionalOnMissingBean
     public CacheFactory guavaCacheFactory() {
         return new DefaultCacheFactory();

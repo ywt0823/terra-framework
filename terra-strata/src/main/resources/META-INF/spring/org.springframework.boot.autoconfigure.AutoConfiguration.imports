@@ -3,3 +3,4 @@ com.terra.framework.strata.config.redis.TerraRedisAutoConfiguration
 com.terra.framework.strata.config.redis.RedisQueueAutoConfiguration
 com.terra.framework.strata.config.redis.RedissonLockAutoConfiguration
 com.terra.framework.strata.config.redis.RedisCacheAutoConfiguration
+com.terra.framework.strata.config.mysql.SqlAutoCacheAutoConfiguration

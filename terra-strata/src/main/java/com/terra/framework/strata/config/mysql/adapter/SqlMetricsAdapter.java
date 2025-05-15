@@ -1,6 +1,7 @@
-package com.terra.framework.strata.helper;
+package com.terra.framework.strata.config.mysql.adapter;
 
 import com.terra.framework.geyser.options.CacheOperation;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
  * 负责收集SQL执行情况，探测热点SQL
  */
 @Slf4j
-public class SqlMetricsCollector {
+public class SqlMetricsAdapter {
 
     // 热点SQL检测阈值
     @Value("${terra.cache.sql.hot-threshold:100}")
@@ -43,7 +44,7 @@ public class SqlMetricsCollector {
     // 自动缓存管理器
     private final AutoCacheManager autoCacheManager;
 
-    public SqlMetricsCollector(AutoCacheManager autoCacheManager) {
+    public SqlMetricsAdapter(AutoCacheManager autoCacheManager) {
         this.autoCacheManager = autoCacheManager;
     }
 

@@ -1,15 +1,16 @@
-package com.terra.framework.strata.helper;
+package com.terra.framework.strata.config.mysql.aspect;
 
-import com.terra.framework.strata.helper.AutoCacheManager.MultiLevelCache;
-import com.terra.framework.strata.helper.SqlMetricsCollector.HotSqlInfo;
-import com.terra.framework.strata.helper.SqlMetricsCollector.HotTableInfo;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
+import com.terra.framework.strata.config.mysql.manager.AutoCacheManager.MultiLevelCache;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter.HotSqlInfo;
+import com.terra.framework.strata.config.mysql.adapter.SqlMetricsAdapter.HotTableInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -21,11 +22,10 @@ import java.util.concurrent.TimeUnit;
  * 自动拦截Mapper查询，应用缓存策略
  */
 @Aspect
-@Component
 @Slf4j
 public class SqlAutoCacheAspect {
 
-    private final SqlMetricsCollector metricsCollector;
+    private final SqlMetricsAdapter metricsCollector;
     private final AutoCacheManager cacheManager;
 
     @Value("${terra.cache.auto-enable:true}")
@@ -34,7 +34,7 @@ public class SqlAutoCacheAspect {
     @Value("${terra.cache.key-prefix:autosql_}")
     private String cacheKeyPrefix;
 
-    public SqlAutoCacheAspect(SqlMetricsCollector metricsCollector, AutoCacheManager cacheManager) {
+    public SqlAutoCacheAspect(SqlMetricsAdapter metricsCollector, AutoCacheManager cacheManager) {
         this.metricsCollector = metricsCollector;
         this.cacheManager = cacheManager;
     }
@@ -52,7 +52,7 @@ public class SqlAutoCacheAspect {
         MethodSignature signature = (MethodSignature) point.getSignature();
         Method method = signature.getMethod();
         String methodName = method.getName();
-        
+
         // 只处理查询方法，非查询方法直接执行
         if (!isQueryMethod(methodName)) {
             return point.proceed();
@@ -60,7 +60,7 @@ public class SqlAutoCacheAspect {
 
         // 获取方法全限定名
         String sqlId = method.getDeclaringClass().getName() + "." + methodName;
-        
+
         // 1. 检查是否为热点SQL
         if (metricsCollector.isHotSql(sqlId)) {
             HotSqlInfo hotSqlInfo = metricsCollector.getHotSqlInfo(sqlId);
@@ -122,9 +122,9 @@ public class SqlAutoCacheAspect {
      * 处理热点表的缓存
      */
     private Object handleHotTableCache(ProceedingJoinPoint point, HotTableInfo hotTableInfo,
-                                      String tableName, String methodName, Object[] args) throws Throwable {
+                                       String tableName, String methodName, Object[] args) throws Throwable {
         String cacheKey = generateCacheKey(tableName + "." + methodName, args);
-        
+
         // 使用多级缓存策略
         MultiLevelCache<String, Object> multiCache = cacheManager.getMultiLevelCache(tableName);
         if (multiCache == null) {
@@ -153,13 +153,13 @@ public class SqlAutoCacheAspect {
      * 判断是否为查询方法
      */
     private boolean isQueryMethod(String methodName) {
-        return methodName.startsWith("get") || 
-               methodName.startsWith("find") || 
-               methodName.startsWith("select") || 
-               methodName.startsWith("query") || 
-               methodName.startsWith("list") || 
-               methodName.startsWith("count") || 
-               methodName.startsWith("search");
+        return methodName.startsWith("get") ||
+                methodName.startsWith("find") ||
+                methodName.startsWith("select") ||
+                methodName.startsWith("query") ||
+                methodName.startsWith("list") ||
+                methodName.startsWith("count") ||
+                methodName.startsWith("search");
     }
 
     /**
@@ -169,10 +169,10 @@ public class SqlAutoCacheAspect {
         if (args == null || args.length == 0) {
             return cacheKeyPrefix + prefix;
         }
-        
+
         StringBuilder sb = new StringBuilder(cacheKeyPrefix);
         sb.append(prefix).append("_");
-        
+
         for (Object arg : args) {
             if (arg == null) {
                 sb.append("null");
@@ -183,7 +183,7 @@ public class SqlAutoCacheAspect {
             }
             sb.append("_");
         }
-        
+
         // 防止key过长
         String key = sb.toString();
         if (key.length() > 200) {
