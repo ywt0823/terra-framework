@@ -1,13 +1,16 @@
 package com.terra.framework.strata.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.terra.framework.geyser.config.CacheAutoConfiguration;
 import com.terra.framework.geyser.factory.CacheFactory;
 import com.terra.framework.geyser.options.CacheOperation;
 import com.terra.framework.strata.helper.RedisKeyHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -25,7 +28,9 @@ import java.util.concurrent.TimeUnit;
  * @author terra
  */
 @Slf4j
+@ConditionalOnClass(CacheAutoConfiguration.class)
 @AutoConfigureAfter(TerraRedisAutoConfiguration.class)
+@AutoConfigureBefore(CacheAutoConfiguration.class)
 public class RedisCacheAutoConfiguration {
 
     @Bean
