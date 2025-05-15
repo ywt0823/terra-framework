@@ -18,6 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * AriesTraceFilter
@@ -54,41 +56,40 @@ public class TerraTraceFilter extends OncePerRequestFilter {
             return;
         }
 
-        long startTime = System.currentTimeMillis();
         String traceId = extractTraceId(request);
         String parentSpanId = request.getHeader(MDCTraceManager.X_PARENT_SPAN_ID);
         String spanId = traceIdGenerator.generateSpanId();
-
+        
+        long startTime = System.currentTimeMillis();
+        
         try {
-            // 设置上下文信息
-            contextHolder.setTraceId(traceId);
-            contextHolder.setParentSpanId(parentSpanId);
-            contextHolder.setSpanId(spanId);
-
-            // 通过统一的MDCTraceManager设置MDC
+            // 统一设置跟踪信息到MDC和上下文
             MDCTraceManager.setTraceInfo(traceId, spanId, parentSpanId);
+            
+            // 同步更新TraceContextHolder
+            contextHolder.setTraceId(traceId);
+            contextHolder.setSpanId(spanId);
+            contextHolder.setParentSpanId(parentSpanId);
 
-            // 设置响应头，用于调试和跟踪
-            response.setHeader(MDCTraceManager.X_TRACE_ID, traceId);
-            response.setHeader(MDCTraceManager.X_SPAN_ID, spanId);
-
-            logger.debug("链路追踪: traceId={}, spanId={}, parentSpanId={}, uri={}",
+            // 设置响应头，用于跨服务传递
+            Map<String, String> traceHeaders = MDCTraceManager.getTraceHeaders();
+            traceHeaders.forEach(response::setHeader);
+            
+            logger.debug("链路追踪: traceId={}, spanId={}, parentSpanId={}, uri={}", 
                     traceId, spanId, parentSpanId, request.getRequestURI());
-
+            
             // 执行过滤链
             filterChain.doFilter(request, response);
-
+            
         } finally {
-            // 记录请求完成时间
+            // 记录请求耗时
             long duration = System.currentTimeMillis() - startTime;
-            logger.debug("链路追踪完成: traceId={}, uri={}, duration={}ms", 
+            logger.debug("请求处理完成: traceId={}, uri={}, 耗时={}ms", 
                     traceId, request.getRequestURI(), duration);
             
-            // 通过统一的MDCTraceManager清除MDC
-            MDCTraceManager.clearTraceInfo();
-            
-            // 清理上下文
+            // 清理上下文和MDC
             contextHolder.clear();
+            MDCTraceManager.clearTraceInfo();
         }
     }
 
@@ -98,13 +99,13 @@ public class TerraTraceFilter extends OncePerRequestFilter {
         if (!StringUtils.hasText(traceId)) {
             traceId = request.getHeader(MDCTraceManager.X_TRACE_ID);
         }
-
+        
         // 如果没有，则生成新的TraceId
         if (!StringUtils.hasText(traceId)) {
             traceId = traceIdGenerator.generateTraceId();
             logger.debug("生成新的traceId: {}", traceId);
         }
-
+        
         return traceId;
     }
 

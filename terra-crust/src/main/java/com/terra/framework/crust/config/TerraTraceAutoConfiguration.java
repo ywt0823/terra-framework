@@ -7,6 +7,7 @@ import com.terra.framework.crust.properties.TerraTraceProperties;
 import com.terra.framework.crust.trace.TraceContextHolder;
 import com.terra.framework.crust.trace.TraceDataCollector;
 import com.terra.framework.crust.trace.TraceIdGenerator;
+import com.terra.framework.crust.trace.TracingTaskDecorator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,6 +16,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.task.TaskDecorator;
 
 @Configuration
 @EnableConfigurationProperties(TerraTraceProperties.class)
@@ -31,6 +33,12 @@ public class TerraTraceAutoConfiguration {
     @ConditionalOnMissingBean
     public TraceContextHolder traceContextHolder() {
         return new TraceContextHolder();
+    }
+    
+    @Bean
+    @ConditionalOnMissingBean(name = "tracingTaskDecorator")
+    public TaskDecorator tracingTaskDecorator() {
+        return new TracingTaskDecorator();
     }
 
     @Bean
