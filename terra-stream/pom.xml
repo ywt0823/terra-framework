@@ -11,13 +11,32 @@
 	<packaging>jar</packaging>
 	
 	<name>terra-stream</name>
-	<url>http://maven.apache.org</url>
 	
 	<properties>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	
 	<dependencies>
-
+		
+		<!-- Spring Boot 相关依赖 -->
+		<dependency>
+			<groupId>com.terra.framework</groupId>
+			<artifactId>terra-geyser</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- RabbitMQ 依赖 -->
+		<dependency>
+			<groupId>org.springframework.amqp</groupId>
+			<artifactId>spring-rabbit</artifactId>
+			<version>3.1.2</version>
+			<optional>true</optional>
+		</dependency>
+	
+	
 	</dependencies>
+
 </project>
