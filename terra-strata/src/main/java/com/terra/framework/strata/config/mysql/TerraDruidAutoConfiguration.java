@@ -1,4 +1,4 @@
-package com.terra.framework.strata.config;
+package com.terra.framework.strata.config.mysql;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;

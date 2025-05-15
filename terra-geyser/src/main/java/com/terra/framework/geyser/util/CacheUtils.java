@@ -13,13 +13,13 @@ import java.util.concurrent.TimeUnit;
  * @since 2022/4/28
  */
 @Slf4j
-public class GuavaCacheUtils {
+public class CacheUtils {
 
 
     private final CacheFactory cacheFactory;
 
 
-    public GuavaCacheUtils(CacheFactory cacheFactory) {
+    public CacheUtils(CacheFactory cacheFactory) {
         this.cacheFactory = cacheFactory;
     }
 

@@ -1,4 +1,4 @@
-com.terra.framework.strata.config.TerraDruidAutoConfiguration
-com.terra.framework.strata.config.TerraRedisAutoConfiguration
-com.terra.framework.strata.config.RedisQueueConfig
-com.terra.framework.strata.config.RedissonLockAutoConfiguration
+com.terra.framework.strata.config.mysql.TerraDruidAutoConfiguration
+com.terra.framework.strata.config.redis.TerraRedisAutoConfiguration
+com.terra.framework.strata.config.redis.RedisQueueConfig
+com.terra.framework.strata.config.redis.RedissonLockAutoConfiguration

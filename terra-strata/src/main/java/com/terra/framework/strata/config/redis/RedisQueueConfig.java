@@ -1,4 +1,4 @@
-package com.terra.framework.strata.config;
+package com.terra.framework.strata.config.redis;
 
 import org.redisson.api.RBlockingQueue;
 import org.redisson.api.RDelayedQueue;

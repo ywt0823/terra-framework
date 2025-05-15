@@ -1,4 +1,4 @@
-package com.terra.framework.strata.config;
+package com.terra.framework.strata.config.redis;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

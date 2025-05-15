@@ -2,10 +2,9 @@ package com.terra.framework.geyser.config;
 
 import com.terra.framework.geyser.factory.CacheFactory;
 import com.terra.framework.geyser.factory.DefaultCacheFactory;
-import com.terra.framework.geyser.util.GuavaCacheUtils;
+import com.terra.framework.geyser.util.CacheUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * 缓存自动配置类
@@ -22,7 +21,7 @@ public class CacheAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public GuavaCacheUtils guavaCacheUtils(CacheFactory cacheFactory) {
-        return new GuavaCacheUtils(cacheFactory);
+    public CacheUtils guavaCacheUtils(CacheFactory cacheFactory) {
+        return new CacheUtils(cacheFactory);
     }
 } 
