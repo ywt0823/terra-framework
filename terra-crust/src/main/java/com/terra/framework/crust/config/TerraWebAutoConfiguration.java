@@ -12,6 +12,8 @@ import com.terra.framework.crust.interceptor.TraceIdRequestInterceptor;
 import com.terra.framework.crust.interceptor.TraceIdRestTemplateCustomizer;
 import com.terra.framework.crust.properties.ValhallaLoggingProperties;
 import com.terra.framework.crust.properties.ValhallaWebContextExcludeProperties;
+import com.terra.framework.crust.trace.TraceContextHolder;
+import com.terra.framework.crust.trace.TraceIdGenerator;
 import jakarta.servlet.Servlet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.springframework.beans.factory.ObjectProvider;
@@ -144,8 +146,8 @@ public class TerraWebAutoConfiguration {
 
 
     @Bean
-    public TraceIdRequestInterceptor traceIdRequestInterceptor() {
-        return new TraceIdRequestInterceptor();
+    public TraceIdRequestInterceptor traceIdRequestInterceptor(TraceContextHolder traceContextHolder) {
+        return new TraceIdRequestInterceptor(traceContextHolder);
     }
 
     /**
@@ -180,11 +182,11 @@ public class TerraWebAutoConfiguration {
     }
 
     @Bean
-    public FilterRegistrationBean<TerraTraceFilter> traceFilterRegistrationBean() {
+    public FilterRegistrationBean<TerraTraceFilter> traceFilterRegistrationBean(TraceIdGenerator traceIdGenerator, TraceContextHolder contextHolder) {
 
         FilterRegistrationBean<TerraTraceFilter> registration = new FilterRegistrationBean<>();
 
-        TerraTraceFilter terraTraceFilter = new TerraTraceFilter();
+        TerraTraceFilter terraTraceFilter = new TerraTraceFilter(traceIdGenerator, contextHolder);
         registration.setFilter(terraTraceFilter);
         registration.addUrlPatterns("/*");
         registration.setName("terraTraceFilter");
