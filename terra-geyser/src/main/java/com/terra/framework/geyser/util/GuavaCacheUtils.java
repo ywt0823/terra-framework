@@ -16,32 +16,32 @@ import java.util.concurrent.TimeUnit;
 public class GuavaCacheUtils {
 
 
-    private static CacheFactory cacheFactory;
+    private final CacheFactory cacheFactory;
 
 
     public GuavaCacheUtils(CacheFactory cacheFactory) {
-        GuavaCacheUtils.cacheFactory = cacheFactory;
+        this.cacheFactory = cacheFactory;
     }
 
 
     /**
      * 创建或获取一个访问后过期的缓存
      */
-    public static <K, V> CacheOperation<K, V> createAccessCache(String name, int maxSize, long expireAfterAccess, TimeUnit timeUnit) {
+    public <K, V> CacheOperation<K, V> createAccessCache(String name, int maxSize, long expireAfterAccess, TimeUnit timeUnit) {
         return cacheFactory.createAccessCache(name, maxSize, expireAfterAccess, timeUnit);
     }
 
     /**
      * 创建或获取一个写入后过期的缓存
      */
-    public static <K, V> CacheOperation<K, V> createWriteCache(String name, int maxSize, long expireAfterWrite, TimeUnit timeUnit) {
+    public <K, V> CacheOperation<K, V> createWriteCache(String name, int maxSize, long expireAfterWrite, TimeUnit timeUnit) {
         return cacheFactory.createWriteCache(name, maxSize, expireAfterWrite, timeUnit);
     }
 
     /**
      * 获取指定名称的缓存
      */
-    public static <K, V> CacheOperation<K, V> getCache(String name) {
+    public <K, V> CacheOperation<K, V> getCache(String name) {
         return cacheFactory.getCache(name);
     }
 
