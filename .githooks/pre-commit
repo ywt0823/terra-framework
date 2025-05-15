@@ -1,0 +1,22 @@
+#!/bin/sh
+
+echo "Running pre-commit checks..."
+
+# 运行 Maven 验证
+echo "Running Maven verify..."
+mvn verify -P code-quality
+
+# 检查最后一个命令的返回值
+if [ $? -ne 0 ]; then
+    echo "Code quality checks failed. Please fix the issues before committing."
+    exit 1
+fi
+
+# 检查是否有未解决的合并冲突
+if grep -r "^<<<<<<< HEAD" .; then
+    echo "Merge conflicts found. Please resolve them before committing."
+    exit 1
+fi
+
+echo "All pre-commit checks passed!"
+exit 0 
