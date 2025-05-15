@@ -3,35 +3,32 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.terra.framework</groupId>
-		<artifactId>terra-starter</artifactId>
+		<artifactId>terra-spring-boot-starter</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	
-	
-	<artifactId>terra-crust-starter</artifactId>
+	<artifactId>terra-bedrock-spring-boot-starter</artifactId>
 	<packaging>jar</packaging>
 	
-	<name>terra-crust-starter</name>
+	<name>terra-bedrock-spring-boot-starter</name>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	
+
+	
 	<dependencies>
 		<dependency>
-			<groupId>com.terra.framework</groupId>
-			<artifactId>terra-bedrock-starter</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.terra.framework</groupId>
-			<artifactId>terra-crust</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter</artifactId>
 			<version>${spring.boot.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.terra.framework</groupId>
+			<artifactId>terra-bedrock</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
+	
 </project>

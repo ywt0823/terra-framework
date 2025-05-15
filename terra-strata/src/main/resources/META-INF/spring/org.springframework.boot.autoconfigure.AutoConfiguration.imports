@@ -1,1 +1,4 @@
 com.terra.framework.strata.config.TerraDruidAutoConfiguration
+com.terra.framework.strata.config.TerraRedisAutoConfiguration
+com.terra.framework.strata.config.RedisQueueConfig
+com.terra.framework.strata.config.RedissonLockAutoConfiguration

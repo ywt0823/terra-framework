@@ -12,7 +12,7 @@
 		<module>terra-sediment</module>
 		<module>terra-bedrock</module>
 		<module>terra-crust</module>
-		<module>terra-starter</module>
+		<module>terra-spring-boot-starter</module>
 		<module>terra-strata</module>
         <module>terra-geyser</module>
     </modules>

@@ -3,14 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.terra.framework</groupId>
-        <artifactId>terra-starter</artifactId>
+        <artifactId>terra-spring-boot-starter</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>terra-geyser-starter</artifactId>
+    <artifactId>terra-geyser-spring-boot-starter</artifactId>
     <packaging>jar</packaging>
 
-    <name>terra-geyser-starte</name>
+    <name>terra-geyser-spring-boot-starter</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,18 +19,13 @@
     <dependencies>
         <dependency>
             <groupId>com.terra.framework</groupId>
-            <artifactId>terra-bedrock-starter</artifactId>
+            <artifactId>terra-bedrock-spring-boot-starter</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-geyser</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-            <version>3.2.4</version>
         </dependency>
     </dependencies>
 </project>

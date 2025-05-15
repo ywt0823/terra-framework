@@ -1,4 +1,4 @@
-package com.terra.framework.geyser.helper;
+package com.terra.framework.strata.helper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;

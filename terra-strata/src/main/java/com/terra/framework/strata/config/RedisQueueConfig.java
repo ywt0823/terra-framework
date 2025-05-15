@@ -1,4 +1,4 @@
-package com.terra.framework.geyser.config;
+package com.terra.framework.strata.config;
 
 import org.redisson.api.RBlockingQueue;
 import org.redisson.api.RDelayedQueue;

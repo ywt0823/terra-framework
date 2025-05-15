@@ -3,14 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.terra.framework</groupId>
-        <artifactId>terra-starter</artifactId>
+        <artifactId>terra-spring-boot-starter</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>terra-strata-starter</artifactId>
+    <artifactId>terra-strata-spring-boot-starter</artifactId>
     <packaging>jar</packaging>
 
-    <name>terra-strata-starter</name>
+    <name>terra-strata-spring-boot-starter</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>com.terra.framework</groupId>
-            <artifactId>terra-bedrock-starter</artifactId>
+            <artifactId>terra-bedrock-spring-boot-starter</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -41,6 +41,22 @@
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>2.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>3.2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>3.33.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.terra.framework</groupId>
+            <artifactId>terra-geyser-spring-boot-starter</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

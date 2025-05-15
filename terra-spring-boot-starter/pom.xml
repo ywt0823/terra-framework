@@ -6,16 +6,16 @@
 		<artifactId>terra-framework</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>terra-starter</artifactId>
+	<artifactId>terra-spring-boot-starter</artifactId>
 	<packaging>pom</packaging>
 	
 	<name>terra-starter</name>
 	
 	<modules>
-		<module>terra-bedrock-starter</module>
-		<module>terra-crust-starter</module>
-        <module>terra-strata-starter</module>
-		<module>terra-geyser-starter</module>
+		<module>terra-bedrock-spring-boot-starter</module>
+		<module>terra-crust-spring-boot-starter</module>
+		<module>terra-strata-spring-boot-starter</module>
+		<module>terra-geyser-spring-boot-starter</module>
 	</modules>
 	
 	

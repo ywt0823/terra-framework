@@ -1,4 +1,4 @@
-package com.terra.framework.geyser.config;
+package com.terra.framework.strata.config;
 
 import com.terra.framework.common.lock.AbstractLock;
 import lombok.AllArgsConstructor;
