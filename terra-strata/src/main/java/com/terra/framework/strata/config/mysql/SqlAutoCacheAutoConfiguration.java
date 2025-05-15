@@ -9,6 +9,7 @@ import com.terra.framework.strata.config.mysql.aspect.SqlAutoCacheAspect;
 import com.terra.framework.strata.config.mysql.configurer.MybatisSqlInterceptorConfigurer;
 import com.terra.framework.strata.config.mysql.interceptor.SqlMonitorInterceptor;
 import com.terra.framework.strata.config.mysql.manager.AutoCacheManager;
+import com.terra.framework.strata.config.redis.TerraRedisAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -20,7 +21,7 @@ import org.springframework.context.annotation.Bean;
  * 注册SQL监控和自动缓存相关组件
  */
 @Slf4j
-@AutoConfigureAfter({RedisCacheAutoConfiguration.class, TerraDruidAutoConfiguration.class})
+@AutoConfigureAfter({TerraRedisAutoConfiguration.class, TerraDruidAutoConfiguration.class})
 public class SqlAutoCacheAutoConfiguration {
 
     /**

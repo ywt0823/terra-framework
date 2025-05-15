@@ -29,7 +29,6 @@
 			<groupId>com.terra.framework</groupId>
 			<artifactId>terra-geyser</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
