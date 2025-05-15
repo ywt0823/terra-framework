@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 
 @AutoConfigureAfter(TerraRedisAutoConfiguration.class)
-public class RedisQueueConfig {
+public class RedisQueueAutoConfiguration {
 
     @Bean
     public RBlockingQueue<String> blockingQueue(RedissonClient redissonClient) {
