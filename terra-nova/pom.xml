@@ -42,6 +42,7 @@
             <version>${langchain4j.version}</version>
         </dependency>
 
+
         <!-- Redis支持 -->
         <dependency>
             <groupId>redis.clients</groupId>
