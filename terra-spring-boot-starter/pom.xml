@@ -8,18 +8,19 @@
 	</parent>
 	<artifactId>terra-spring-boot-starter</artifactId>
 	<packaging>pom</packaging>
-	
-	<name>terra-starter</name>
-	
+
+	<name>terra-spring-boot-starter</name>
+
 	<modules>
 		<module>terra-bedrock-spring-boot-starter</module>
 		<module>terra-crust-spring-boot-starter</module>
 		<module>terra-strata-spring-boot-starter</module>
 		<module>terra-geyser-spring-boot-starter</module>
         <module>terra-stream-spring-boot-starter</module>
+        <module>terra-nova-spring-boot-starter</module>
     </modules>
-	
-	
+
+
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
