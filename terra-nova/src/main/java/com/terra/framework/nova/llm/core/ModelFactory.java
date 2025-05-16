@@ -4,6 +4,7 @@ import com.terra.framework.common.util.httpclient.HttpClientUtils;
 import com.terra.framework.nova.llm.exception.UnsupportedModelException;
 import com.terra.framework.nova.llm.model.base.LLMModel;
 import com.terra.framework.nova.llm.model.deepseek.DeepSeekModel;
+import com.terra.framework.nova.llm.model.dify.DifyModel;
 import com.terra.framework.nova.llm.model.tongyi.TongyiModel;
 
 /**
@@ -24,6 +25,7 @@ public class ModelFactory {
         return switch (type) {
             case DEEPSEEK -> new DeepSeekModel(config, httpClientUtils);
             case TONGYI -> new TongyiModel(config, httpClientUtils);
+            case DIFY -> new DifyModel(config, httpClientUtils);
         };
     }
 }

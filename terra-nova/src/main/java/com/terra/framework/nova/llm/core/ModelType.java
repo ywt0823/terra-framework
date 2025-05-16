@@ -12,5 +12,10 @@ public enum ModelType {
     /**
      * 通义千问模型
      */
-    TONGYI
+    TONGYI,
+    
+    /**
+     * Dify.AI平台
+     */
+    DIFY
 } 

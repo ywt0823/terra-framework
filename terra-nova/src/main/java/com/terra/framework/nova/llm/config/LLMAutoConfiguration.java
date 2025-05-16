@@ -1,15 +1,18 @@
 package com.terra.framework.nova.llm.config;
 
 import com.terra.framework.common.util.httpclient.HttpClientUtils;
-import com.terra.framework.nova.llm.model.base.LLMModel;
 import com.terra.framework.nova.llm.core.ModelConfig;
 import com.terra.framework.nova.llm.core.ModelType;
 import com.terra.framework.nova.llm.manager.ModelManager;
+import com.terra.framework.nova.llm.model.base.LLMModel;
 import com.terra.framework.nova.llm.properties.LLMProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * LLM自动配置类
@@ -58,6 +61,26 @@ public class LLMAutoConfiguration {
             manager.registerConfig("tongyi", tongyiConfig);
         }
 
+        // 配置Dify模型
+        if (properties.getDify().getApiKey() != null && properties.getDify().getAppId() != null) {
+            Map<String, Object> extraParams = new HashMap<>(properties.getDify().getExtraParams());
+            extraParams.put("appId", properties.getDify().getAppId());
+            extraParams.put("useKnowledgeBase", properties.getDify().isUseKnowledgeBase());
+            extraParams.put("knowledgeBaseId", properties.getDify().getKnowledgeBaseId());
+
+            ModelConfig difyConfig = ModelConfig.builder()
+                .type(ModelType.DIFY)
+                .apiKey(properties.getDify().getApiKey())
+                .apiEndpoint(properties.getDify().getApiEndpoint())
+                .temperature(properties.getDify().getTemperature())
+                .maxTokens(properties.getDify().getMaxTokens())
+                .timeoutMs(properties.getDify().getTimeoutMs())
+                .maxRetries(properties.getDify().getMaxRetries())
+                .extraParams(extraParams)
+                .build();
+            manager.registerConfig("dify", difyConfig);
+        }
+
         return manager;
     }
 
@@ -79,5 +102,15 @@ public class LLMAutoConfiguration {
     @ConditionalOnProperty(prefix = "terra.nova.llm.tongyi", name = "api-key")
     public LLMModel tongyiModel(ModelManager modelManager) {
         return modelManager.getModel("tongyi");
+    }
+
+    /**
+     * 配置默认的Dify模型
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "difyModel")
+    @ConditionalOnProperty(prefix = "terra.nova.llm.dify", name = "api-key")
+    public LLMModel difyModel(ModelManager modelManager) {
+        return modelManager.getModel("dify");
     }
 }
