@@ -55,11 +55,6 @@
             <artifactId>terra-bedrock</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.terra.framework</groupId>
-            <artifactId>terra-geyser</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- 测试依赖 -->
         <dependency>
