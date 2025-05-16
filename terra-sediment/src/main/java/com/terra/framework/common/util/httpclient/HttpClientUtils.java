@@ -151,6 +151,25 @@ public class HttpClientUtils {
 
 
     /**
+     * GET提交
+     *
+     * @param url     请求路径
+     * @param charset 编码
+     * @param headers headers
+     * @return 返回结果
+     * @throws MalformedURLException
+     */
+    public JSONObject sendGetData(final String url, final Charset charset, final Header... headers) throws MalformedURLException {
+        // 通过请求对象获取响应对象
+        return getResult(Objects.requireNonNull(sendData(new URL(url), null, null, (apiUrl, body, contentType) -> {
+            HttpGet httpGet = getHttpGet(url);
+            httpGet.setHeaders(headers);
+            return closeableHttpClient.execute(httpGet);
+        })), charset);
+    }
+
+
+    /**
      * 获取HttpPost实体类
      *
      * @param url 路径

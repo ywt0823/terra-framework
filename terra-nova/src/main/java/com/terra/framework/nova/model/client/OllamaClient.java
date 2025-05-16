@@ -119,7 +119,7 @@ public class OllamaClient implements ModelClient {
             JSONObject testResponse = httpClientUtils.sendGetData(
                 baseUrl + "/api/tags",
                 StandardCharsets.UTF_8,
-                null
+                ""
             );
 
             if (testResponse != null && testResponse.containsKey("models")) {

@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>terra-nova</artifactId>
-    <name>Terra Nova</name>
+    <name>terra-nova</name>
     <description>LLM Pipeline and Prompt Engineering Framework</description>
 
     <properties>
@@ -41,7 +41,7 @@
             <artifactId>langchain4j-ollama</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
-        
+
         <!-- Redis支持 -->
         <dependency>
             <groupId>redis.clients</groupId>
