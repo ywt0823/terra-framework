@@ -5,6 +5,8 @@ import com.terra.framework.nova.model.client.ModelClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,6 +23,18 @@ public class DefaultModelRouter implements ModelRouter {
     private String defaultClientKey;
     private final RoutingStrategy strategy;
     private final AtomicInteger roundRobinCounter = new AtomicInteger(0);
+    private LoadBalancer loadBalancer;
+    
+    /**
+     * 构造函数
+     *
+     * @param strategy 路由策略
+     * @param loadBalancer 负载均衡器
+     */
+    public DefaultModelRouter(RoutingStrategy strategy, LoadBalancer loadBalancer) {
+        this.strategy = strategy;
+        this.loadBalancer = loadBalancer;
+    }
     
     /**
      * 构造函数
@@ -28,37 +42,60 @@ public class DefaultModelRouter implements ModelRouter {
      * @param strategy 路由策略
      */
     public DefaultModelRouter(RoutingStrategy strategy) {
-        this.strategy = strategy;
+        this(strategy, null);
     }
     
     @Override
     public ModelClient route(RoutingContext context) {
+        ModelClient selectedClient = null;
+        
         // 根据不同策略选择模型
         switch (strategy) {
             case DEFAULT_ONLY:
-                return getDefaultClient();
+                selectedClient = getDefaultClient();
+                break;
                 
             case USER_PREFERRED:
-                return routeByUserPreference(context);
+                selectedClient = routeByUserPreference(context);
+                break;
                 
             case COST_OPTIMIZED:
-                return routeByCost(context);
+                selectedClient = routeByCost(context);
+                break;
                 
             case PERFORMANCE_OPTIMIZED:
-                return routeByPerformance(context);
+                selectedClient = routeByPerformance(context);
+                break;
                 
             case COST_PERFORMANCE_BALANCED:
-                return routeByBalanced(context);
+                selectedClient = routeByBalanced(context);
+                break;
                 
             case AVAILABILITY_OPTIMIZED:
-                return routeByAvailability(context);
+                selectedClient = routeByAvailability(context);
+                break;
                 
             case ROUND_ROBIN:
-                return routeByRoundRobin(context);
+                selectedClient = routeByRoundRobin(context);
+                break;
                 
             default:
-                return getDefaultClient();
+                selectedClient = getDefaultClient();
+                break;
         }
+        
+        // 如果有多个符合条件的客户端并且负载均衡器可用，则使用负载均衡器选择一个
+        if (selectedClient == null && loadBalancer != null) {
+            List<ModelClient> eligibleClients = new ArrayList<>(clients.values());
+            selectedClient = loadBalancer.selectClient(eligibleClients, context);
+        }
+        
+        // 如果仍然没有选到客户端，则使用默认客户端
+        if (selectedClient == null) {
+            selectedClient = getDefaultClient();
+        }
+        
+        return selectedClient;
     }
     
     private ModelClient routeByUserPreference(RoutingContext context) {
