@@ -8,17 +8,17 @@
 		<artifactId>terra-framework</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	
+
 	<artifactId>terra-sediment</artifactId>
 	<packaging>jar</packaging>
-	
+
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.compilerVersion>17</maven.compiler.compilerVersion>
 		<maven.compiler.target>17</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.alibaba</groupId>
@@ -91,7 +91,7 @@
 			<artifactId>commons-imaging</artifactId>
 			<version>1.0-alpha2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
 			<artifactId>httpclient5</artifactId>
@@ -132,7 +132,13 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.32</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.11</version> <!-- 使用最新版本 -->
+        </dependency>
+
+    </dependencies>
 
 
 </project>
