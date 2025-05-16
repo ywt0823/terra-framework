@@ -1,4 +1,4 @@
-package com.terra.framework.nova.llm.core;
+package com.terra.framework.nova.llm.model.base;
 
 import java.util.concurrent.Flow.Publisher;
 
@@ -6,6 +6,8 @@ import java.util.concurrent.Flow.Publisher;
  * LLM模型的核心接口
  */
 public interface LLMModel {
+
+
     /**
      * 预测文本
      *
@@ -31,4 +33,4 @@ public interface LLMModel {
      * 关闭模型
      */
     void close();
-} 
+}

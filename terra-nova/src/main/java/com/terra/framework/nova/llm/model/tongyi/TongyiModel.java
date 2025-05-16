@@ -1,7 +1,8 @@
-package com.terra.framework.nova.llm.model;
+package com.terra.framework.nova.llm.model.tongyi;
 
-import com.terra.framework.nova.llm.core.LLMModel;
+import com.terra.framework.common.util.httpclient.HttpClientUtils;
 import com.terra.framework.nova.llm.core.ModelConfig;
+import com.terra.framework.nova.llm.model.base.AbstractLLMModel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Flow.Publisher;
@@ -10,12 +11,13 @@ import java.util.concurrent.Flow.Publisher;
  * 通义千问模型适配器
  */
 @Slf4j
-public class TongyiModel implements LLMModel {
+public class TongyiModel extends AbstractLLMModel {
 
     private final ModelConfig config;
     private Object client; // TODO: 替换为实际的通义千问客户端
 
-    public TongyiModel(ModelConfig config) {
+    public TongyiModel(ModelConfig config, HttpClientUtils httpClientUtils) {
+        super(httpClientUtils);
         this.config = config;
     }
 
@@ -43,4 +45,4 @@ public class TongyiModel implements LLMModel {
         log.info("Closing Tongyi model");
         // 清理资源
     }
-} 
+}

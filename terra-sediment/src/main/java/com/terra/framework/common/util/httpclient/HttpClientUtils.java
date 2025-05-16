@@ -13,6 +13,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -99,6 +100,29 @@ public class HttpClientUtils {
             if (!StringUtils.isEmpty(token)) {
                 httpPost.setHeader("Authorization", "Bearer " + token);
             }
+            // 设置header信息
+            return closeableHttpClient.execute(httpPost);
+        })), charset);
+    }
+
+    /**
+     * body 提交
+     *
+     * @param url     请求路径
+     * @param json    参数
+     * @param charset 编码
+     * @param headers 请求头
+     * @return 返回结果
+     * @throws MalformedURLException
+     */
+    public JSONObject sendPostDataByJson(final String url, final String json, final Charset charset, Header... headers) throws MalformedURLException {
+        return getResult(Objects.requireNonNull(sendData(new URL(url), json, ContentType.APPLICATION_FORM_URLENCODED, (apiUrl, body, contentType) -> {
+            // 创建post方式请求对象
+            HttpPost httpPost = getHttpPost(url);
+            // 设置参数到请求对象中
+            StringEntity stringEntity = new StringEntity(json, charset);
+            httpPost.setEntity(stringEntity);
+            httpPost.setHeaders(headers);
             // 设置header信息
             return closeableHttpClient.execute(httpPost);
         })), charset);

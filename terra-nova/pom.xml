@@ -17,6 +17,7 @@
     <properties>
         <langchain4j.version>0.34.0</langchain4j.version>
         <java.version>17</java.version>
+        <spring-boot.version>3.2.2</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -46,8 +47,6 @@
             <version>${project.version}</version>
         </dependency>
 
-
     </dependencies>
-
 
 </project>

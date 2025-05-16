@@ -1,6 +1,7 @@
 package com.terra.framework.nova.llm.manager;
 
-import com.terra.framework.nova.llm.core.LLMModel;
+import com.terra.framework.common.util.httpclient.HttpClientUtils;
+import com.terra.framework.nova.llm.model.base.LLMModel;
 import com.terra.framework.nova.llm.core.ModelConfig;
 import com.terra.framework.nova.llm.core.ModelFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,11 @@ public class ModelManager {
 
     private final Map<String, LLMModel> modelCache = new ConcurrentHashMap<>();
     private final Map<String, ModelConfig> configCache = new ConcurrentHashMap<>();
+    private final HttpClientUtils httpClientUtils;
+
+    public ModelManager(HttpClientUtils httpClientUtils) {
+        this.httpClientUtils = httpClientUtils;
+    }
 
     /**
      * 获取模型实例
@@ -24,14 +30,14 @@ public class ModelManager {
      * @return LLM模型实例
      */
     public LLMModel getModel(String modelId) {
-        return modelCache.computeIfAbsent(modelId, this::createModel);
+        return modelCache.computeIfAbsent(modelId, s -> createModel(s, httpClientUtils));
     }
 
     /**
      * 注册模型配置
      *
      * @param modelId 模型ID
-     * @param config 模型配置
+     * @param config  模型配置
      */
     public void registerConfig(String modelId, ModelConfig config) {
         configCache.put(modelId, config);
@@ -40,12 +46,13 @@ public class ModelManager {
     /**
      * 创建模型实例
      *
-     * @param modelId 模型ID
+     * @param modelId         模型ID
+     * @param httpClientUtils
      * @return LLM模型实例
      */
-    private LLMModel createModel(String modelId) {
+    private LLMModel createModel(String modelId, HttpClientUtils httpClientUtils) {
         ModelConfig config = loadConfig(modelId);
-        LLMModel model = ModelFactory.createModel(config.getType(), config);
+        LLMModel model = ModelFactory.createModel(config.getType(), config, httpClientUtils);
         model.init();
         return model;
     }
@@ -72,4 +79,4 @@ public class ModelManager {
         modelCache.values().forEach(LLMModel::close);
         modelCache.clear();
     }
-} 
+}

@@ -1,6 +1,6 @@
 package com.terra.framework.nova.llm.chain;
 
-import com.terra.framework.nova.llm.core.LLMModel;
+import com.terra.framework.nova.llm.model.base.LLMModel;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,15 +29,15 @@ public class SQLChain implements Chain<String, String> {
     @Override
     public String run(String input) {
         log.debug("Running SQL Chain with input: {}", input);
-        
+
         // 1. 使用LLM将自然语言转换为SQL
         String prompt = buildSQLPrompt(input);
         String sqlResponse = model.predict(prompt);
         String sql = extractSQL(sqlResponse);
-        
+
         // 2. 执行SQL查询
         // TODO: 实现SQL执行逻辑
-        
+
         // 3. 使用LLM将SQL结果转换为自然语言
         String resultPrompt = buildResultPrompt(sql, "sql_result");
         return model.predict(resultPrompt);
@@ -68,4 +68,4 @@ public class SQLChain implements Chain<String, String> {
     public void close() {
         // TODO: 关闭数据库连接
     }
-} 
+}

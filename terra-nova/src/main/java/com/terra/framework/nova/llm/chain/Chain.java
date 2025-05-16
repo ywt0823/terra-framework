@@ -1,6 +1,6 @@
 package com.terra.framework.nova.llm.chain;
 
-import com.terra.framework.nova.llm.core.LLMModel;
+import com.terra.framework.nova.llm.model.base.LLMModel;
 
 /**
  * Chain接口
@@ -9,7 +9,7 @@ import com.terra.framework.nova.llm.core.LLMModel;
  * @param <O> 输出类型
  */
 public interface Chain<I, O> {
-    
+
     /**
      * 运行Chain
      *
@@ -31,4 +31,4 @@ public interface Chain<I, O> {
     default void close() {
         // 默认空实现
     }
-} 
+}
