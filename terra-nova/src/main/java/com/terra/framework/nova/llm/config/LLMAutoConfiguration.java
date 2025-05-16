@@ -81,6 +81,25 @@ public class LLMAutoConfiguration {
             manager.registerConfig("dify", difyConfig);
         }
 
+        // 配置百度文心模型
+        if (properties.getBaidu().getApiKey() != null && properties.getBaidu().getSecretKey() != null) {
+            Map<String, Object> extraParams = new HashMap<>(properties.getBaidu().getExtraParams());
+            extraParams.put("secretKey", properties.getBaidu().getSecretKey());
+            
+            ModelConfig baiduConfig = ModelConfig.builder()
+                .type(ModelType.BAIDU_WENXIN)
+                .apiKey(properties.getBaidu().getApiKey())
+                .apiEndpoint(properties.getBaidu().getApiEndpoint())
+                .modelName(properties.getBaidu().getModelName())
+                .temperature(properties.getBaidu().getTemperature())
+                .maxTokens(properties.getBaidu().getMaxTokens())
+                .timeoutMs(properties.getBaidu().getTimeoutMs())
+                .maxRetries(properties.getBaidu().getMaxRetries())
+                .extraParams(extraParams)
+                .build();
+            manager.registerConfig("baidu", baiduConfig);
+        }
+
         return manager;
     }
 
@@ -112,5 +131,15 @@ public class LLMAutoConfiguration {
     @ConditionalOnProperty(prefix = "terra.nova.llm.dify", name = "api-key")
     public LLMModel difyModel(ModelManager modelManager) {
         return modelManager.getModel("dify");
+    }
+
+    /**
+     * 配置默认的百度文心模型
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "baiduModel")
+    @ConditionalOnProperty(prefix = "terra.nova.llm.baidu", name = "api-key")
+    public LLMModel baiduModel(ModelManager modelManager) {
+        return modelManager.getModel("baidu");
     }
 }

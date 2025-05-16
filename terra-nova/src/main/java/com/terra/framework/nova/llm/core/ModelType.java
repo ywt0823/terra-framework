@@ -13,9 +13,14 @@ public enum ModelType {
      * 通义千问模型
      */
     TONGYI,
-    
+
     /**
      * Dify.AI平台
      */
-    DIFY
-} 
+    DIFY,
+    /**
+     * 百度文心一言模型
+     */
+    BAIDU_WENXIN,
+
+}

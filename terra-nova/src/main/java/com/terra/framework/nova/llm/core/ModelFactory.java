@@ -6,6 +6,8 @@ import com.terra.framework.nova.llm.model.base.LLMModel;
 import com.terra.framework.nova.llm.model.deepseek.DeepSeekModel;
 import com.terra.framework.nova.llm.model.dify.DifyModel;
 import com.terra.framework.nova.llm.model.tongyi.TongyiModel;
+import com.terra.framework.nova.llm.model.baidu.BaiduModel;
+import com.terra.framework.nova.llm.model.ollama.OllamaModelFactory;
 
 /**
  * 模型工厂类
@@ -26,6 +28,9 @@ public class ModelFactory {
             case DEEPSEEK -> new DeepSeekModel(config, httpClientUtils);
             case TONGYI -> new TongyiModel(config, httpClientUtils);
             case DIFY -> new DifyModel(config, httpClientUtils);
+            case BAIDU_WENXIN -> new BaiduModel(config, httpClientUtils);
+            case OLLAMA -> OllamaModelFactory.createOllamaModel(config, httpClientUtils);
+            default -> throw new UnsupportedModelException("不支持的模型类型: " + type);
         };
     }
 }

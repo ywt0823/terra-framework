@@ -1,10 +1,12 @@
 package com.terra.framework.nova.llm.core;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 模型配置类
