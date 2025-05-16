@@ -14,9 +14,9 @@ public class ModelFactory {
     /**
      * 创建模型实例
      *
-     * @param type            模型类型
-     * @param config          模型配置
-     * @param httpClientUtils
+     * @param type   模型类型
+     * @param config 模型配置
+     * @param httpClientUtils HTTP客户端工具类
      * @return LLM模型实例
      * @throws UnsupportedModelException 不支持的模型类型
      */

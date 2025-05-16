@@ -1,7 +1,6 @@
 package com.terra.framework.nova.llm.properties;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -10,7 +9,6 @@ import java.util.HashMap;
  * LLM配置属性
  */
 @Data
-@ConfigurationProperties(prefix = "terra.nova.llm")
 public class LLMProperties {
 
     /**

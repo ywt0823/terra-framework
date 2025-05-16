@@ -30,7 +30,7 @@ public class ModelManager {
      * @return LLM模型实例
      */
     public LLMModel getModel(String modelId) {
-        return modelCache.computeIfAbsent(modelId, s -> createModel(s, httpClientUtils));
+        return modelCache.computeIfAbsent(modelId, this::createModel);
     }
 
     /**
@@ -46,11 +46,10 @@ public class ModelManager {
     /**
      * 创建模型实例
      *
-     * @param modelId         模型ID
-     * @param httpClientUtils
+     * @param modelId 模型ID
      * @return LLM模型实例
      */
-    private LLMModel createModel(String modelId, HttpClientUtils httpClientUtils) {
+    private LLMModel createModel(String modelId) {
         ModelConfig config = loadConfig(modelId);
         LLMModel model = ModelFactory.createModel(config.getType(), config, httpClientUtils);
         model.init();
