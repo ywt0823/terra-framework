@@ -1,1 +1,5 @@
 com.terra.framework.nova.llm.config.LLMAutoConfiguration
+com.terra.framework.nova.model.config.ModelAutoConfiguration
+com.terra.framework.nova.vector.config.VectorAutoConfiguration
+com.terra.framework.nova.prompt.config.PromptAutoConfiguration
+com.terra.framework.nova.tool.config.ToolAutoConfiguration

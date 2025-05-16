@@ -19,6 +19,7 @@
         <java.version>17</java.version>
         <spring-boot.version>3.2.2</spring-boot.version>
         <junit-jupiter.version>5.10.0</junit-jupiter.version>
+        <jedis.version>5.0.2</jedis.version>
     </properties>
 
     <dependencies>
@@ -40,11 +41,23 @@
             <artifactId>langchain4j-ollama</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
+        
+        <!-- Redis支持 -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis.version}</version>
+        </dependency>
 
         <!-- Terra Framework -->
         <dependency>
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-bedrock</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.terra.framework</groupId>
+            <artifactId>terra-geyser</artifactId>
             <version>${project.version}</version>
         </dependency>
 
