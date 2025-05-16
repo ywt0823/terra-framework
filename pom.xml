@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	
-	<groupId>com.terra.framework</groupId>
-	<artifactId>terra-framework</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<modules>
-		<module>terra-sediment</module>
-		<module>terra-bedrock</module>
-		<module>terra-crust</module>
-		<module>terra-spring-boot-starter</module>
-		<module>terra-strata</module>
-        <module>terra-geyser</module>
-		<module>terra-stream</module>
-		<module>terra-nova</module>
-	</modules>
-	
+    <modelVersion>4.0.0</modelVersion>
 
-	
-	<distributionManagement>
-		<repository>
-			<id>rdc-releases</id>
-			<name>valhalla Repository</name>
-			<url>https://packages.aliyun.com/maven/repository/2189819-release-woV6oD/</url>
-		</repository>
-		<snapshotRepository>
-			<id>rdc-snapshots</id>
-			<name>snapshots Repository</name>
-			<url>https://packages.aliyun.com/maven/repository/2189819-snapshot-rvt3Qt</url>
-		</snapshotRepository>
-	</distributionManagement>
+    <groupId>com.terra.framework</groupId>
+    <artifactId>terra-framework</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>terra-sediment</module>
+        <module>terra-bedrock</module>
+        <module>terra-crust</module>
+        <module>terra-spring-boot-starter</module>
+        <module>terra-strata</module>
+        <module>terra-geyser</module>
+        <module>terra-stream</module>
+        <module>terra-nova</module>
+        <module>terra-dependencies</module>
+    </modules>
+
+
+    <distributionManagement>
+        <repository>
+            <id>rdc-releases</id>
+            <name>valhalla Repository</name>
+            <url>https://packages.aliyun.com/maven/repository/2189819-release-woV6oD/</url>
+        </repository>
+        <snapshotRepository>
+            <id>rdc-snapshots</id>
+            <name>snapshots Repository</name>
+            <url>https://packages.aliyun.com/maven/repository/2189819-snapshot-rvt3Qt</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>

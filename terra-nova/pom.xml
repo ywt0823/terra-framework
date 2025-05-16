@@ -15,8 +15,7 @@
     <description>LLM Pipeline and Prompt Engineering Framework</description>
 
     <properties>
-        <spring-ai.version>0.8.1</spring-ai.version>
-        <langchain4j.version>0.27.1</langchain4j.version>
+        <langchain4j.version>0.34.0</langchain4j.version>
         <java.version>17</java.version>
     </properties>
 
@@ -34,6 +33,12 @@
             <version>${langchain4j.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-ollama</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+
         <!-- Terra Framework -->
         <dependency>
             <groupId>com.terra.framework</groupId>
@@ -41,18 +46,8 @@
             <version>${project.version}</version>
         </dependency>
 
+
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+
 </project>
