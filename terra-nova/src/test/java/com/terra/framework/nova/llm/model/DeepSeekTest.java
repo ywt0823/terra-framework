@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 public class DeepSeekTest {
-    private static final String API_KEY = "sk-a3bb771d5ff04bceb72683e2a21d133f";
+    private static final String API_KEY = "sk-e71f7354318c487db155079f55227e48";
     private static final String API_URL = "https://api.deepseek.com/v1/chat/completions";
 
     public static void main(String[] var0) {
