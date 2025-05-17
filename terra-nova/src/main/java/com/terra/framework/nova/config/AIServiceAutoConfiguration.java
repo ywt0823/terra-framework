@@ -2,25 +2,21 @@ package com.terra.framework.nova.config;
 
 import com.terra.framework.common.util.httpclient.HttpClientUtils;
 import com.terra.framework.nova.blend.DefaultModelBlender;
-import com.terra.framework.nova.blend.MergeStrategy;
 import com.terra.framework.nova.blend.ModelBlender;
 import com.terra.framework.nova.cache.InMemoryResponseCache;
 import com.terra.framework.nova.cache.ResponseCache;
-import com.terra.framework.nova.properties.AIServiceProperties;
 import com.terra.framework.nova.model.AIModelManager;
 import com.terra.framework.nova.model.ModelDecoratorOptions;
-import com.terra.framework.nova.model.RetryConfig;
 import com.terra.framework.nova.monitoring.LoggingMetricsCollector;
 import com.terra.framework.nova.monitoring.MetricsCollector;
+import com.terra.framework.nova.properties.*;
 import com.terra.framework.nova.retry.DefaultRetryExecutor;
 import com.terra.framework.nova.retry.RetryExecutor;
 import com.terra.framework.nova.service.BlenderService;
 import com.terra.framework.nova.service.EnhancedAIService;
 import com.terra.framework.nova.service.EnhancedDefaultAIService;
-import lombok.Data;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
@@ -31,139 +27,15 @@ import org.springframework.context.annotation.Bean;
  */
 @EnableConfigurationProperties({
     AIServiceProperties.class,
-    AIServiceAutoConfiguration.RetryProperties.class,
-    AIServiceAutoConfiguration.CacheProperties.class,
-    AIServiceAutoConfiguration.RoutingProperties.class,
-    AIServiceAutoConfiguration.MonitoringProperties.class,
-    AIServiceAutoConfiguration.BlenderProperties.class
+    RetryProperties.class,
+    CacheProperties.class,
+    RoutingProperties.class,
+    MonitoringProperties.class,
+    BlenderProperties.class
 })
 @ConditionalOnProperty(prefix = "terra.framework.ai", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AIServiceAutoConfiguration {
 
-    /**
-     * 重试相关配置
-     */
-    @Data
-    @ConfigurationProperties(prefix = "terra.nova.retry")
-    public static class RetryProperties {
-        /**
-         * 是否启用重试功能
-         */
-        private boolean enabled = true;
-
-        /**
-         * 最大重试次数
-         */
-        private int maxRetries = 3;
-
-        /**
-         * 初始重试延迟（毫秒）
-         */
-        private long initialDelayMs = 1000;
-
-        /**
-         * 最大重试延迟（毫秒）
-         */
-        private long maxDelayMs = 10000;
-
-        /**
-         * 退避乘数
-         */
-        private double backoffMultiplier = 2.0;
-
-        /**
-         * 转换为RetryConfig
-         *
-         * @return RetryConfig
-         */
-        public RetryConfig toRetryConfig() {
-            return RetryConfig.builder()
-                .maxRetries(maxRetries)
-                .initialDelayMs(initialDelayMs)
-                .maxDelayMs(maxDelayMs)
-                .backoffMultiplier(backoffMultiplier)
-                .build();
-        }
-    }
-
-    /**
-     * 缓存相关配置
-     */
-    @Data
-    @ConfigurationProperties(prefix = "terra.nova.cache")
-    public static class CacheProperties {
-        /**
-         * 是否启用缓存功能
-         */
-        private boolean enabled = true;
-
-        /**
-         * 默认缓存过期时间（秒）
-         */
-        private int defaultTtlSeconds = 3600;
-    }
-
-    /**
-     * 路由相关配置
-     */
-    @Data
-    @ConfigurationProperties(prefix = "terra.nova.routing")
-    public static class RoutingProperties {
-        /**
-         * 是否启用模型路由功能
-         */
-        private boolean enabled = true;
-
-
-        /**
-         * 模型健康检查失败阈值
-         */
-        private int healthCheckFailureThreshold = 3;
-
-        /**
-         * 模型健康恢复阈值
-         */
-        private int healthCheckRecoveryThreshold = 2;
-    }
-
-    /**
-     * 监控相关配置
-     */
-    @Data
-    @ConfigurationProperties(prefix = "terra.nova.monitoring")
-    public static class MonitoringProperties {
-        /**
-         * 是否启用监控功能
-         */
-        private boolean enabled = true;
-    }
-
-    /**
-     * 混合器相关配置
-     */
-    @Data
-    @ConfigurationProperties(prefix = "terra.nova.blend")
-    public static class BlenderProperties {
-        /**
-         * 是否启用模型混合功能
-         */
-        private boolean enabled = true;
-
-        /**
-         * 默认合并策略
-         */
-        private MergeStrategy mergeStrategy = MergeStrategy.WEIGHTED;
-
-        /**
-         * 是否在启动时自动添加所有模型
-         */
-        private boolean autoAddModels = true;
-
-        /**
-         * 线程池大小（0表示使用处理器数量决定）
-         */
-        private int threadPoolSize = 0;
-    }
 
     /**
      * 配置装饰器选项
