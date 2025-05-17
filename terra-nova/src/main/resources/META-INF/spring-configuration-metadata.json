@@ -2,8 +2,8 @@
   "groups": [
     {
       "name": "terra.framework.ai",
-      "type": "com.terra.framework.nova.properties.AIServiceProperties",
-      "sourceType": "com.terra.framework.nova.properties.AIServiceProperties",
+      "type": "com.terra.framework.nova.core.properties.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
       "description": "Terra框架AI服务配置"
     }
   ],
@@ -11,21 +11,21 @@
     {
       "name": "terra.framework.ai.enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.properties.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
       "description": "是否启用AI服务",
       "defaultValue": true
     },
     {
       "name": "terra.framework.ai.default-model-id",
       "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.properties.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
       "description": "默认模型ID",
       "defaultValue": "openai:gpt-3.5-turbo"
     },
     {
       "name": "terra.framework.ai.models",
       "type": "java.util.Map<java.lang.String, com.terra.framework.nova.core.config.AIServiceProperties$ModelProperties>",
-      "sourceType": "com.terra.framework.nova.properties.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
       "description": "模型配置映射"
     }
   ],

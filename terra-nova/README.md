@@ -1,61 +1,70 @@
 # Terra Nova
 
-Terra Nova 是 Terra Framework 的核心子项目，专注于大语言模型(LLM)的管道和参数优化框架。它基于 Spring Boot 构建，提供了一套用于模型路由、参数优化和提示词管理的完整工具集。
+Terra Nova 是 Terra Framework 的核心子项目，专注于大语言模型(LLM)的统一接入与增强。它提供了一套完整的工具集，用于模型管理、多模型混合调用和 AI 服务增强。
 
 ## 核心功能
 
-### StellarTuner 参数优化系统
+### 1. 模型管理与适配
 
-StellarTuner 是一个专业的大语言模型参数自动优化系统，旨在帮助开发者获得最佳的模型输出效果：
+Terra Nova 支持多种大语言模型的统一接入，目前已实现的模型适配器包括：
 
-- **多种优化策略**：
-  - 启发式调优：基于专家规则的快速参数设置
-  - 贝叶斯优化：通过探索与利用平衡自动寻找最优参数
-  - 支持扩展自定义优化策略
+- **OpenAI 系列**：支持 GPT-3.5、GPT-4 等模型
+- **Anthropic Claude**：支持 Claude 3 系列模型
+- **文心一言**：百度大语言模型
+- **通义千问**：阿里巴巴大语言模型
+- **DeepSeek**：DeepSeek AI 大语言模型
+- **Ollama**：本地化部署模型支持
+- **Dify**：支持 Dify 平台集成
 
-- **多目标优化**：
-  - 质量优先：追求最高质量的输出结果
-  - 速度优先：最小化响应时间
-  - 成本优先：降低令牌消耗，减少API调用成本
-  - 平衡模式：在多个目标间取得平衡
+主要特性：
+- 统一的模型接口与请求格式
+- 灵活的认证机制（API Key、Bearer Token 等）
+- 模型状态监控与自动重试
+- 模型信息注册与管理
 
-- **上下文感知**：
-  - 根据任务类型自动调整参数（聊天、生成、摘要、代码等）
-  - 针对不同模型供应商定制化参数调整
-  - 支持复杂上下文和历史信息
+### 2. 模型混合系统（Model Blender）
 
-- **完整的评估体系**：
+Terra Nova 提供强大的模型混合能力，可以同时调用多个 LLM 模型并智能合并结果：
+
+- **多策略支持**：
+  - 加权平均：根据配置的权重对多个模型响应进行合并
+  - 最佳质量：选择质量最高的响应
+  - 最快响应：选择响应最快的结果
+  - 投票决策：多模型结果投票决定最终输出
+
+- **结果合并机制**：
+  - 智能文本合并
+  - JSON 结构化数据合并
+  - 自定义合并策略扩展
+
+### 3. 增强型 AI 服务
+
+Terra Nova 在基本 AI 服务的基础上提供了多种增强功能：
+
+- **请求重试**：
+  - 自动重试失败请求
+  - 可配置的退避策略
+  - 错误分类与选择性重试
+
+- **结果缓存**：
+  - 高效缓存相同请求的响应
+  - 可配置的缓存生命周期
+  - 多级缓存支持
+
+- **请求监控**：
   - 响应时间监控
-  - 令牌使用跟踪
-  - 结果质量评分
-  - 成本计算
-  - 综合得分评估
-
-### NovaGPT 模型路由系统
-
-- 多模型调度
-- 成本优化
-- 性能优化
-- 模型注册与健康监控
-- 负载均衡
-- 多供应商支持 (OpenAI, Azure OpenAI, Anthropic等)
-
-### Prompt Engine 提示词引擎
-
-- 模板管理
-- 版本控制
-- 变量插值
-- 多语言支持
-- 协作编辑
+  - 模型调用统计
+  - 错误率追踪
 
 ## 快速开始
 
 ### 环境要求
+
 - Java 17 或更高版本
 - Spring Boot 3.x
 - Maven
 
-### 安装
+### 添加依赖
 
 在你的 `pom.xml` 中添加以下依赖：
 
@@ -71,144 +80,227 @@ StellarTuner 是一个专业的大语言模型参数自动优化系统，旨在�
 
 在 `application.properties` 或 `application.yml` 中添加配置：
 
-```properties
-# 启用调优功能
-terra.nova.tuner.enabled=true
-
-# 选择调优器
-terra.nova.tuner.default-tuner=bayesian
-
-# 设置优化目标
-terra.nova.tuner.optimization-goal=BALANCED
+```yaml
+terra:
+  nova:
+    model:
+      default-provider: openai
+      providers:
+        openai:
+          api-key: ${OPENAI_API_KEY}
+          base-url: https://api.openai.com/v1
+          models:
+            - name: gpt-3.5-turbo
+              type: CHAT
+              max-tokens: 4096
+            - name: gpt-4
+              type: CHAT
+              max-tokens: 8192
+        claude:
+          api-key: ${ANTHROPIC_API_KEY}
+          models:
+            - name: claude-3-haiku
+              type: CHAT
+              max-tokens: 4096
+        ollama:
+          base-url: http://localhost:11434
+          models:
+            - name: llama2
+              type: CHAT
+    blend:
+      enabled: true
+      default-strategy: WEIGHTED_AVERAGE
+      timeout: 30000
+    retry:
+      enabled: true
+      max-attempts: 3
+      backoff:
+        initial-interval: 1000
+        multiplier: 2.0
+        max-interval: 10000
+    cache:
+      enabled: true
+      ttl: 3600
+    monitoring:
+      enabled: true
 ```
 
-## StellarTuner 使用示例
+## 使用示例
 
-### 参数优化基本流程
+### 基础 AI 服务
 
 ```java
 @Autowired
-private TunerService tunerService;
+private AIService aiService;
 
-// 创建调优上下文
-TuningContext context = tunerService.createContext(
-    TuningContext.TaskType.GENERATION,
-    "文本生成任务",
-    "gpt-3.5-turbo",
-    "openai",
-    TuningContext.OptimizationGoal.BALANCED,
-    "写一篇关于人工智能的短文"
+// 简单聊天请求
+String response = aiService.chat("你好，请介绍一下自己");
+
+// 使用特定模型
+String response = aiService.chat("请分析这段代码", "gpt-4");
+
+// 完整请求配置
+ModelResponse response = aiService.generate(
+    ModelRequest.builder()
+        .messages(List.of(new Message(MessageRole.USER, "请解析这个JSON数据")))
+        .modelName("gpt-3.5-turbo")
+        .temperature(0.7)
+        .maxTokens(500)
+        .build()
 );
-
-// 初始参数
-Map<String, Object> initialParams = new HashMap<>();
-initialParams.put("temperature", 0.7);
-initialParams.put("max_tokens", 200);
-initialParams.put("top_p", 0.9);
-
-// 优化参数
-Map<String, Object> optimizedParams = tunerService.tuneParameters(
-    initialParams, 
-    context.getContextId(), 
-    "bayesian"
-);
-
-// 使用优化参数调用模型...
-String modelResponse = modelClient.generate(context.getInputText(), optimizedParams);
-
-// 构建指标
-TuningMetrics metrics = TuningMetrics.builder()
-    .responseTimeMs(450)
-    .tokenCount(150)
-    .qualityScore(0.85)
-    .cost(0.003)
-    .build();
-metrics.setEndTime(); // 自动计算响应时间
-
-// 更新调优结果
-TuningResult result = tunerService.updateWithResult(
-    optimizedParams,
-    context.getContextId(),
-    "bayesian",
-    modelResponse,
-    metrics,
-    false
-);
-
-// 如果需要继续优化，重复上述过程...
 ```
 
-### 自定义调优器
+### 增强型 AI 服务
 
 ```java
-public class CustomParameterTuner implements ParameterTuner {
-    @Override
-    public Map<String, Object> tuneParameters(Map<String, Object> parameters, 
-                                             TuningContext context) {
-        // 实现自定义调优逻辑
-        Map<String, Object> optimizedParams = new HashMap<>(parameters);
-        // 根据context进行参数调整...
-        return optimizedParams;
+@Autowired
+private EnhancedAIService enhancedService;
+
+// 带重试和缓存的请求
+ModelResponse response = enhancedService.generateWithRetryAndCache(
+    ModelRequest.builder()
+        .messages(List.of(new Message(MessageRole.USER, "分析以下数据并提取关键信息")))
+        .modelName("gpt-3.5-turbo")
+        .build()
+);
+
+// 流式响应处理
+enhancedService.streamWithRetry(
+    ModelRequest.builder()
+        .messages(List.of(new Message(MessageRole.USER, "写一篇关于人工智能的文章")))
+        .modelName("gpt-4")
+        .build(),
+    chunk -> {
+        // 处理流式响应片段
+        System.out.println(chunk.getContent());
     }
-    
+);
+```
+
+### 模型混合调用
+
+```java
+@Autowired
+private BlenderService blenderService;
+
+// 简单混合调用
+String blendedResponse = blenderService.blend(
+    "请解释量子计算的基本原理",
+    List.of("gpt-3.5-turbo", "claude-3-haiku"),
+    MergeStrategy.BEST_QUALITY
+);
+
+// 高级混合调用
+BlenderRequest request = BlenderRequest.builder()
+    .prompt("分析以下金融数据并提供投资建议")
+    .models(List.of("gpt-4", "claude-3-sonnet", "wenxin"))
+    .modelWeights(Map.of(
+        "gpt-4", 0.5,
+        "claude-3-sonnet", 0.3,
+        "wenxin", 0.2
+    ))
+    .mergeStrategy(MergeStrategy.WEIGHTED_AVERAGE)
+    .data("附加数据可以在这里传递")
+    .timeout(60000)
+    .build();
+
+BlenderResponse blendedResponse = blenderService.blend(request);
+System.out.println("混合结果: " + blendedResponse.getContent());
+System.out.println("参与模型: " + blendedResponse.getParticipatingModels());
+System.out.println("执行时间: " + blendedResponse.getExecutionTimeMs() + "ms");
+```
+
+### 模型装饰器
+
+Terra Nova 提供了模型装饰器功能，可以对模型请求进行增强：
+
+```java
+@Autowired
+private AIModelManager modelManager;
+
+// 获取带装饰器的模型
+AIModel model = modelManager.getModel("gpt-3.5-turbo");
+
+// 使用默认装饰器
+ModelDecoratorOptions options = ModelDecoratorOptions.builder()
+    .withRetry(true)
+    .withCache(true)
+    .withMonitoring(true)
+    .build();
+
+AIModel decoratedModel = ModelDecorators.decorate(model, options);
+
+// 使用装饰后的模型
+ModelResponse response = decoratedModel.generate(request);
+```
+
+## 模型注册与管理
+
+Terra Nova 允许动态注册和管理模型：
+
+```java
+@Autowired
+private AIModelManager modelManager;
+
+// 注册新模型
+ModelInfo modelInfo = ModelInfo.builder()
+    .name("custom-model")
+    .provider("custom")
+    .type(ModelType.CHAT)
+    .maxTokens(8192)
+    .build();
+
+AIModel customModel = new CustomModelAdapter(modelInfo);
+modelManager.registerModel(customModel);
+
+// 查询可用模型
+List<ModelInfo> availableModels = modelManager.getAvailableModels();
+
+// 检查模型状态
+ModelStatus status = modelManager.checkModelStatus("gpt-4");
+```
+
+## 高级配置
+
+### 自定义 Auth Provider
+
+```java
+public class CustomAuthProvider implements AuthProvider {
     @Override
-    public void updateWithResult(Map<String, Object> parameters, 
-                                TuningContext context,
-                                String result, 
-                                TuningMetrics metrics) {
-        // 处理调用结果，更新内部状态
+    public AuthCredentials getCredentials(String provider) {
+        // 实现自定义的认证凭据获取逻辑
+        return new AuthCredentials(AuthType.API_KEY, "custom-api-key");
     }
-    
-    @Override
-    public String getName() {
-        return "custom";
-    }
-    
-    @Override
-    public void reset() {
-        // 重置调优器状态
+}
+
+// 注册自定义 Auth Provider
+@Configuration
+public class AIConfig {
+    @Bean
+    public AuthProvider authProvider() {
+        return new CustomAuthProvider();
     }
 }
 ```
 
-### 通过 Actuator 端点监控
+### 自定义模型适配器
 
-StellarTuner 集成了 Spring Boot Actuator，提供以下端点：
-
-```
-GET /actuator/tuner                    # 获取所有调优器
-GET /actuator/tuner/context/{contextId} # 获取调优上下文
-GET /actuator/tuner/result/{resultId}   # 获取调优结果
-POST /actuator/tuner/tune               # 执行参数优化
-POST /actuator/tuner/update             # 更新调优结果
-POST /actuator/tuner/reset              # 重置调优器
-```
-
-## 完整配置参考
-
-```yaml
-terra:
-  nova:
-    tuner:
-      enabled: true
-      default-tuner: heuristic
-      max-iterations: 10
-      heuristic:
-        enabled: true
-      bayesian:
-        enabled: true
-        initial-exploration-rate: 0.3
-        min-exploration-rate: 0.1
-      thread:
-        core-pool-size: 2
-        max-pool-size: 5
-        queue-capacity: 100
-        thread-name-prefix: tuner-
-      actuator:
-        enabled: true
-        id: tuner
-        exposed-over-management: true
-        exposed-over-web: true
+```java
+public class CustomModelAdapter extends AbstractModelAdapter {
+    public CustomModelAdapter(ModelInfo modelInfo) {
+        super(modelInfo);
+    }
+    
+    @Override
+    public ModelResponse generate(ModelRequest request) {
+        // 实现自定义的模型调用逻辑
+        return ModelResponse.builder()
+            .content("自定义模型响应")
+            .model(getModelInfo().getName())
+            .tokenUsage(new TokenUsage(10, 20, 30))
+            .build();
+    }
+}
 ```
 
 ## 贡献指南

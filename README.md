@@ -1,14 +1,14 @@
 # Terra Framework
 
-Terra Framework 是一个现代化的 Java 企业级应用开发框架，专注于大语言模型(LLM)的集成与优化，提供了一套完整的解决方案。
+Terra Framework 是一个现代化的 Java 企业级应用开发框架，专注于大语言模型(LLM)的集成与应用，提供了一套完整的解决方案。
 
 ## 核心特性
 
-- **高度模块化**：独立的功能模块，可按需引入
-- **灵活配置**：丰富的配置选项，适应不同场景需求
-- **易于扩展**：清晰的接口设计，便于自定义实现
-- **开箱即用**：Spring Boot Starter 支持自动配置
-- **完善监控**：集成 Spring Boot Actuator，提供运行时监控
+- **模型集成与管理**：支持多种大语言模型的统一接入与管理
+- **模型混合与增强**：提供模型混合与结果合并能力
+- **高度可扩展**：清晰的接口设计，便于自定义实现
+- **易于集成**：Spring Boot 友好，支持自动配置
+- **多模型供应商支持**：支持 OpenAI、Anthropic Claude、Ollama、百度文心一言、阿里通义千问等多种模型
 
 ## 项目结构
 
@@ -18,7 +18,7 @@ Terra Framework 由以下核心模块组成：
 |---------|------|----------|
 | [terra-dependencies](#terra-dependencies) | 依赖管理模块 | 统一管理所有第三方依赖版本 |
 | [terra-bedrock](#terra-bedrock) | 核心基础设施模块 | 异常处理、统一响应、安全框架、事件机制 |
-| [terra-nova](#terra-nova) | LLM 集成与优化框架 | 模型路由、参数调优、提示词管理 |
+| [terra-nova](#terra-nova) | LLM 集成与应用框架 | 模型管理、模型混合、LLM 服务 |
 | [terra-crust](#terra-crust) | 业务核心模块 | 领域模型、业务规则、状态机 |
 | [terra-strata](#terra-strata) | 数据访问层模块 | ORM支持、事务管理、查询增强 |
 | [terra-geyser](#terra-geyser) | 缓存处理模块 | 多级缓存、缓存同步、过期策略 |
@@ -53,29 +53,22 @@ Terra Framework 由以下核心模块组成：
 ```yaml
 terra:
   enabled: true
-  bedrock:
-    enabled: true
   nova:
     enabled: true
-    tuner:
-      enabled: true
-  # 其他模块配置...
-```
-
-### 创建应用
-
-```java
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import com.terra.framework.nova.annotation.EnableStellarTuner;
-
-@SpringBootApplication
-@EnableStellarTuner  // 启用参数调优功能
-public class MyApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(MyApplication.class, args);
-    }
-}
+    model:
+      default-provider: openai
+      retry:
+        enabled: true
+        max-attempts: 3
+        backoff:
+          initial-interval: 1000
+          multiplier: 2.0
+          max-interval: 10000
+      cache:
+        enabled: true
+        ttl: 3600
+      monitoring:
+        enabled: true
 ```
 
 ## 模块详情
@@ -93,57 +86,31 @@ public class MyApplication {
 </parent>
 ```
 
-**或者**：
-```xml
-<dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>com.terra.framework</groupId>
-            <artifactId>terra-dependencies</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
-```
-
 ### terra-bedrock
 
 核心基础设施模块，提供框架的基石功能：统一异常处理、响应格式、安全框架、事件机制等。
 
-**引入方式**：
-```xml
-<dependency>
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-bedrock</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
-
-**示例**：
-```java
-// 使用统一响应格式
-@GetMapping("/{id}")
-public Result<User> getUser(@PathVariable Long id) {
-    User user = userService.findById(id);
-    return Result.success(user);
-}
-
-// 异常处理
-try {
-    // 业务逻辑
-} catch (Exception e) {
-    throw new BusinessException("BUSINESS_ERROR", "业务处理失败");
-}
-
-// 事件发布
-eventBus.publish(new OrderCreatedEvent(order));
-```
-
 ### terra-nova
 
-LLM集成与优化框架，提供大语言模型接入、参数调优、提示词管理等功能。
+LLM 集成与应用框架，是 Terra Framework 的核心模块。
+
+#### 主要功能
+
+1. **模型管理与适配**
+   - 支持多种 LLM 模型：OpenAI、Claude、Ollama、文心一言、通义千问等
+   - 统一的模型接口与请求格式
+   - 灵活的认证机制
+
+2. **模型混合系统 (Model Blender)**
+   - 多模型混合调用策略
+   - 结果合并与后处理
+   - 灵活的合并策略配置
+
+3. **增强型 AI 服务**
+   - 重试机制
+   - 结果缓存
+   - 请求监控
+   - 异常处理
 
 **引入方式**：
 ```xml
@@ -156,241 +123,116 @@ LLM集成与优化框架，提供大语言模型接入、参数调优、提示�
 
 **示例**：
 ```java
-// 参数调优
-TuningContext context = tunerService.createContext(
-    TaskType.GENERATION,
-    "文本生成任务",
-    "gpt-3.5-turbo",
-    "openai",
-    OptimizationGoal.BALANCED,
-    "写一篇关于人工智能的短文"
+// 使用基础 AI 服务
+@Autowired
+private AIService aiService;
+
+String response = aiService.chat("你好，请介绍一下自己");
+
+// 使用增强型 AI 服务
+@Autowired
+private EnhancedAIService enhancedAIService;
+
+ModelResponse response = enhancedAIService.generateWithRetryAndCache(
+    ModelRequest.builder()
+        .messages(List.of(new Message(MessageRole.USER, "分析以下数据并提取关键信息")))
+        .modelName("gpt-3.5-turbo")
+        .build()
 );
 
-Map<String, Object> optimizedParams = tunerService.tuneParameters(
-    initialParams, 
-    context.getContextId(), 
-    "bayesian"
+// 使用模型混合服务
+@Autowired
+private BlenderService blenderService;
+
+String blendedResponse = blenderService.blend(
+    "请解释量子计算的基本原理",
+    List.of("gpt-3.5-turbo", "claude-3-haiku"),
+    MergeStrategy.BEST_QUALITY
 );
+```
+
+**配置示例**：
+```yaml
+terra:
+  nova:
+    model:
+      default-provider: openai
+      providers:
+        openai:
+          api-key: ${OPENAI_API_KEY}
+          base-url: https://api.openai.com/v1
+          models:
+            - name: gpt-3.5-turbo
+              type: CHAT
+              max-tokens: 4096
+            - name: gpt-4
+              type: CHAT
+              max-tokens: 8192
+        claude:
+          api-key: ${ANTHROPIC_API_KEY}
+          models:
+            - name: claude-3-haiku
+              type: CHAT
+              max-tokens: 4096
+        ollama:
+          base-url: http://localhost:11434
+          models:
+            - name: llama2
+              type: CHAT
+    blend:
+      enabled: true
+      default-strategy: WEIGHTED_AVERAGE
+      timeout: 30000
+    retry:
+      enabled: true
+      max-attempts: 3
+    cache:
+      enabled: true
+      ttl: 3600
+    monitoring:
+      enabled: true
 ```
 
 ### terra-crust
 
 业务核心模块，专注于领域模型定义、业务规则和状态机等企业级应用核心功能。
 
-**引入方式**：
-```xml
-<dependency>
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-crust</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
-
-**示例**：
-```java
-// 使用规则引擎
-@Component
-public class OrderDiscountRule implements Rule<Order> {
-    @Override
-    public boolean evaluate(Order order) {
-        return order.getTotalAmount().compareTo(new BigDecimal("1000")) >= 0;
-    }
-    
-    @Override
-    public void execute(Order order) {
-        order.applyDiscount(new BigDecimal("0.1"));
-    }
-}
-
-// 使用状态机
-boolean success = orderStateMachine.trigger(order, OrderEvent.SUBMIT);
-```
-
 ### terra-strata
 
 数据访问层模块，提供ORM支持、事务管理、动态查询等数据访问功能。
-
-**引入方式**：
-```xml
-<dependency>
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-strata</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
-
-**示例**：
-```java
-// 使用Repository
-@Repository
-public interface ProductRepository extends BaseRepository<Product, Long> {
-    List<Product> findByStatus(ProductStatus status);
-    Page<Product> findByPriceGreaterThan(BigDecimal price, Pageable pageable);
-}
-
-// 使用动态查询
-Conditions conditions = Conditions.create()
-    .like("name", "%" + criteria.getName() + "%")
-    .greaterThanOrEqual("price", criteria.getMinPrice());
-    
-return queryHelper.findAll(productRepository, conditions, pageable);
-```
 
 ### terra-geyser
 
 缓存处理模块，提供多级缓存、缓存同步等高性能缓存解决方案。
 
-**引入方式**：
-```xml
-<dependency>
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-geyser</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
-
-**示例**：
-```java
-// 注解方式缓存
-@Cacheable(
-    cache = "products",
-    key = "#id",
-    timeToLive = 1800
-)
-public Product getProductById(Long id) {
-    return productRepository.findById(id)
-        .orElseThrow(() -> new BusinessException("PRODUCT_NOT_FOUND", "产品不存在"));
-}
-
-// 编程方式缓存
-return multiLevelCache.get(
-    "users",
-    username,
-    key -> userRepository.findByUsername(key),
-    CacheLevel.ALL
-);
-```
-
 ### terra-stream
 
 流处理模块，提供消息队列集成、事件驱动架构和流式数据处理功能。
-
-**引入方式**：
-```xml
-<dependency>
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-stream</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
-
-**示例**：
-```java
-// 发送消息
-SendResult result = messageProducer.send("order-events", message);
-
-// 消费消息
-@MessageHandler(
-    topic = "order-events",
-    messageType = OrderCreatedMessage.class,
-    concurrency = "5"
-)
-public void handleOrderCreated(OrderCreatedMessage message) {
-    // 处理消息
-}
-
-// 流处理
-streamBuilder.stream("user-activities")
-    .filter(activity -> activity.getType() != null)
-    .map(activity -> new UserActionEvent(
-        activity.getUserId(),
-        activity.getType(),
-        activity.getTimestamp()
-    ))
-    .groupBy(UserActionEvent::getUserId)
-    .window(Windows.timeWindow(Duration.ofMinutes(5)))
-    .aggregate(...)
-    .to(new ActivityAlertSink());
-```
 
 ### terra-sediment
 
 公共工具模块，提供各种通用工具类和助手函数，简化开发过程中的常见任务。
 
-**引入方式**：
-```xml
-<dependency>
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-sediment</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
-
-**示例**：
-```java
-// 字符串工具
-StringUtils.isBlank(str);
-StringUtils.capitalize("hello");
-
-// 日期时间工具
-Date tomorrow = DateUtils.addDays(date, 1);
-String formatted = DateTimeUtils.format(now, "yyyy-MM-dd HH:mm:ss");
-
-// 集合工具
-List<Integer> lengths = CollectionUtils.transform(list, String::length);
-Map<String, Object> merged = MapUtils.merge(defaults, map);
-
-// 加密工具
-String encrypted = AesUtils.encrypt(plainText, key);
-String hmacSha256 = DigestUtils.hmacSha256(plainText, hmacKey);
-```
-
 ### terra-spring-boot-starter
 
 Spring Boot 启动器模块，实现自动配置，简化框架的集成和使用。
 
-**引入方式**：
-```xml
-<dependency>
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-spring-boot-starter</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
+## 实际应用场景
 
-**配置示例**：
-```yaml
-terra:
-  enabled: true
-  bedrock:
-    enabled: true
-    exception-handler:
-      enabled: true
-  nova:
-    enabled: true
-    tuner:
-      enabled: true
-      default-tuner: bayesian
-  geyser:
-    enabled: true
-    local:
-      enabled: true
-    distributed:
-      enabled: true
-  # 更多配置...
-```
+1. **智能客服系统**
+   - 利用 terra-nova 提供的模型混合能力，同时调用多个 LLM 模型处理用户问题
+   - 通过 terra-geyser 缓存常见问题回答，提高响应速度
+   - 使用 terra-stream 处理高并发的用户请求
 
-## StellarTuner 参数优化系统
+2. **内容生成平台**
+   - 使用 terra-nova 的多模型支持，根据不同内容类型选择最合适的 LLM
+   - 通过 terra-crust 管理内容生成的业务规则和工作流
+   - 利用 terra-strata 存储和检索生成的内容
 
-[StellarTuner](terra-nova/README.md) 是 Terra Framework 的明星组件，专注于大语言模型参数的自动优化。它支持多种优化策略、多目标优化，能根据实际需求智能调整模型参数。
-
-主要特点：
-- 支持启发式调优和贝叶斯优化
-- 可根据质量、速度、成本或平衡模式进行优化
-- 上下文感知，根据任务类型和目标模型自动调整参数
-- 实时反馈，基于执行结果动态调整优化策略
-
-详细信息请查看 [terra-nova 模块文档](terra-nova/README.md)。
+3. **数据分析与报告生成**
+   - 集成 terra-nova 处理和分析结构化数据
+   - 利用模型混合功能综合多个模型的分析结果
+   - 通过 terra-bedrock 的统一响应格式输出标准化报告
 
 ## 版本说明
 
