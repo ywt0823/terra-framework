@@ -1,0 +1,67 @@
+{
+  "groups": [
+    {
+      "name": "terra.framework.ai",
+      "type": "com.terra.framework.nova.config.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.config.AIServiceProperties",
+      "description": "Terra框架AI服务配置"
+    }
+  ],
+  "properties": [
+    {
+      "name": "terra.framework.ai.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.terra.framework.nova.config.AIServiceProperties",
+      "description": "是否启用AI服务",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.framework.ai.default-model-id",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.config.AIServiceProperties",
+      "description": "默认模型ID",
+      "defaultValue": "openai:gpt-3.5-turbo"
+    },
+    {
+      "name": "terra.framework.ai.models",
+      "type": "java.util.Map<java.lang.String, com.terra.framework.nova.core.config.AIServiceProperties$ModelProperties>",
+      "sourceType": "com.terra.framework.nova.config.AIServiceProperties",
+      "description": "模型配置映射"
+    }
+  ],
+  "hints": [
+    {
+      "name": "terra.framework.ai.models.keys",
+      "values": [
+        {
+          "value": "openai:gpt-3.5-turbo",
+          "description": "OpenAI GPT-3.5 Turbo模型"
+        },
+        {
+          "value": "openai:gpt-4",
+          "description": "OpenAI GPT-4模型"
+        },
+        {
+          "value": "claude:claude-3-opus",
+          "description": "Claude 3 Opus模型"
+        },
+        {
+          "value": "claude:claude-3-sonnet",
+          "description": "Claude 3 Sonnet模型"
+        },
+        {
+          "value": "wenxin:ernie-bot-4",
+          "description": "文心一言ERNIE Bot 4模型"
+        },
+        {
+          "value": "tongyi:qwen-max",
+          "description": "通义千问Qwen-Max模型"
+        },
+        {
+          "value": "deepseek:deepseek-chat",
+          "description": "DeepSeek Chat模型"
+        }
+      ]
+    }
+  ]
+}

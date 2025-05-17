@@ -1,0 +1,80 @@
+terra:
+  framework:
+    ai:
+      enabled: true
+      default-model-id: "openai:gpt-3.5-turbo"
+      models:
+        # OpenAI模型配置
+        "openai:gpt-3.5-turbo":
+          type: "OPENAI"
+          endpoint: "https://api.openai.com/v1"
+          apiKey: "your-api-key"
+          timeout: 30000
+          streamSupport: true
+          defaultParameters:
+            temperature: 0.7
+            max_tokens: 1000
+          retry:
+            maxRetries: 3
+            initialDelayMs: 1000
+            maxDelayMs: 10000
+            backoffMultiplier: 2.0
+            retryableErrors:
+              - "timeout"
+              - "rate_limit_exceeded"
+              - "server_error"
+              - "service_unavailable"
+        
+        # Claude模型配置
+        "claude:claude-3-opus":
+          type: "CLAUDE"
+          endpoint: "https://api.anthropic.com/v1"
+          apiKey: "your-api-key"
+          timeout: 60000
+          streamSupport: true
+          defaultParameters:
+            temperature: 0.7
+            max_tokens: 4000
+        
+        # 文心一言模型配置
+        "wenxin:ernie-bot-4":
+          type: "WENXIN"
+          endpoint: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat"
+          apiKeyId: "your-api-key-id"
+          apiKeySecret: "your-api-key-secret"
+          authType: "AK_SK"
+          timeout: 30000
+          streamSupport: true
+          defaultParameters:
+            temperature: 0.7
+            top_p: 0.8
+        
+        # 通义千问模型配置
+        "tongyi:qwen-max":
+          type: "TONGYI"
+          endpoint: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+          apiKey: "your-api-key"
+          timeout: 30000
+          streamSupport: true
+          defaultParameters:
+            temperature: 0.7
+            top_p: 0.8
+        
+        # DeepSeek模型配置
+        "deepseek:deepseek-chat":
+          type: "DEEPSEEK"
+          endpoint: "https://api.deepseek.com/v1"
+          apiKey: "your-api-key"
+          timeout: 30000
+          streamSupport: true
+          defaultParameters:
+            temperature: 0.7
+            top_p: 0.8
+        
+        # Dify模型配置
+        "dify:default":
+          type: "DIFY"
+          endpoint: "https://api.dify.ai/v1"
+          apiKey: "your-api-key"
+          timeout: 30000
+          streamSupport: true 
