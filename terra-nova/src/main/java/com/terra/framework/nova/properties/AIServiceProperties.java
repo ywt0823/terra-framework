@@ -1,4 +1,4 @@
-package com.terra.framework.nova.config;
+package com.terra.framework.nova.properties;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

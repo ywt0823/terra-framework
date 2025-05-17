@@ -6,6 +6,7 @@ import com.terra.framework.nova.blend.MergeStrategy;
 import com.terra.framework.nova.blend.ModelBlender;
 import com.terra.framework.nova.cache.InMemoryResponseCache;
 import com.terra.framework.nova.cache.ResponseCache;
+import com.terra.framework.nova.properties.AIServiceProperties;
 import com.terra.framework.nova.model.AIModelManager;
 import com.terra.framework.nova.model.ModelDecoratorOptions;
 import com.terra.framework.nova.model.RetryConfig;
