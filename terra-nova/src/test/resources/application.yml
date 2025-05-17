@@ -29,12 +29,6 @@ terra:
     monitoring:
       enabled: true
 
-    # 混合器配置
-    blend:
-      enabled: true
-      merge-strategy: WEIGHTED
-      auto-add-models: true
-      thread-pool-size: 4
 
 # 日志配置
 logging:
