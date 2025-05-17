@@ -8,9 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Flow.Publisher;
 
 /**
  * AI模型管理器
@@ -227,53 +225,4 @@ public class AIModelManager {
         return List.copyOf(modelCache.values());
     }
 
-    /**
-     * 空模型实现，用于路由装饰器的基础
-     */
-    private static class EmptyModel implements AIModel {
-        @Override
-        public ModelResponse generate(String prompt, Map<String, Object> parameters) {
-            throw new UnsupportedOperationException("空模型不支持此操作");
-        }
-
-        @Override
-        public CompletableFuture<ModelResponse> generateAsync(String prompt, Map<String, Object> parameters) {
-            throw new UnsupportedOperationException("空模型不支持此操作");
-        }
-
-        @Override
-        public Publisher<String> generateStream(String prompt, Map<String, Object> parameters) {
-            throw new UnsupportedOperationException("空模型不支持此操作");
-        }
-
-        @Override
-        public ModelResponse chat(List<Message> messages, Map<String, Object> parameters) {
-            throw new UnsupportedOperationException("空模型不支持此操作");
-        }
-
-        @Override
-        public CompletableFuture<ModelResponse> chatAsync(List<Message> messages, Map<String, Object> parameters) {
-            throw new UnsupportedOperationException("空模型不支持此操作");
-        }
-
-        @Override
-        public Publisher<String> chatStream(List<Message> messages, Map<String, Object> parameters) {
-            throw new UnsupportedOperationException("空模型不支持此操作");
-        }
-
-        @Override
-        public ModelInfo getModelInfo() {
-            return null;
-        }
-
-        @Override
-        public void init() {
-            // 什么都不做
-        }
-
-        @Override
-        public void close() {
-            // 什么都不做
-        }
-    }
 }
