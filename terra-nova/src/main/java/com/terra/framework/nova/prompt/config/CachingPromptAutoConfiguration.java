@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Primary;
  *
  * @author terra-nova
  */
-@Configuration
 @ConditionalOnBean(PromptService.class)
 @AutoConfigureAfter(PromptAutoConfiguration.class)
 @EnableConfigurationProperties(CachingPromptProperties.class)
@@ -34,4 +33,4 @@ public class CachingPromptAutoConfiguration {
                 properties.getMaxSize()
         );
     }
-} 
+}
