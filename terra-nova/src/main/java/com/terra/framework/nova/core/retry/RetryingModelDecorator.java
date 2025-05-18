@@ -1,7 +1,6 @@
 package com.terra.framework.nova.core.retry;
 
 import com.terra.framework.nova.core.model.*;
-import com.terra.framework.nova.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
