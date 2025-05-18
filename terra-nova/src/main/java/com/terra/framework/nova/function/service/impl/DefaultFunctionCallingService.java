@@ -6,11 +6,7 @@ import com.terra.framework.nova.function.FunctionExecutor;
 import com.terra.framework.nova.function.FunctionRegistry;
 import com.terra.framework.nova.function.adapter.FunctionFormatAdapter;
 import com.terra.framework.nova.function.service.FunctionCallingService;
-import com.terra.framework.nova.llm.model.AIModel;
-import com.terra.framework.nova.llm.model.AIModelManager;
-import com.terra.framework.nova.llm.model.ModelInfo;
-import com.terra.framework.nova.llm.model.ModelRequest;
-import com.terra.framework.nova.llm.model.ModelResponse;
+import com.terra.framework.nova.llm.model.*;
 import com.terra.framework.nova.llm.service.AIService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,15 +38,15 @@ public class DefaultFunctionCallingService implements FunctionCallingService {
      *
      * @param functionRegistry 函数注册表
      * @param functionExecutor 函数执行器
-     * @param aiService AI服务
-     * @param modelManager 模型管理器
+     * @param aiService        AI服务
+     * @param modelManager     模型管理器
      */
     @Autowired
     public DefaultFunctionCallingService(
-            FunctionRegistry functionRegistry,
-            FunctionExecutor functionExecutor,
-            AIService aiService,
-            AIModelManager modelManager) {
+        FunctionRegistry functionRegistry,
+        FunctionExecutor functionExecutor,
+        AIService aiService,
+        AIModelManager modelManager) {
         this.functionRegistry = functionRegistry;
         this.functionExecutor = functionExecutor;
         this.aiService = aiService;
@@ -61,7 +57,7 @@ public class DefaultFunctionCallingService implements FunctionCallingService {
      * 注册适配器
      *
      * @param provider 模型提供商
-     * @param adapter 适配器
+     * @param adapter  适配器
      */
     public void registerAdapter(String provider, FunctionFormatAdapter adapter) {
         adapterMap.put(provider, adapter);
@@ -101,10 +97,10 @@ public class DefaultFunctionCallingService implements FunctionCallingService {
 
         // 克隆请求并添加函数
         ModelRequest requestWithFunctions = ModelRequest.builder()
-                .withPrompt(request.getPrompt())
-                .addMessages(request.getMessages())
-                .withParameters(parameters)
-                .build();
+            .withPrompt(request.getPrompt())
+            .addMessages(request.getMessages())
+            .withParameters(parameters)
+            .build();
 
         // 执行请求
         ModelResponse response = aiService.generateResponse(requestWithFunctions.getPrompt(), requestWithFunctions.getParameters());
