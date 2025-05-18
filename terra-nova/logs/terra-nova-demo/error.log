@@ -1,0 +1,30 @@
+2025-05-18 18:26:59.711 [main] ERROR o.s.b.diagnostics.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 0 of method aiModelManager in com.terra.framework.nova.llm.config.AIServiceAutoConfiguration required a bean of type 'com.terra.framework.common.util.httpclient.HttpClientUtils' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.terra.framework.common.util.httpclient.HttpClientUtils' in your configuration.
+
+2025-05-18 18:34:11.243 [main] ERROR o.s.b.diagnostics.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 0 of method aiModelManager in com.terra.framework.nova.llm.config.AIServiceAutoConfiguration required a bean of type 'com.terra.framework.common.util.httpclient.HttpClientUtils' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.terra.framework.common.util.httpclient.HttpClientUtils' in your configuration.
+

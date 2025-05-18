@@ -5,25 +5,34 @@ terra:
       enabled: true
       default-model-id: deepseek:deepseek-chat
       models:
-        # DeepSeek Chat模型配置
-        deepseek:deepseek-chat:
-          endpoint: https://api.deepseek.com
-          api-key:
-          timeout: 60000
+        deepseek-chat:
+          type: deepseek
+          api-key: sk-e71f7354318c487db155079f55227e48
+          endpoint: https://api.deepseek.com/v1
+          timeout: 30000
+        deepseek-chat-instruct:
+          type: deepseek
+          api-key: sk-e71f7354318c487db155079f55227e48
+          endpoint: https://api.deepseek.com/v1
+          timeout: 30000
 
   # 缓存配置
   nova:
+    blend:
+      enabled: true
+      merge-strategy: WEIGHTED
+    prompt:
+      template-path: classpath:/prompts
+      template-extension: .prompt
     cache:
       enabled: true
-      default-ttl-seconds: 3600
+      ttl-seconds: 3600
 
     # 重试配置
     retry:
       enabled: true
-      max-retries: 2
+      max-retries: 3
       initial-delay-ms: 1000
-      max-delay-ms: 5000
-      backoff-multiplier: 2.0
 
     # 监控配置
     monitoring:
