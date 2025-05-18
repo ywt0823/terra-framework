@@ -24,6 +24,8 @@ terra:
     prompt:
       template-path: classpath:/prompts
       template-extension: .prompt
+    function:
+      enabled: true
     cache:
       enabled: true
       ttl-seconds: 3600
