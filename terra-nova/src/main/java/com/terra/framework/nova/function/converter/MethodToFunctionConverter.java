@@ -14,7 +14,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +28,9 @@ public class MethodToFunctionConverter {
     /**
      * Convert a method to a Function object.
      *
-     * @param method the annotated method
+     * @param method     the annotated method
      * @param annotation the AIFunction annotation
-     * @param target the target object containing the method
+     * @param target     the target object containing the method
      * @return the Function object
      */
     public Function convert(Method method, AIFunction annotation, Object target) {
@@ -40,11 +39,11 @@ public class MethodToFunctionConverter {
         Schema responseSchema = createResponseSchema(method);
 
         return SimpleFunction.builder(functionName)
-                .description(annotation.description())
-                .addParameters(parameters)
-                .responseSchema(responseSchema)
-                .handler(new AnnotatedMethodFunctionHandler(target, method))
-                .build();
+            .description(annotation.description())
+            .addParameters(parameters)
+            .responseSchema(responseSchema)
+            .handler(new AnnotatedMethodFunctionHandler(target, method))
+            .build();
     }
 
     private String getFunctionName(Method method, AIFunction annotation) {
@@ -59,7 +58,7 @@ public class MethodToFunctionConverter {
         for (java.lang.reflect.Parameter param : methodParams) {
             AIParameter annotation = AnnotationUtils.findAnnotation(param, AIParameter.class);
             if (annotation == null) {
-                log.warn("Parameter {} in method {} is not annotated with @AIParameter", 
+                log.warn("Parameter {} in method {} is not annotated with @AIParameter",
                     param.getName(), method.getName());
                 continue;
             }
@@ -98,10 +97,10 @@ public class MethodToFunctionConverter {
         if (type.equals(String.class)) {
             return "string";
         } else if (type.equals(Integer.class) || type.equals(int.class) ||
-                   type.equals(Long.class) || type.equals(long.class)) {
+            type.equals(Long.class) || type.equals(long.class)) {
             return "integer";
         } else if (type.equals(Double.class) || type.equals(double.class) ||
-                   type.equals(Float.class) || type.equals(float.class)) {
+            type.equals(Float.class) || type.equals(float.class)) {
             return "number";
         } else if (type.equals(Boolean.class) || type.equals(boolean.class)) {
             return "boolean";
@@ -111,4 +110,4 @@ public class MethodToFunctionConverter {
             return "object";
         }
     }
-} 
+}
