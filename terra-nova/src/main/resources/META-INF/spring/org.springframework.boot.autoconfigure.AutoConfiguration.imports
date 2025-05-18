@@ -1,1 +1,4 @@
-com.terra.framework.nova.core.config.AIServiceAutoConfiguration
+com.terra.framework.nova.llm.config.AIServiceAutoConfiguration
+com.terra.framework.nova.prompt.config.PromptAutoConfiguration
+com.terra.framework.nova.prompt.config.HttpPromptAutoconfiguration
+com.terra.framework.nova.prompt.config.CachingPromptAutoConfiguration

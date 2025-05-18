@@ -2,31 +2,98 @@
   "groups": [
     {
       "name": "terra.framework.ai",
-      "type": "com.terra.framework.nova.core.properties.AIServiceProperties",
-      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
+      "type": "com.terra.framework.nova.llm.properties.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
       "description": "Terra框架AI服务配置"
+    },
+    {
+      "name": "terra.nova.prompt",
+      "type": "com.terra.framework.nova.prompt.properties.PromptProperties",
+      "sourceType": "com.terra.framework.nova.prompt.properties.PromptProperties",
+      "description": "提示词模板配置"
+    },
+    {
+      "name": "terra.nova.prompt.http",
+      "type": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "description": "HTTP提示词模板配置"
     }
   ],
   "properties": [
     {
       "name": "terra.framework.ai.enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
       "description": "是否启用AI服务",
       "defaultValue": true
     },
     {
       "name": "terra.framework.ai.default-model-id",
       "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
+      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
       "description": "默认模型ID",
       "defaultValue": "openai:gpt-3.5-turbo"
     },
     {
       "name": "terra.framework.ai.models",
-      "type": "java.util.Map<java.lang.String, com.terra.framework.nova.core.config.AIServiceProperties$ModelProperties>",
-      "sourceType": "com.terra.framework.nova.core.properties.AIServiceProperties",
+      "type": "java.util.Map<java.lang.String, com.terra.framework.nova.llm.config.AIServiceProperties$ModelProperties>",
+      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
       "description": "模型配置映射"
+    },
+    {
+      "name": "terra.nova.prompt.template-path",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.prompt.properties.PromptProperties",
+      "description": "提示词模板路径",
+      "defaultValue": "classpath:/prompts"
+    },
+    {
+      "name": "terra.nova.prompt.template-extension",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.prompt.properties.PromptProperties",
+      "description": "提示词模板文件扩展名",
+      "defaultValue": ".prompt"
+    },
+    {
+      "name": "terra.nova.prompt.http.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "description": "是否启用HTTP提示词模板加载器",
+      "defaultValue": false
+    },
+    {
+      "name": "terra.nova.prompt.http.base-url",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "description": "HTTP提示词模板服务基础URL",
+      "defaultValue": "http://localhost:8080"
+    },
+    {
+      "name": "terra.nova.prompt.http.template-path",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "description": "HTTP提示词模板路径模式，{id}会被替换为模板ID",
+      "defaultValue": "/templates/{id}"
+    },
+    {
+      "name": "terra.nova.prompt.http.cache-ttl-minutes",
+      "type": "java.lang.Long",
+      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "description": "HTTP提示词模板缓存有效期（分钟）",
+      "defaultValue": 5
+    },
+    {
+      "name": "terra.nova.prompt.http.auth-token",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "description": "HTTP提示词模板服务认证令牌"
+    },
+    {
+      "name": "terra.nova.prompt.http.auth-header-name",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
+      "description": "HTTP提示词模板服务认证头名称",
+      "defaultValue": "Authorization"
     }
   ],
   "hints": [
