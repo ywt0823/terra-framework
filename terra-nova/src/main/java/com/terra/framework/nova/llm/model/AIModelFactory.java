@@ -2,6 +2,7 @@ package com.terra.framework.nova.llm.model;
 
 import com.terra.framework.common.util.httpclient.HttpClientUtils;
 import com.terra.framework.nova.llm.model.claude.ClaudeModel;
+import com.terra.framework.nova.llm.model.coze.CozeModel;
 import com.terra.framework.nova.llm.model.deepseek.DeepSeekModel;
 import com.terra.framework.nova.llm.model.dify.DifyModel;
 import com.terra.framework.nova.llm.model.ollama.OllamaModel;
@@ -44,6 +45,7 @@ public class AIModelFactory {
             case DEEPSEEK -> new DeepSeekModel(config, httpClient);
             case DIFY -> new DifyModel(config, httpClient);
             case OLLAMA -> new OllamaModel(config, httpClient);
+            case COZE -> new CozeModel(config, httpClient);
         };
     }
 }

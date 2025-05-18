@@ -41,6 +41,10 @@ public enum ModelType {
      */
     OLLAMA("ollama"),
 
+    /**
+     * Coze模型
+     */
+    COZE("coze")
 
     ;
 
