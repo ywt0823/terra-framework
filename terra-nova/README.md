@@ -1,6 +1,6 @@
 # Terra Nova
 
-Terra Nova 是 Terra Framework 的核心子项目，专注于大语言模型(LLM)的统一接入与增强。它提供了一套完整的工具集，用于模型管理、多模型混合调用和 AI 服务增强。
+Terra Nova 是 Terra Framework 的核心子项目，专注于大语言模型(LLM)的统一接入与增强。它提供了一套完整的工具集，用于模型管理、多模型混合调用、函数调用、对话管理和提示词模板等AI服务增强功能。
 
 ## 核心功能
 
@@ -15,26 +15,34 @@ Terra Nova 支持多种大语言模型的统一接入，目前已实现的模型
 - **DeepSeek**：DeepSeek AI 大语言模型
 - **Ollama**：本地化部署模型支持
 - **Dify**：支持 Dify 平台集成
+- **Coze**：支持 Coze 平台模型
 
 主要特性：
 - 统一的模型接口与请求格式
-- 灵活的认证机制（API Key、Bearer Token 等）
+- 灵活的认证机制（API Key、Bearer Token、AK/SK 等）
 - 模型状态监控与自动重试
 - 模型信息注册与管理
+- 同步/异步/流式生成支持
 
 ### 2. 模型混合系统（Model Blender）
 
 Terra Nova 提供强大的模型混合能力，可以同时调用多个 LLM 模型并智能合并结果：
 
 - **多策略支持**：
-  - 加权平均：根据配置的权重对多个模型响应进行合并
-  - 最佳质量：选择质量最高的响应
-  - 最快响应：选择响应最快的结果
-  - 投票决策：多模型结果投票决定最终输出
+  - WEIGHTED：根据配置的权重对多个模型响应进行合并
+  - LONGEST：选择最长的响应
+  - SHORTEST：选择最短的响应
+  - VOTING：多模型结果投票决定最终输出
+  - CONCATENATE：串联所有结果
+  - RANDOM：随机选择一个结果
+  - FIRST_SUCCESS：使用第一个成功的结果
+  - QUALITY_BASED：选择质量最高的响应
+  - LIST_FORMAT：合并为列表（每个模型的结果作为一个列表项）
+  - INTERLEAVE：交错合并（交替使用每个模型的部分结果）
 
 - **结果合并机制**：
   - 智能文本合并
-  - JSON 结构化数据合并
+  - 令牌使用统计合并
   - 自定义合并策略扩展
 
 ### 3. 增强型 AI 服务
@@ -49,12 +57,80 @@ Terra Nova 在基本 AI 服务的基础上提供了多种增强功能：
 - **结果缓存**：
   - 高效缓存相同请求的响应
   - 可配置的缓存生命周期
-  - 多级缓存支持
+  - 键值管理和过期清理
 
 - **请求监控**：
   - 响应时间监控
-  - 模型调用统计
+  - 令牌使用统计
   - 错误率追踪
+  - 重试次数记录
+
+### 4. 对话管理系统
+
+Terra Nova 提供完整的对话管理系统，用于追踪和管理用户与 AI 的对话：
+
+- **对话存储**：
+  - 内存存储实现
+  - 对话和消息的结构化存储
+  - 用户关联的对话管理
+
+- **对话服务**：
+  - 创建会话和关联用户
+  - 添加消息到会话
+  - 获取单个会话和用户所有会话
+  - 归档和删除会话
+
+- **对话感知 AI 服务**：
+  - 自动记录对话上下文
+  - 关联模型响应与对话
+  - 会话状态管理（活跃、归档、删除）
+
+### 5. AI 函数调用系统
+
+Terra Nova 实现了完善的函数调用框架，使 AI 模型能够调用应用内的函数：
+
+- **函数注册与发现**：
+  - 注解驱动的函数注册（@AIFunction）
+  - 自动扫描与加载函数
+  - 函数注册表管理
+
+- **函数参数定义**：
+  - 注解驱动的参数定义（@AIParameter）
+  - 参数类型推断和验证
+  - 必需参数校验
+
+- **函数执行**：
+  - 同步和异步执行支持
+  - 参数映射和类型转换
+  - 异常处理机制
+
+- **函数格式适配**：
+  - 不同模型的函数格式转换
+  - 响应解析和函数调用提取
+
+### 6. 提示词模板系统
+
+Terra Nova 提供了强大的提示词模板管理系统：
+
+- **模板加载**：
+  - 文件系统模板加载
+  - HTTP远程模板加载
+  - 模板缓存管理
+
+- **模板渲染**：
+  - 变量插值支持
+  - 高效模板渲染
+  - 可扩展的模板引擎
+
+- **提示词服务**：
+  - 统一的模板渲染接口
+  - 提示词创建和管理
+  - 缓存支持提高性能
+
+- **配置化支持**：
+  - 模板路径配置
+  - 文件扩展名配置
+  - 缓存大小和过期时间配置
 
 ## 快速开始
 
@@ -82,47 +158,55 @@ Terra Nova 在基本 AI 服务的基础上提供了多种增强功能：
 
 ```yaml
 terra:
-  nova:
-    model:
-      default-provider: openai
-      providers:
-        openai:
+  framework:
+    ai:
+      enabled: true
+      default-model-id: openai:gpt-3.5-turbo
+      models:
+        gpt-3.5-turbo:
+          type: openai
           api-key: ${OPENAI_API_KEY}
-          base-url: https://api.openai.com/v1
-          models:
-            - name: gpt-3.5-turbo
-              type: CHAT
-              max-tokens: 4096
-            - name: gpt-4
-              type: CHAT
-              max-tokens: 8192
-        claude:
+          endpoint: https://api.openai.com/v1
+        claude-3-haiku:
+          type: claude
           api-key: ${ANTHROPIC_API_KEY}
-          models:
-            - name: claude-3-haiku
-              type: CHAT
-              max-tokens: 4096
-        ollama:
-          base-url: http://localhost:11434
-          models:
-            - name: llama2
-              type: CHAT
+          endpoint: https://api.anthropic.com
+        wenxin-model:
+          type: wenxin
+          api-key-id: ${BAIDU_API_KEY}
+          api-key-secret: ${BAIDU_SECRET_KEY}
+        tongyi-model:
+          type: tongyi
+          api-key: ${TONGYI_API_KEY}
+  nova:
     blend:
       enabled: true
-      default-strategy: WEIGHTED_AVERAGE
-      timeout: 30000
+      merge-strategy: WEIGHTED
+      auto-add-models: true
     retry:
       enabled: true
-      max-attempts: 3
-      backoff:
-        initial-interval: 1000
-        multiplier: 2.0
-        max-interval: 10000
+      max-retries: 3
+      initial-delay-ms: 1000
+      max-delay-ms: 10000
+      backoff-multiplier: 2.0
     cache:
       enabled: true
-      ttl: 3600
+      default-ttl-seconds: 3600
     monitoring:
       enabled: true
+    conversation:
+      enabled: true
+      max-messages-per-conversation: 100
+    function:
+      enabled: true
+      base-packages: com.example.functions
+    prompt:
+      template-path: classpath:/prompts
+      template-extension: .prompt
+      cache:
+        enabled: true
+        ttl-seconds: 3600
+        max-size: 1000
 ```
 
 ## 使用示例
@@ -133,21 +217,30 @@ terra:
 @Autowired
 private AIService aiService;
 
-// 简单聊天请求
-String response = aiService.chat("你好，请介绍一下自己");
+// 简单文本生成
+String response = aiService.generateText("你好，请介绍一下自己");
 
-// 使用特定模型
-String response = aiService.chat("请分析这段代码", "gpt-4");
+// 对话生成
+List<Message> messages = new ArrayList<>();
+messages.add(Message.ofSystem("你是一个友好的AI助手"));
+messages.add(Message.ofUser("介绍一下自己"));
+String response = aiService.chat(messages);
 
-// 完整请求配置
-ModelResponse response = aiService.generate(
-    ModelRequest.builder()
-        .messages(List.of(new Message(MessageRole.USER, "请解析这个JSON数据")))
-        .modelName("gpt-3.5-turbo")
-        .temperature(0.7)
-        .maxTokens(500)
-        .build()
-);
+// 使用参数
+Map<String, Object> parameters = new HashMap<>();
+parameters.put("temperature", 0.7);
+parameters.put("top_p", 0.95);
+String response = aiService.generateText("分析这段代码", parameters);
+
+// 流式响应
+Publisher<String> stream = aiService.generateTextStream("讲一个故事");
+stream.subscribe(new Subscriber<>() {
+    @Override
+    public void onNext(String chunk) {
+        System.out.print(chunk);
+    }
+    // 其他方法实现...
+});
 ```
 
 ### 增强型 AI 服务
@@ -156,82 +249,114 @@ ModelResponse response = aiService.generate(
 @Autowired
 private EnhancedAIService enhancedService;
 
-// 带重试和缓存的请求
-ModelResponse response = enhancedService.generateWithRetryAndCache(
-    ModelRequest.builder()
-        .messages(List.of(new Message(MessageRole.USER, "分析以下数据并提取关键信息")))
-        .modelName("gpt-3.5-turbo")
-        .build()
-);
+// 使用特定模型
+AIModel model = enhancedService.getModel("openai", "gpt-4");
+ModelResponse response = model.generate("分析这段文本", parameters);
 
-// 流式响应处理
-enhancedService.streamWithRetry(
-    ModelRequest.builder()
-        .messages(List.of(new Message(MessageRole.USER, "写一篇关于人工智能的文章")))
-        .modelName("gpt-4")
-        .build(),
-    chunk -> {
-        // 处理流式响应片段
-        System.out.println(chunk.getContent());
+// 模型混合调用
+String blendedResponse = enhancedService.generateTextWithBlending("解释量子计算的基本原理");
+
+// 添加模型到混合器
+enhancedService.addModelToBlender("gpt-4", 60);
+enhancedService.addModelToBlender("claude-3-sonnet", 40);
+
+// 自定义混合策略
+ModelBlender blender = enhancedService.getModelBlender();
+blender.setMergeStrategy(MergeStrategy.QUALITY_BASED);
+```
+
+### 对话管理
+
+```java
+@Autowired
+private ConversationService conversationService;
+
+// 创建新会话
+Conversation conversation = conversationService.createConversation("user123", "技术咨询");
+
+// 添加消息到会话
+ConversationMessage userMessage = ConversationMessage.builder()
+    .role(MessageRole.USER)
+    .content("如何使用Spring Boot?")
+    .build();
+conversationService.addMessage(conversation.getId(), userMessage);
+
+// 获取用户的所有会话
+List<Conversation> userConversations = conversationService.getUserConversations("user123");
+
+// 使用会话感知AI服务
+@Autowired
+private EnhancedAIService aiService;
+
+// 传入会话ID参数
+Map<String, Object> params = Map.of("conversation_id", conversation.getId());
+String response = aiService.chat(messages, params);
+```
+
+### 函数调用
+
+```java
+// 定义函数
+@Component
+public class WeatherService {
+    @AIFunction(
+        name = "get_weather",
+        description = "获取指定城市的天气信息"
+    )
+    public Map<String, Object> getWeather(
+        @AIParameter(name = "city", description = "城市名称", required = true)
+        String city,
+        @AIParameter(name = "days", description = "天数预报", required = false)
+        Integer days
+    ) {
+        // 函数实现...
+        return Map.of("city", city, "temperature", 25, "condition", "晴天");
     }
-);
+}
+
+// 使用函数调用服务
+@Autowired
+private FunctionCallingService functionService;
+
+// 获取所有函数
+List<Function> functions = functionService.getFunctionsForModel("gpt-4");
+
+// 创建带函数的请求
+ModelRequest request = ModelRequest.builder()
+    .addUserMessage("北京明天天气怎么样？")
+    .build();
+
+// 执行带函数的请求
+ModelResponse response = functionService.executeWithFunctions(request, functions);
+
+// 处理函数调用
+FunctionCall call = functionService.extractFunctionCall(response);
+if (call != null) {
+    Object result = functionService.executeFunctionCall(call);
+    // 处理结果...
+}
 ```
 
-### 模型混合调用
+### 提示词模板
 
 ```java
 @Autowired
-private BlenderService blenderService;
+private PromptService promptService;
 
-// 简单混合调用
-String blendedResponse = blenderService.blend(
-    "请解释量子计算的基本原理",
-    List.of("gpt-3.5-turbo", "claude-3-haiku"),
-    MergeStrategy.BEST_QUALITY
-);
+// 渲染模板
+Map<String, Object> variables = new HashMap<>();
+variables.put("topic", "人工智能");
+variables.put("audience", "技术爱好者");
+String content = promptService.render("article_intro", variables);
 
-// 高级混合调用
-BlenderRequest request = BlenderRequest.builder()
-    .prompt("分析以下金融数据并提供投资建议")
-    .models(List.of("gpt-4", "claude-3-sonnet", "wenxin"))
-    .modelWeights(Map.of(
-        "gpt-4", 0.5,
-        "claude-3-sonnet", 0.3,
-        "wenxin", 0.2
-    ))
-    .mergeStrategy(MergeStrategy.WEIGHTED_AVERAGE)
-    .data("附加数据可以在这里传递")
-    .timeout(60000)
-    .build();
+// 创建提示词
+Prompt prompt = promptService.createPrompt("weather_report", Map.of(
+    "city", "上海",
+    "date", "2023-09-10"
+));
 
-BlenderResponse blendedResponse = blenderService.blend(request);
-System.out.println("混合结果: " + blendedResponse.getContent());
-System.out.println("参与模型: " + blendedResponse.getParticipatingModels());
-System.out.println("执行时间: " + blendedResponse.getExecutionTimeMs() + "ms");
-```
-
-### 模型装饰器
-
-Terra Nova 提供了模型装饰器功能，可以对模型请求进行增强：
-
-```java
-@Autowired
-private AIModelManager modelManager;
-
-// 获取带装饰器的模型
-AIModel model = modelManager.getModel("gpt-3.5-turbo");
-
-// 使用默认装饰器
-ModelDecoratorOptions options = ModelDecoratorOptions.builder()
-    .withRetry(true)
-    .withCache(true)
-    .withMonitoring(true)
-    .build();
-
-AIModel decoratedModel = ModelDecorators.decorate(model, options);
-
-// 使用装饰后的模型
-ModelResponse response = decoratedModel.generate(request);
+// 使用提示词生成内容
+String result = aiService.generateText(prompt.getContent());
 ```
 
 ## 模型注册与管理
@@ -243,21 +368,23 @@ Terra Nova 允许动态注册和管理模型：
 private AIModelManager modelManager;
 
 // 注册新模型
-ModelInfo modelInfo = ModelInfo.builder()
-    .name("custom-model")
-    .provider("custom")
-    .type(ModelType.CHAT)
-    .maxTokens(8192)
+ModelConfig config = ModelConfig.builder()
+    .modelId("custom-gpt")
+    .modelType(ModelType.OPENAI)
+    .endpoint("https://custom-api.example.com/v1")
+    .authConfig(AuthConfig.ofApiKey("your-api-key"))
+    .defaultParameter("temperature", 0.7)
+    .timeout(30000)
+    .streamSupport(true)
     .build();
 
-AIModel customModel = new CustomModelAdapter(modelInfo);
-modelManager.registerModel(customModel);
+modelManager.registerConfig("custom-gpt", config);
 
-// 查询可用模型
-List<ModelInfo> availableModels = modelManager.getAvailableModels();
+// 获取模型实例
+AIModel model = modelManager.getModel("custom-gpt");
 
-// 检查模型状态
-ModelStatus status = modelManager.checkModelStatus("gpt-4");
+// 刷新模型
+modelManager.refreshModel("custom-gpt");
 ```
 
 ## 高级配置
@@ -266,19 +393,31 @@ ModelStatus status = modelManager.checkModelStatus("gpt-4");
 
 ```java
 public class CustomAuthProvider implements AuthProvider {
-    @Override
-    public AuthCredentials getCredentials(String provider) {
-        // 实现自定义的认证凭据获取逻辑
-        return new AuthCredentials(AuthType.API_KEY, "custom-api-key");
+    private final AuthConfig authConfig;
+    
+    public CustomAuthProvider(AuthConfig authConfig) {
+        this.authConfig = authConfig;
     }
-}
-
-// 注册自定义 Auth Provider
-@Configuration
-public class AIConfig {
-    @Bean
-    public AuthProvider authProvider() {
-        return new CustomAuthProvider();
+    
+    @Override
+    public AuthCredentials getCredentials() {
+        // 实现自定义的认证逻辑
+        return AuthCredentials.builder()
+            .authType(AuthType.API_KEY)
+            .headerName("X-Custom-Auth")
+            .headerValue(authConfig.getApiKey())
+            .build();
+    }
+    
+    @Override
+    public void refreshCredentials() {
+        // 刷新认证信息
+    }
+    
+    @Override
+    public <T> T applyCredentials(T request) {
+        // 应用认证到请求
+        return request;
     }
 }
 ```
@@ -287,18 +426,36 @@ public class AIConfig {
 
 ```java
 public class CustomModelAdapter extends AbstractModelAdapter {
-    public CustomModelAdapter(ModelInfo modelInfo) {
-        super(modelInfo);
+    
+    public CustomModelAdapter(RequestMappingStrategy strategy, AuthProvider authProvider) {
+        super(strategy, authProvider);
     }
     
     @Override
-    public ModelResponse generate(ModelRequest request) {
-        // 实现自定义的模型调用逻辑
-        return ModelResponse.builder()
-            .content("自定义模型响应")
-            .model(getModelInfo().getName())
-            .tokenUsage(new TokenUsage(10, 20, 30))
-            .build();
+    public <T> T convertRequest(ModelRequest request, Class<T> vendorRequestType) {
+        // 实现请求转换逻辑
+    }
+    
+    @Override
+    public <T> ModelResponse convertResponse(T vendorResponse) {
+        // 实现响应转换逻辑
+    }
+}
+```
+
+### 自定义函数格式适配器
+
+```java
+public class CustomFunctionAdapter implements FunctionFormatAdapter {
+    
+    @Override
+    public Object formatFunctionsForModel(List<Function> functions) {
+        // 将函数格式化为模型可接受的格式
+    }
+    
+    @Override
+    public FunctionCall parseFunctionCallFromResponse(ModelResponse response) {
+        // 从模型响应中解析函数调用
     }
 }
 ```
