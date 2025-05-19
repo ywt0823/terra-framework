@@ -1,11 +1,9 @@
 package com.terra.framework.nova.prompt.service.impl;
 
 import com.terra.framework.nova.prompt.Prompt;
+import com.terra.framework.nova.prompt.service.PromptService;
 import com.terra.framework.nova.prompt.template.PromptTemplate;
 import com.terra.framework.nova.prompt.template.PromptTemplateRegistry;
-import com.terra.framework.nova.prompt.service.PromptService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
@@ -14,7 +12,6 @@ import java.util.Map;
  *
  * @author terra-nova
  */
-@Service
 public class DefaultPromptService implements PromptService {
 
     private final PromptTemplateRegistry registry;
@@ -24,7 +21,6 @@ public class DefaultPromptService implements PromptService {
      *
      * @param registry 模板注册表
      */
-    @Autowired
     public DefaultPromptService(PromptTemplateRegistry registry) {
         this.registry = registry;
     }

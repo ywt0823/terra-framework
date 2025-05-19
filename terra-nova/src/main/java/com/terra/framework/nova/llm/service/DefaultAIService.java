@@ -4,13 +4,13 @@ import com.terra.framework.nova.llm.model.AIModel;
 import com.terra.framework.nova.llm.model.AIModelManager;
 import com.terra.framework.nova.llm.model.Message;
 import com.terra.framework.nova.llm.model.ModelResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow.Publisher;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * AI服务默认实现
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author terra-nova
  */
 @Slf4j
-public class DefaultAIService implements AIService {
+public abstract class DefaultAIService implements AIService {
 
     /**
      * 模型管理器
@@ -33,7 +33,7 @@ public class DefaultAIService implements AIService {
     /**
      * 构造函数
      *
-     * @param modelManager 模型管理器
+     * @param modelManager   模型管理器
      * @param defaultModelId 默认模型ID
      */
     public DefaultAIService(AIModelManager modelManager, String defaultModelId) {
@@ -47,8 +47,18 @@ public class DefaultAIService implements AIService {
     }
 
     @Override
+    public String generateText(String prompt, String modelId) {
+        return generateText(prompt, modelId, new HashMap<>());
+    }
+
+    @Override
     public String generateText(String prompt, Map<String, Object> parameters) {
         return generateResponse(prompt, parameters).getContent();
+    }
+
+    @Override
+    public String generateText(String prompt, String modelId, Map<String, Object> parameters) {
+        return generateResponse(prompt, modelId, parameters).getContent();
     }
 
     @Override
@@ -60,7 +70,7 @@ public class DefaultAIService implements AIService {
     public CompletableFuture<String> generateTextAsync(String prompt, Map<String, Object> parameters) {
         AIModel model = getDefaultModel();
         return model.generateAsync(prompt, parameters)
-                .thenApply(ModelResponse::getContent);
+            .thenApply(ModelResponse::getContent);
     }
 
     @Override
@@ -93,7 +103,7 @@ public class DefaultAIService implements AIService {
     public CompletableFuture<String> chatAsync(List<Message> messages, Map<String, Object> parameters) {
         AIModel model = getDefaultModel();
         return model.chatAsync(messages, parameters)
-                .thenApply(ModelResponse::getContent);
+            .thenApply(ModelResponse::getContent);
     }
 
     @Override
@@ -112,6 +122,13 @@ public class DefaultAIService implements AIService {
         AIModel model = getDefaultModel();
         return model.generate(prompt, parameters);
     }
+
+    @Override
+    public ModelResponse generateResponse(String prompt, String modelId, Map<String, Object> parameters) {
+        AIModel model = getModel(modelId);
+        return model.generate(prompt, parameters);
+    }
+
 
     @Override
     public ModelResponse chatResponse(List<Message> messages, Map<String, Object> parameters) {

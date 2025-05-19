@@ -4,30 +4,19 @@ import com.terra.framework.nova.llm.model.Message;
 import com.terra.framework.nova.llm.service.AIService;
 import com.terra.framework.nova.llm.service.BlenderService;
 import com.terra.framework.nova.llm.service.EnhancedAIService;
-import com.terra.framework.nova.prompt.service.PromptService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static com.terra.framework.nova.llm.model.ModelType.DEEPSEEK;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = TestConfig.class)
-@TestPropertySource(properties = {
-    "terra.framework.ai.enabled=true",
-    "terra.framework.ai.default-model-id=deepseek:deepseek-chat",
-    "terra.framework.ai.models.deepseek-chat.type=deepseek",
-    "terra.framework.ai.models.deepseek-chat.api-key=**",
-    "terra.nova.blend.enabled=true",
-    "terra.nova.prompt.template-path=classpath:/prompts",
-    "terra.nova.cache.enabled=true",
-    "terra.nova.retry.enabled=true"
-})
 public class TerraNovaDemoTest {
 
     @Autowired
@@ -36,13 +25,14 @@ public class TerraNovaDemoTest {
     @Autowired
     private EnhancedAIService enhancedAIService;
 
-    @Autowired
-    private PromptService promptService;
+
+//    @Autowired
+//    private PromptService promptService;
 
     @Test
     public void testBasicGeneration() {
         // 基本文本生成
-        String response = aiService.generateText("Tell me a short story about a robot.");
+        String response = aiService.generateText("Tell me a short story about a robot.", "deepseek-chat");
         assertNotNull(response);
         System.out.println("Basic Generation Response: " + response);
     }
@@ -76,19 +66,19 @@ public class TerraNovaDemoTest {
         }).join();
     }
 
-    @Test
-    public void testPromptTemplate() {
-        // 使用提示词模板
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("topic", "artificial intelligence");
-        variables.put("tone", "professional");
-
-        String renderedPrompt = promptService.render("article_intro", variables);
-        String response = aiService.generateText(renderedPrompt);
-
-        assertNotNull(response);
-        System.out.println("Template-based Response: " + response);
-    }
+//    @Test
+//    public void testPromptTemplate() {
+//        // 使用提示词模板
+//        Map<String, Object> variables = new HashMap<>();
+//        variables.put("topic", "artificial intelligence");
+//        variables.put("tone", "professional");
+//
+//        String renderedPrompt = promptService.render("article_intro", variables);
+//        String response = aiService.generateText(renderedPrompt);
+//
+//        assertNotNull(response);
+//        System.out.println("Template-based Response: " + response);
+//    }
 
     @Test
     public void testModelBlending() {

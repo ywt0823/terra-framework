@@ -57,8 +57,18 @@ public class ConversationAwareAIService implements EnhancedAIService {
     }
 
     @Override
+    public String generateText(String prompt, String modelId) {
+        return delegate.generateText(prompt, modelId);
+    }
+
+    @Override
     public String generateText(String prompt, Map<String, Object> parameters) {
         return delegate.generateText(prompt, parameters);
+    }
+
+    @Override
+    public String generateText(String prompt, String modelId, Map<String, Object> parameters) {
+        return delegate.generateText(prompt, modelId, parameters);
     }
 
     @Override
@@ -114,6 +124,11 @@ public class ConversationAwareAIService implements EnhancedAIService {
     @Override
     public ModelResponse generateResponse(String prompt, Map<String, Object> parameters) {
         return delegate.generateResponse(prompt, parameters);
+    }
+
+    @Override
+    public ModelResponse generateResponse(String prompt, String modelId, Map<String, Object> parameters) {
+        return delegate.generateResponse(prompt, modelId, parameters);
     }
 
     @Override

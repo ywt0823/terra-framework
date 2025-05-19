@@ -5,8 +5,7 @@ import com.terra.framework.nova.llm.blend.DefaultModelBlender;
 import com.terra.framework.nova.llm.blend.ModelBlender;
 import com.terra.framework.nova.llm.cache.InMemoryResponseCache;
 import com.terra.framework.nova.llm.cache.ResponseCache;
-import com.terra.framework.nova.llm.model.AIModelManager;
-import com.terra.framework.nova.llm.model.ModelDecoratorOptions;
+import com.terra.framework.nova.llm.model.*;
 import com.terra.framework.nova.llm.monitoring.LoggingMetricsCollector;
 import com.terra.framework.nova.llm.monitoring.MetricsCollector;
 import com.terra.framework.nova.llm.properties.*;
@@ -15,16 +14,20 @@ import com.terra.framework.nova.llm.retry.RetryExecutor;
 import com.terra.framework.nova.llm.service.BlenderService;
 import com.terra.framework.nova.llm.service.EnhancedAIService;
 import com.terra.framework.nova.llm.service.EnhancedDefaultAIService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+
+import java.util.HashMap;
 
 /**
  * AI服务自动配置
  *
  * @author terra-nova
  */
+@Slf4j
 @EnableConfigurationProperties({
     AIServiceProperties.class,
     RetryProperties.class,
@@ -74,14 +77,15 @@ public class AIServiceAutoConfiguration {
      * @param decoratorOptions 装饰器选项
      * @return 模型管理器
      */
-    @Bean("aiModelManager")
+    @Bean
     @ConditionalOnMissingBean
     public AIModelManager aiModelManager(
         HttpClientUtils httpClientUtils,
         RetryExecutor retryExecutor,
         ResponseCache responseCache,
         MetricsCollector metricsCollector,
-        ModelDecoratorOptions decoratorOptions) {
+        ModelDecoratorOptions decoratorOptions,
+        AIServiceProperties aiServiceProperties) {
 
         AIModelManager modelManager = new AIModelManager(httpClientUtils);
 
@@ -90,6 +94,72 @@ public class AIServiceAutoConfiguration {
         modelManager.setRetryExecutor(retryExecutor);
         modelManager.setResponseCache(responseCache);
         modelManager.setMetricsCollector(metricsCollector);
+
+        // 注册模型配置
+        aiServiceProperties.getModels().forEach((modelId, modelProperties) -> {
+            try {
+                // 构建基本配置
+                ModelConfig.ModelConfigBuilder builder = ModelConfig.builder()
+                    .modelId(modelId)
+                    .endpoint(modelProperties.getEndpoint())
+                    .timeout(modelProperties.getTimeout())
+                    .streamSupport(modelProperties.isStreamSupport())
+                    .defaultParameters(new HashMap<>(modelProperties.getDefaultParameters()));
+
+                // 设置模型类型
+                if (modelProperties.getType() != null) {
+                    builder.modelType(ModelType.valueOf(modelProperties.getType().toUpperCase()));
+                }
+
+                // 构建认证配置
+                AuthConfig.AuthConfigBuilder authBuilder = AuthConfig.builder();
+
+                if (modelProperties.getAuthType() != null) {
+                    authBuilder.authType(AuthType.valueOf(modelProperties.getAuthType().toUpperCase()));
+                } else if (modelProperties.getApiKey() != null) {
+                    authBuilder.authType(AuthType.API_KEY);
+                } else if (modelProperties.getApiKeyId() != null && modelProperties.getApiKeySecret() != null) {
+                    authBuilder.authType(AuthType.AK_SK);
+                } else if (modelProperties.getAuthToken() != null) {
+                    authBuilder.authType(AuthType.BEARER_TOKEN);
+                }
+
+                authBuilder
+                    .apiKey(modelProperties.getApiKey())
+                    .apiKeyId(modelProperties.getApiKeyId())
+                    .apiKeySecret(modelProperties.getApiKeySecret())
+                    .authToken(modelProperties.getAuthToken())
+                    .organizationId(modelProperties.getOrganizationId())
+                    .projectId(modelProperties.getProjectId());
+
+                builder.authConfig(authBuilder.build());
+
+                // 如果有重试配置，设置重试配置
+                if (modelProperties.getRetry() != null) {
+                    RetryConfig retryConfig = RetryConfig.builder()
+                        .maxRetries(modelProperties.getRetry().getMaxRetries())
+                        .initialDelayMs(modelProperties.getRetry().getInitialDelayMs())
+                        .maxDelayMs(modelProperties.getRetry().getMaxDelayMs())
+                        .backoffMultiplier(modelProperties.getRetry().getBackoffMultiplier())
+                        .build();
+
+                    if (modelProperties.getRetry().getRetryableErrors() != null) {
+                        for (String error : modelProperties.getRetry().getRetryableErrors()) {
+                            retryConfig.addRetryableErrors(error);
+                        }
+                    }
+
+                    builder.retryConfig(retryConfig);
+                }
+
+                // 注册模型配置
+                modelManager.registerConfig(modelId, builder.build());
+//                modelManager.refreshModel(modelId);
+            } catch (Exception e) {
+                // 记录异常但不中断其他模型的注册
+                log.error("Failed to register model configuration for {}: {}", modelId, e.getMessage(), e);
+            }
+        });
 
         return modelManager;
     }

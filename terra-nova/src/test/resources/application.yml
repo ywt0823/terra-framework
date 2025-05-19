@@ -8,12 +8,7 @@ terra:
         deepseek-chat:
           type: deepseek
           api-key: sk-e71f7354318c487db155079f55227e48
-          endpoint: https://api.deepseek.com/v1
-          timeout: 30000
-        deepseek-chat-instruct:
-          type: deepseek
-          api-key: sk-e71f7354318c487db155079f55227e48
-          endpoint: https://api.deepseek.com/v1
+          endpoint: https://api.deepseek.com
           timeout: 30000
 
   # 缓存配置
@@ -28,7 +23,7 @@ terra:
       enabled: true
     cache:
       enabled: true
-      ttl-seconds: 3600
+      defaultTtlSeconds: 3600
 
     # 重试配置
     retry:
@@ -39,6 +34,10 @@ terra:
     # 监控配置
     monitoring:
       enabled: true
+    conversation:
+      enabled: false
+  httpclient:
+    enabled: true
 
 
 # 日志配置
