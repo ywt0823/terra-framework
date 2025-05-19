@@ -4,6 +4,8 @@ target/
 !**/src/test/**/target/
 
 test/
+logs/
+logging.path_IS_UNDEFINED/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
