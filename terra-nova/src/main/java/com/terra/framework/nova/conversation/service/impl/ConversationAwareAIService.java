@@ -52,6 +52,14 @@ public class ConversationAwareAIService implements EnhancedAIService {
     }
 
     @Override
+    public String chat(List<Message> messages, String modelId, Map<String, Object> parameters) {
+        String conversationId = extractConversationId(parameters);
+        String response = delegate.chat(messages, modelId, parameters);
+        recordMessage(conversationId, response, MessageRole.ASSISTANT);
+        return response;
+    }
+
+    @Override
     public String generateText(String prompt) {
         return delegate.generateText(prompt);
     }
@@ -137,6 +145,11 @@ public class ConversationAwareAIService implements EnhancedAIService {
         ModelResponse response = delegate.chatResponse(messages, parameters);
         recordMessage(conversationId, response.getContent(), MessageRole.ASSISTANT);
         return response;
+    }
+
+    @Override
+    public ModelResponse chatResponse(List<Message> messages, String modelId, Map<String, Object> parameters) {
+        return null;
     }
 
     @Override

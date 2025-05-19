@@ -95,6 +95,11 @@ public abstract class DefaultAIService implements AIService {
     }
 
     @Override
+    public String chat(List<Message> messages, String modelId, Map<String, Object> parameters) {
+        return chatResponse(messages, modelId, parameters).getContent();
+    }
+
+    @Override
     public CompletableFuture<String> chatAsync(List<Message> messages) {
         return chatAsync(messages, new HashMap<>());
     }
@@ -133,6 +138,12 @@ public abstract class DefaultAIService implements AIService {
     @Override
     public ModelResponse chatResponse(List<Message> messages, Map<String, Object> parameters) {
         AIModel model = getDefaultModel();
+        return model.chat(messages, parameters);
+    }
+
+    @Override
+    public ModelResponse chatResponse(List<Message> messages, String modelId, Map<String, Object> parameters) {
+        AIModel model = getModel(modelId);
         return model.chat(messages, parameters);
     }
 

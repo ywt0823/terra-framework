@@ -3,27 +3,14 @@ package com.terra.framework.nova.llm.model.ollama;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.terra.framework.common.util.httpclient.HttpClientUtils;
-import com.terra.framework.nova.llm.exception.ModelException;
-import com.terra.framework.nova.llm.model.AbstractAIModel;
-import com.terra.framework.nova.llm.model.AuthProvider;
+import com.terra.framework.nova.llm.model.AbstractVendorModel;
 import com.terra.framework.nova.llm.model.DefaultAuthProvider;
-import com.terra.framework.nova.llm.model.Message;
-import com.terra.framework.nova.llm.model.ModelAdapter;
 import com.terra.framework.nova.llm.model.ModelConfig;
-import com.terra.framework.nova.llm.model.ModelInfo;
 import com.terra.framework.nova.llm.model.ModelRequest;
-import com.terra.framework.nova.llm.model.ModelResponse;
-import com.terra.framework.nova.llm.model.ModelStatus;
 import com.terra.framework.nova.llm.model.ModelType;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Flow.Publisher;
-import java.util.concurrent.SubmissionPublisher;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.message.BasicHeader;
+
+import java.util.Map;
 
 /**
  * Ollama模型实现
@@ -31,27 +18,12 @@ import org.apache.hc.core5.http.message.BasicHeader;
  * @author terra-nova
  */
 @Slf4j
-public class OllamaModel extends AbstractAIModel {
-
-    /**
-     * 模型适配器
-     */
-    private final ModelAdapter adapter;
+public class OllamaModel extends AbstractVendorModel {
 
     /**
      * 参数映射策略
      */
     private final OllamaRequestMappingStrategy mappingStrategy;
-
-    /**
-     * 认证提供者
-     */
-    private final AuthProvider authProvider;
-
-    /**
-     * 模型信息
-     */
-    private ModelInfo modelInfo;
 
     /**
      * 构造函数
@@ -60,368 +32,27 @@ public class OllamaModel extends AbstractAIModel {
      * @param httpClient HTTP客户端工具
      */
     public OllamaModel(ModelConfig config, HttpClientUtils httpClient) {
-        super(config, httpClient);
-
-        // 创建认证提供者
-        this.authProvider = new DefaultAuthProvider(config.getAuthConfig());
-
-        // 创建参数映射策略
+        super(
+            config, 
+            httpClient,
+            new OllamaAdapter(new OllamaRequestMappingStrategy(), new DefaultAuthProvider(config.getAuthConfig())),
+            new DefaultAuthProvider(config.getAuthConfig())
+        );
         this.mappingStrategy = new OllamaRequestMappingStrategy();
-
-        // 创建模型适配器
-        this.adapter = new OllamaAdapter(mappingStrategy, authProvider);
     }
-
+    
     @Override
-    public ModelResponse generate(String prompt, Map<String, Object> parameters) {
-        try {
-            status = ModelStatus.BUSY;
-
-            // 构建请求
-            ModelRequest request = ModelRequest.builder()
-                    .withPrompt(prompt)
-                    .withParameters(buildParameters(parameters))
-                    .withStream(false)
-                    .build();
-
-            // 转换为Ollama请求
-            JSONObject ollamaRequest = adapter.convertRequest(request, JSONObject.class);
-
-            // 准备请求头
-            Header[] headers = createHeaders();
-
-            // 发送请求
-            String endpoint = determineEndpoint(ollamaRequest);
-            String response = httpClientUtils.sendPostJson(
-                    buildEndpointUrl(endpoint),
-                    ollamaRequest.toJSONString(),
-                    StandardCharsets.UTF_8,
-                    headers
-            );
-
-            // 转换响应
-            ModelResponse modelResponse = adapter.convertResponse(response);
-            status = ModelStatus.READY;
-            return modelResponse;
-        } catch (Exception e) {
-            ModelException modelException = adapter.handleException(e);
-            throw modelException;
-        }
+    protected String getVendorName() {
+        return "Ollama";
     }
-
+    
     @Override
-    public Publisher<String> generateStream(String prompt, Map<String, Object> parameters) {
-        SubmissionPublisher<String> publisher = new SubmissionPublisher<>();
-        final AtomicBoolean completed = new AtomicBoolean(false);
-
-        try {
-            status = ModelStatus.BUSY;
-
-            // 构建请求
-            ModelRequest request = ModelRequest.builder()
-                    .withPrompt(prompt)
-                    .withParameters(buildParameters(parameters))
-                    .withStream(true)
-                    .build();
-
-            // 转换为Ollama请求
-            JSONObject ollamaRequest = adapter.convertRequest(request, JSONObject.class);
-
-            // 准备请求头
-            Header[] headers = createHeaders();
-
-            // 定义流式回调
-            HttpClientUtils.StreamCallback callback = new HttpClientUtils.StreamCallback() {
-                @Override
-                public void onData(String chunk) {
-                    try {
-                        if (chunk.trim().isEmpty()) {
-                            return;
-                        }
-
-                        // 解析JSON
-                        JSONObject jsonResponse = JSON.parseObject(chunk);
-
-                        // 从JSON中提取内容
-                        String content = null;
-
-                        if (jsonResponse.containsKey("response")) {
-                            // generate API的流式响应
-                            content = jsonResponse.getString("response");
-                        } else if (jsonResponse.containsKey("message")) {
-                            // chat API的流式响应
-                            JSONObject message = jsonResponse.getJSONObject("message");
-                            content = message.getString("content");
-                        }
-
-                        if (content != null && !content.isEmpty()) {
-                            publisher.submit(content);
-                        }
-                    } catch (Exception e) {
-                        onError(e);
-                    }
-                }
-
-                @Override
-                public void onComplete() {
-                    if (completed.compareAndSet(false, true)) {
-                        publisher.close();
-                        status = ModelStatus.READY;
-                    }
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    if (completed.compareAndSet(false, true)) {
-                        publisher.closeExceptionally(
-                                adapter.handleException(new Exception(throwable))
-                        );
-                        status = ModelStatus.ERROR;
-                    }
-                }
-            };
-
-            // 发送流式请求
-            String endpoint = determineEndpoint(ollamaRequest);
-            httpClientUtils.sendPostJsonStream(
-                    buildEndpointUrl(endpoint),
-                    ollamaRequest.toJSONString(),
-                    StandardCharsets.UTF_8,
-                    headers,
-                    callback
-            );
-
-        } catch (Exception e) {
-            if (completed.compareAndSet(false, true)) {
-                publisher.closeExceptionally(adapter.handleException(e));
-                status = ModelStatus.ERROR;
-            }
-        }
-
-        return publisher;
+    protected ModelType getModelType() {
+        return ModelType.OLLAMA;
     }
-
+    
     @Override
-    public ModelResponse chat(List<Message> messages, Map<String, Object> parameters) {
-        try {
-            status = ModelStatus.BUSY;
-
-            // 构建请求
-            ModelRequest request = ModelRequest.builder()
-                    .withParameters(buildParameters(parameters))
-                    .withStream(false)
-                    .build();
-
-            // 添加消息
-            for (Message message : messages) {
-                request.getMessages().add(message);
-            }
-
-            // 转换为Ollama请求
-            JSONObject ollamaRequest = adapter.convertRequest(request, JSONObject.class);
-
-            // 准备请求头
-            Header[] headers = createHeaders();
-
-            // 发送请求
-            String endpoint = determineEndpoint(ollamaRequest);
-            String response = httpClientUtils.sendPostJson(
-                    buildEndpointUrl(endpoint),
-                    ollamaRequest.toJSONString(),
-                    StandardCharsets.UTF_8,
-                    headers
-            );
-
-            // 转换响应
-            ModelResponse modelResponse = adapter.convertResponse(response);
-            status = ModelStatus.READY;
-            return modelResponse;
-        } catch (Exception e) {
-            ModelException modelException = adapter.handleException(e);
-            throw modelException;
-        }
-    }
-
-    @Override
-    public Publisher<String> chatStream(List<Message> messages, Map<String, Object> parameters) {
-        SubmissionPublisher<String> publisher = new SubmissionPublisher<>();
-        final AtomicBoolean completed = new AtomicBoolean(false);
-
-        try {
-            status = ModelStatus.BUSY;
-
-            // 构建请求
-            ModelRequest request = ModelRequest.builder()
-                    .withParameters(buildParameters(parameters))
-                    .withStream(true)
-                    .build();
-
-            // 添加消息
-            for (Message message : messages) {
-                request.getMessages().add(message);
-            }
-
-            // 转换为Ollama请求
-            JSONObject ollamaRequest = adapter.convertRequest(request, JSONObject.class);
-
-            // 准备请求头
-            Header[] headers = createHeaders();
-
-            // 定义流式回调
-            HttpClientUtils.StreamCallback callback = new HttpClientUtils.StreamCallback() {
-                @Override
-                public void onData(String chunk) {
-                    try {
-                        if (chunk.trim().isEmpty()) {
-                            return;
-                        }
-
-                        // 解析JSON
-                        JSONObject jsonResponse = JSON.parseObject(chunk);
-
-                        // 从JSON中提取内容
-                        String content = null;
-
-                        if (jsonResponse.containsKey("response")) {
-                            // generate API的流式响应
-                            content = jsonResponse.getString("response");
-                        } else if (jsonResponse.containsKey("message")) {
-                            // chat API的流式响应
-                            JSONObject message = jsonResponse.getJSONObject("message");
-                            content = message.getString("content");
-                        }
-
-                        if (content != null && !content.isEmpty()) {
-                            publisher.submit(content);
-                        }
-                    } catch (Exception e) {
-                        onError(e);
-                    }
-                }
-
-                @Override
-                public void onComplete() {
-                    if (completed.compareAndSet(false, true)) {
-                        publisher.close();
-                        status = ModelStatus.READY;
-                    }
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    if (completed.compareAndSet(false, true)) {
-                        publisher.closeExceptionally(
-                                adapter.handleException(new Exception(throwable))
-                        );
-                        status = ModelStatus.ERROR;
-                    }
-                }
-            };
-
-            // 发送流式请求
-            String endpoint = determineEndpoint(ollamaRequest);
-            httpClientUtils.sendPostJsonStream(
-                    buildEndpointUrl(endpoint),
-                    ollamaRequest.toJSONString(),
-                    StandardCharsets.UTF_8,
-                    headers,
-                    callback
-            );
-
-        } catch (Exception e) {
-            if (completed.compareAndSet(false, true)) {
-                publisher.closeExceptionally(adapter.handleException(e));
-                status = ModelStatus.ERROR;
-            }
-        }
-
-        return publisher;
-    }
-
-    @Override
-    public ModelInfo getModelInfo() {
-        return modelInfo;
-    }
-
-    @Override
-    public void init() {
-        try {
-            log.info("初始化Ollama模型: {}", config.getModelId());
-
-            // 创建模型信息
-            String modelName = getModelName();
-            modelInfo = ModelInfo.builder()
-                    .modelId(config.getModelId())
-                    .modelType(ModelType.OLLAMA)
-                    .name(modelName)
-                    .vendor("Ollama")
-                    .streamSupported(true)
-                    .chatSupported(true)
-                    .build();
-
-            status = ModelStatus.READY;
-        } catch (Exception e) {
-            log.error("初始化Ollama模型失败", e);
-            status = ModelStatus.ERROR;
-            throw new ModelException("初始化Ollama模型失败: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void close() {
-        log.info("关闭Ollama模型: {}", config.getModelId());
-        status = ModelStatus.OFFLINE;
-    }
-
-    /**
-     * 创建请求头
-     *
-     * @return 请求头数组
-     */
-    private Header[] createHeaders() {
-        Header contentTypeHeader = new BasicHeader("Content-Type", "application/json");
-
-        // 获取认证头
-        if (authProvider instanceof DefaultAuthProvider) {
-            Header[] authHeaders = ((DefaultAuthProvider) authProvider).createAuthHeaders();
-
-            // 合并内容类型头和认证头
-            Header[] headers = new Header[authHeaders.length + 1];
-            headers[0] = contentTypeHeader;
-            System.arraycopy(authHeaders, 0, headers, 1, authHeaders.length);
-
-            return headers;
-        } else {
-            // 仅返回内容类型头
-            return new Header[]{contentTypeHeader};
-        }
-    }
-
-    /**
-     * 构建Ollama API端点URL
-     *
-     * @param path API路径
-     * @return 完整URL
-     */
-    private String buildEndpointUrl(String path) {
-        String endpoint = config.getEndpoint();
-        if (endpoint.endsWith("/")) {
-            endpoint = endpoint.substring(0, endpoint.length() - 1);
-        }
-
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-
-        return endpoint + path;
-    }
-
-    /**
-     * 获取模型名称
-     *
-     * @return 模型名称
-     */
-    private String getModelName() {
+    protected String getModelName() {
         String modelId = config.getModelId();
 
         // 如果模型ID包含冒号（如ollama:llama2），则提取真实模型名
@@ -438,24 +69,81 @@ public class OllamaModel extends AbstractAIModel {
         // 默认模型
         return "llama2";
     }
+    
+    @Override
+    protected String getChatEndpoint() {
+        return "/api/chat";
+    }
+    
+    @Override
+    protected String getCompletionsEndpoint() {
+        return "/api/generate";
+    }
+    
+    @Override
+    protected String buildFullEndpointUrl(String endpoint, Map<String, Object> parameters) {
+        String baseUrl = config.getEndpoint();
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
 
+        // Ollama有时需要动态确定端点
+        JSONObject request = new JSONObject(parameters);
+        String actualEndpoint = determineEndpoint(request);
+
+        if (!actualEndpoint.startsWith("/")) {
+            actualEndpoint = "/" + actualEndpoint;
+        }
+
+        return baseUrl + actualEndpoint;
+    }
+    
+    @Override
+    protected String processStreamData(String chunk) {
+        if (chunk.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            // 解析JSON
+            JSONObject jsonResponse = JSON.parseObject(chunk);
+
+            // 从JSON中提取内容
+            String content = null;
+
+            if (jsonResponse.containsKey("response")) {
+                // generate API的流式响应
+                content = jsonResponse.getString("response");
+            } else if (jsonResponse.containsKey("message")) {
+                // chat API的流式响应
+                JSONObject message = jsonResponse.getJSONObject("message");
+                content = message.getString("content");
+            }
+
+            if (content != null && !content.isEmpty()) {
+                return content;
+            }
+        } catch (Exception e) {
+            log.debug("解析Ollama流式数据失败: {}", e.getMessage());
+        }
+        
+        return null;
+    }
+    
     /**
-     * 确定使用哪个API端点
+     * 基于请求内容确定使用哪个API端点
      *
-     * @param request Ollama请求
+     * @param request 请求对象
      * @return API端点路径
      */
     private String determineEndpoint(JSONObject request) {
-        // 判断是否使用chat API
-        Object useChatObj = request.remove("use_chat_api");
-        boolean useChat = useChatObj instanceof Boolean ? (Boolean) useChatObj : false;
-
-        // 如果请求中包含messages数组且使用chat API
-        if (useChat && request.containsKey("messages")) {
-            return "/api/chat";
+        // 判断是否是聊天请求
+        boolean isChat = request.containsKey("messages") && request.getJSONArray("messages").size() > 0;
+        
+        if (isChat) {
+            return getChatEndpoint();
         } else {
-            // 从messages生成的prompt或直接提供的prompt
-            return "/api/generate";
+            return getCompletionsEndpoint();
         }
     }
 }

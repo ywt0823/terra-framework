@@ -5,9 +5,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.terra.framework.nova.llm.exception.ErrorType;
 import com.terra.framework.nova.llm.exception.ModelException;
-import com.terra.framework.nova.llm.model.AbstractModelAdapter;
+import com.terra.framework.nova.llm.model.AbstractVendorAdapter;
 import com.terra.framework.nova.llm.model.AuthProvider;
 import com.terra.framework.nova.llm.model.Message;
+import com.terra.framework.nova.llm.model.MessageRole;
 import com.terra.framework.nova.llm.model.ModelRequest;
 import com.terra.framework.nova.llm.model.ModelResponse;
 import com.terra.framework.nova.llm.model.TokenUsage;
@@ -22,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author terra-nova
  */
 @Slf4j
-public class TongyiAdapter extends AbstractModelAdapter {
+public class TongyiAdapter extends AbstractVendorAdapter {
 
     /**
      * 构造函数
@@ -32,64 +33,6 @@ public class TongyiAdapter extends AbstractModelAdapter {
      */
     public TongyiAdapter(TongyiRequestMappingStrategy requestMappingStrategy, AuthProvider authProvider) {
         super(requestMappingStrategy, authProvider);
-    }
-
-    @Override
-    public <T> T convertRequest(ModelRequest request, Class<T> vendorRequestType) {
-        try {
-            JSONObject tongyiRequest = new JSONObject();
-
-            // 设置模型
-            String model = getModelName(request.getParameters());
-            tongyiRequest.put("model", model);
-
-            // 设置是否流式输出
-            tongyiRequest.put("stream", request.isStream());
-
-            // 设置其他参数
-            Map<String, Object> mappedParams = requestMappingStrategy.mapParameters(request.getParameters());
-            for (Map.Entry<String, Object> entry : mappedParams.entrySet()) {
-                // 跳过model参数，因为已经单独设置
-                if (!"model".equals(entry.getKey())) {
-                    tongyiRequest.put(entry.getKey(), entry.getValue());
-                }
-            }
-
-            // 根据请求类型设置消息或提示词
-            if (request.getMessages() != null && !request.getMessages().isEmpty()) {
-                JSONArray messagesArray = convertMessages(request.getMessages());
-                tongyiRequest.put("messages", messagesArray);
-            } else if (request.getPrompt() != null && !request.getPrompt().isEmpty()) {
-                // 将提示词转换为消息
-                JSONArray messagesArray = new JSONArray();
-                JSONObject userMessage = new JSONObject();
-                userMessage.put("role", "user");
-                userMessage.put("content", request.getPrompt());
-                messagesArray.add(userMessage);
-                tongyiRequest.put("messages", messagesArray);
-            }
-
-            return (T) tongyiRequest;
-        } catch (Exception e) {
-            log.error("转换通义千问请求失败", e);
-            throw new ModelException("转换通义千问请求失败: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public <T> ModelResponse convertResponse(T vendorResponse) {
-        try {
-            if (vendorResponse instanceof String) {
-                return parseStringResponse((String) vendorResponse);
-            } else if (vendorResponse instanceof JSONObject) {
-                return parseJsonResponse((JSONObject) vendorResponse);
-            } else {
-                throw new IllegalArgumentException("不支持的响应类型: " + vendorResponse.getClass().getName());
-            }
-        } catch (Exception e) {
-            log.error("转换通义千问响应失败", e);
-            throw new ModelException("转换通义千问响应失败: " + e.getMessage(), e);
-        }
     }
 
     @Override
@@ -118,87 +61,18 @@ public class TongyiAdapter extends AbstractModelAdapter {
         return super.handleException(vendorException);
     }
 
-    /**
-     * 从参数中获取模型名称
-     *
-     * @param parameters 参数
-     * @return 模型名称
-     */
-    private String getModelName(Map<String, Object> parameters) {
-        Object model = parameters.get("model");
-        return model != null ? model.toString() : "qwen-turbo";
-    }
-
-    /**
-     * 将消息列表转换为通义千问消息格式
-     *
-     * @param messages 消息列表
-     * @return 通义千问消息数组
-     */
-    private JSONArray convertMessages(List<Message> messages) {
-        JSONArray messagesArray = new JSONArray();
-
-        for (Message message : messages) {
-            JSONObject tongyiMessage = new JSONObject();
-
-            // 转换角色
-            switch (message.getRole()) {
-                case SYSTEM:
-                    tongyiMessage.put("role", "system");
-                    break;
-                case USER:
-                    tongyiMessage.put("role", "user");
-                    break;
-                case ASSISTANT:
-                    tongyiMessage.put("role", "assistant");
-                    break;
-                case FUNCTION:
-                    // 通义千问支持函数调用
-                    tongyiMessage.put("role", "function");
-                    break;
-                case TOOL:
-                    // 将tool角色映射到function角色
-                    tongyiMessage.put("role", "function");
-                    break;
-                default:
-                    tongyiMessage.put("role", "user");
-            }
-
-            tongyiMessage.put("content", message.getContent());
-            messagesArray.add(tongyiMessage);
-        }
-
-        return messagesArray;
-    }
-
-    /**
-     * 解析字符串响应
-     *
-     * @param response 响应字符串
-     * @return 模型响应
-     */
-    private ModelResponse parseStringResponse(String response) {
-        try {
-            JSONObject jsonResponse = JSON.parseObject(response);
-            return parseJsonResponse(jsonResponse);
-        } catch (Exception e) {
-            // 如果不是JSON，则直接作为内容返回
-            ModelResponse modelResponse = new ModelResponse();
-            modelResponse.setContent(response);
-            return modelResponse;
+    @Override
+    protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
+        // 处理通义千问特殊的消息角色转换
+        if (originalMessage.getRole() == MessageRole.TOOL) {
+            // 将tool角色映射到function角色
+            vendorMessage.put("role", "function");
         }
     }
 
-    /**
-     * 解析JSON响应
-     *
-     * @param jsonResponse JSON响应
-     * @return 模型响应
-     */
-    private ModelResponse parseJsonResponse(JSONObject jsonResponse) {
-        ModelResponse modelResponse = new ModelResponse();
-
-        // 处理通义千问的完整响应格式
+    @Override
+    protected void customizeResponse(ModelResponse modelResponse, JSONObject jsonResponse) {
+        // 处理通义千问特有的响应格式
         if (jsonResponse.containsKey("output")) {
             JSONObject output = jsonResponse.getJSONObject("output");
 
@@ -219,60 +93,16 @@ public class TongyiAdapter extends AbstractModelAdapter {
                     }
                 }
             }
-        } else if (jsonResponse.containsKey("choices")) {
-            // 直接处理choices格式
-            JSONArray choices = jsonResponse.getJSONArray("choices");
-            if (!choices.isEmpty()) {
-                JSONObject firstChoice = choices.getJSONObject(0);
-
-                // 提取内容
-                if (firstChoice.containsKey("message")) {
-                    JSONObject message = firstChoice.getJSONObject("message");
-                    modelResponse.setContent(message.getString("content"));
-                } else if (firstChoice.containsKey("delta") &&
-                           firstChoice.getJSONObject("delta").containsKey("content")) {
-                    // 处理流式响应
-                    modelResponse.setContent(firstChoice.getJSONObject("delta").getString("content"));
-                }
-            }
         }
 
-        // 设置响应ID
+        // 设置响应ID（通义千问特有的字段名）
         if (jsonResponse.containsKey("request_id")) {
             modelResponse.setResponseId(jsonResponse.getString("request_id"));
         }
-
-        // 设置模型ID
-        if (jsonResponse.containsKey("model")) {
-            modelResponse.setModelId(jsonResponse.getString("model"));
-        }
-
-        // 设置创建时间
-        modelResponse.setCreatedAt(System.currentTimeMillis());
-
-        // 设置Token使用情况
-        if (jsonResponse.containsKey("usage")) {
-            JSONObject usage = jsonResponse.getJSONObject("usage");
-            TokenUsage tokenUsage = TokenUsage.of(
-                    usage.getIntValue("prompt_tokens"),
-                    usage.getIntValue("completion_tokens")
-            );
-            modelResponse.setTokenUsage(tokenUsage);
-        }
-
-        // 设置原始响应
-        modelResponse.setRawResponse((Map<String, Object>) JSON.toJSON(jsonResponse));
-
-        return modelResponse;
     }
 
-    /**
-     * 映射通义千问错误码到内部错误类型
-     *
-     * @param errorCode 通义千问错误码
-     * @return 内部错误类型
-     */
-    private ErrorType mapErrorType(String errorCode) {
+    @Override
+    protected ErrorType mapErrorType(String errorCode) {
         if (errorCode == null) {
             return ErrorType.UNKNOWN_ERROR;
         }
@@ -301,5 +131,15 @@ public class TongyiAdapter extends AbstractModelAdapter {
             default:
                 return ErrorType.UNKNOWN_ERROR;
         }
+    }
+
+    @Override
+    protected String getVendorName() {
+        return "通义千问";
+    }
+
+    @Override
+    protected String getDefaultModelName() {
+        return "qwen-turbo";
     }
 }

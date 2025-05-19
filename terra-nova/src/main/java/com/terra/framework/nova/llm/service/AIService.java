@@ -103,6 +103,16 @@ public interface AIService {
     String chat(List<Message> messages, Map<String, Object> parameters);
 
     /**
+     * 带参数对话生成
+     *
+     * @param messages   消息列表
+     * @param parameters 参数
+     * @return 生成的响应
+     */
+    String chat(List<Message> messages, String modelId, Map<String, Object> parameters);
+
+
+    /**
      * 异步对话生成
      *
      * @param messages 消息列表
@@ -155,6 +165,8 @@ public interface AIService {
      * @return 详细响应
      */
     ModelResponse chatResponse(List<Message> messages, Map<String, Object> parameters);
+
+    ModelResponse chatResponse(List<Message> messages, String modelId, Map<String, Object> parameters);
 
     /**
      * 获取指定模型

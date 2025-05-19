@@ -1,6 +1,6 @@
 package com.terra.framework.nova.llm.model.dify;
 
-import com.terra.framework.nova.llm.model.RequestMappingStrategy;
+import com.terra.framework.nova.llm.model.AbstractRequestMappingStrategy;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,51 +9,23 @@ import java.util.Map;
  *
  * @author terra-nova
  */
-public class DifyRequestMappingStrategy implements RequestMappingStrategy {
+public class DifyRequestMappingStrategy extends AbstractRequestMappingStrategy {
 
-    /**
-     * 参数映射表
-     */
-    private static final Map<String, String> PARAM_MAPPING = new HashMap<>();
-
-    static {
-        // 基础参数映射
-        PARAM_MAPPING.put("temperature", "temperature");
-        PARAM_MAPPING.put("top_p", "top_p");
-        PARAM_MAPPING.put("top_k", "top_k");
-        PARAM_MAPPING.put("stream", "stream");
-        PARAM_MAPPING.put("user", "user");
-
+    @Override
+    protected void initVendorSpecificParamMapping() {
         // Dify特有参数
-        PARAM_MAPPING.put("conversation_id", "conversation_id");
-        PARAM_MAPPING.put("files", "files");
-        PARAM_MAPPING.put("response_mode", "response_mode");
+        paramMapping.put("conversation_id", "conversation_id");
+        paramMapping.put("files", "files");
+        paramMapping.put("response_mode", "response_mode");
     }
 
     @Override
-    public Map<String, Object> mapParameters(Map<String, Object> genericParams) {
-        Map<String, Object> difyParams = new HashMap<>();
-
-        if (genericParams == null || genericParams.isEmpty()) {
-            return difyParams;
-        }
-
-        // Dify API不需要在请求中指定模型，忽略model参数
-
-        // 处理通用参数
-        for (Map.Entry<String, Object> entry : genericParams.entrySet()) {
-            String key = entry.getKey();
-            String mappedKey = PARAM_MAPPING.get(key);
-
-            if (mappedKey != null) {
-                difyParams.put(mappedKey, entry.getValue());
-            }
-        }
-
+    protected void processSpecialParameters(Map<String, Object> genericParams, Map<String, Object> vendorParams) {
+        // 调用父类处理通用特殊参数
+        super.processSpecialParameters(genericParams, vendorParams);
+        
         // 处理应用程序ID
-        processAppId(genericParams, difyParams);
-
-        return difyParams;
+        processAppId(genericParams, vendorParams);
     }
 
     /**
@@ -100,5 +72,10 @@ public class DifyRequestMappingStrategy implements RequestMappingStrategy {
 
         // 如果无法确定，返回null
         return null;
+    }
+
+    @Override
+    protected String getDefaultModelName() {
+        return "default";
     }
 }

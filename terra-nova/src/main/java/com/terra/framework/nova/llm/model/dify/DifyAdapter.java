@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.terra.framework.nova.llm.exception.ErrorType;
 import com.terra.framework.nova.llm.exception.ModelException;
-import com.terra.framework.nova.llm.model.AbstractModelAdapter;
+import com.terra.framework.nova.llm.model.AbstractVendorAdapter;
 import com.terra.framework.nova.llm.model.AuthProvider;
 import com.terra.framework.nova.llm.model.Message;
 import com.terra.framework.nova.llm.model.ModelRequest;
@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author terra-nova
  */
 @Slf4j
-public class DifyAdapter extends AbstractModelAdapter {
+public class DifyAdapter extends AbstractVendorAdapter {
 
     /**
      * 构造函数
@@ -35,68 +35,74 @@ public class DifyAdapter extends AbstractModelAdapter {
     }
 
     @Override
-    public <T> T convertRequest(ModelRequest request, Class<T> vendorRequestType) {
-        try {
-            JSONObject difyRequest = new JSONObject();
+    protected void customizeRequest(JSONObject vendorRequest, ModelRequest originalRequest) {
+        // Dify特有的请求处理
+        
+        // 设置inputs和query
+        vendorRequest.put("inputs", new JSONObject()); // 默认空的inputs
+        
+        // 根据请求类型处理
+        if (originalRequest.getMessages() != null && !originalRequest.getMessages().isEmpty()) {
+            vendorRequest.put("query", null); // 不使用query方式
+        } else if (originalRequest.getPrompt() != null && !originalRequest.getPrompt().isEmpty()) {
+            // 对于提示词，使用query模式
+            vendorRequest.put("query", originalRequest.getPrompt());
+            // 不设置消息
+            vendorRequest.put("messages", new JSONArray());
+        }
 
-            // Dify API不需要在请求中明确指定模型，而是在API服务端进行配置
+        // 设置对话模式（用户自定义选项）
+        Object conversationId = originalRequest.getParameters().get("conversation_id");
+        if (conversationId != null) {
+            vendorRequest.put("conversation_id", conversationId.toString());
+        }
 
-            // 设置是否流式输出
-            if (request.isStream()) {
-                difyRequest.put("stream", true);
-            }
-
-            // 设置其他参数
-            Map<String, Object> mappedParams = requestMappingStrategy.mapParameters(request.getParameters());
-            for (Map.Entry<String, Object> entry : mappedParams.entrySet()) {
-                difyRequest.put(entry.getKey(), entry.getValue());
-            }
-
-            // 根据请求类型设置消息或提示词
-            if (request.getMessages() != null && !request.getMessages().isEmpty()) {
-                JSONArray messagesArray = convertMessages(request.getMessages());
-                difyRequest.put("inputs", new JSONObject()); // 默认空的inputs
-                difyRequest.put("query", null); // 不使用query方式
-                difyRequest.put("messages", messagesArray);
-            } else if (request.getPrompt() != null && !request.getPrompt().isEmpty()) {
-                // 对于提示词，使用query模式
-                difyRequest.put("inputs", new JSONObject()); // 默认空的inputs
-                difyRequest.put("query", request.getPrompt());
-                // 不设置消息
-                difyRequest.put("messages", new JSONArray());
-            }
-
-            // 设置对话模式（用户自定义选项）
-            Object conversationId = request.getParameters().get("conversation_id");
-            if (conversationId != null) {
-                difyRequest.put("conversation_id", conversationId.toString());
-            }
-
-            Object user = request.getParameters().get("user");
-            if (user != null) {
-                difyRequest.put("user", user.toString());
-            }
-
-            return (T) difyRequest;
-        } catch (Exception e) {
-            log.error("转换Dify请求失败", e);
-            throw new ModelException("转换Dify请求失败: " + e.getMessage(), e);
+        Object user = originalRequest.getParameters().get("user");
+        if (user != null) {
+            vendorRequest.put("user", user.toString());
         }
     }
 
     @Override
-    public <T> ModelResponse convertResponse(T vendorResponse) {
-        try {
-            if (vendorResponse instanceof String) {
-                return parseStringResponse((String) vendorResponse);
-            } else if (vendorResponse instanceof JSONObject) {
-                return parseJsonResponse((JSONObject) vendorResponse);
-            } else {
-                throw new IllegalArgumentException("不支持的响应类型: " + vendorResponse.getClass().getName());
+    protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
+        // 处理Dify特有的消息格式
+        switch (originalMessage.getRole()) {
+            case SYSTEM:
+                // Dify没有system角色，但可以作为user的特殊消息
+                vendorMessage.put("role", "user");
+                vendorMessage.put("content", "[系统提示] " + originalMessage.getContent());
+                break;
+            case FUNCTION:
+            case TOOL:
+                // Dify可能不直接支持function和tool角色，作为assistant消息处理
+                vendorMessage.put("role", "assistant");
+                vendorMessage.put("content", "工具/函数调用结果: " + originalMessage.getContent());
+                break;
+        }
+    }
+
+    @Override
+    protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
+        // Dify不使用标准的choices格式，这个方法不会被调用，但仍需实现
+        super.extractContent(choice, modelResponse);
+    }
+
+    @Override
+    protected void customizeResponse(ModelResponse modelResponse, JSONObject jsonResponse) {
+        // 解析Dify特有的响应格式
+        if (jsonResponse.containsKey("answer")) {
+            String content = jsonResponse.getString("answer");
+            modelResponse.setContent(content);
+        } else if (jsonResponse.containsKey("event") && "message".equals(jsonResponse.getString("event"))) {
+            // 解析流式响应
+            if (jsonResponse.containsKey("answer")) {
+                modelResponse.setContent(jsonResponse.getString("answer"));
             }
-        } catch (Exception e) {
-            log.error("转换Dify响应失败", e);
-            throw new ModelException("转换Dify响应失败: " + e.getMessage(), e);
+        }
+
+        // 设置响应ID（Dify特有字段）
+        if (jsonResponse.containsKey("conversation_id")) {
+            modelResponse.setResponseId(jsonResponse.getString("conversation_id"));
         }
     }
 
@@ -126,131 +132,13 @@ public class DifyAdapter extends AbstractModelAdapter {
         return super.handleException(vendorException);
     }
 
-    /**
-     * 将消息列表转换为Dify消息格式
-     *
-     * @param messages 消息列表
-     * @return Dify消息数组
-     */
-    private JSONArray convertMessages(List<Message> messages) {
-        JSONArray messagesArray = new JSONArray();
-
-        for (Message message : messages) {
-            JSONObject difyMessage = new JSONObject();
-
-            // 转换角色
-            switch (message.getRole()) {
-                case SYSTEM:
-                    // Dify没有system角色，但可以作为user的特殊消息
-                    difyMessage.put("role", "user");
-                    difyMessage.put("content", "[系统提示] " + message.getContent());
-                    break;
-                case USER:
-                    difyMessage.put("role", "user");
-                    difyMessage.put("content", message.getContent());
-                    break;
-                case ASSISTANT:
-                    difyMessage.put("role", "assistant");
-                    difyMessage.put("content", message.getContent());
-                    break;
-                case FUNCTION:
-                case TOOL:
-                    // Dify可能不直接支持function和tool角色，作为assistant消息处理
-                    difyMessage.put("role", "assistant");
-                    difyMessage.put("content", "工具/函数调用结果: " + message.getContent());
-                    break;
-                default:
-                    difyMessage.put("role", "user");
-                    difyMessage.put("content", message.getContent());
-            }
-
-            messagesArray.add(difyMessage);
-        }
-
-        return messagesArray;
-    }
-
-    /**
-     * 解析字符串响应
-     *
-     * @param response 响应字符串
-     * @return 模型响应
-     */
-    private ModelResponse parseStringResponse(String response) {
-        try {
-            JSONObject jsonResponse = JSON.parseObject(response);
-            return parseJsonResponse(jsonResponse);
-        } catch (Exception e) {
-            // 如果不是JSON，则直接作为内容返回
-            ModelResponse modelResponse = new ModelResponse();
-            modelResponse.setContent(response);
-            return modelResponse;
-        }
-    }
-
-    /**
-     * 解析JSON响应
-     *
-     * @param jsonResponse JSON响应
-     * @return 模型响应
-     */
-    private ModelResponse parseJsonResponse(JSONObject jsonResponse) {
-        ModelResponse modelResponse = new ModelResponse();
-
-        // 解析普通响应
-        if (jsonResponse.containsKey("answer")) {
-            String content = jsonResponse.getString("answer");
-            modelResponse.setContent(content);
-        } else if (jsonResponse.containsKey("event") && "message".equals(jsonResponse.getString("event"))) {
-            // 解析流式响应
-            if (jsonResponse.containsKey("answer")) {
-                modelResponse.setContent(jsonResponse.getString("answer"));
-            }
-        }
-
-        // 设置响应ID
-        if (jsonResponse.containsKey("conversation_id")) {
-            modelResponse.setResponseId(jsonResponse.getString("conversation_id"));
-        } else if (jsonResponse.containsKey("id")) {
-            modelResponse.setResponseId(jsonResponse.getString("id"));
-        }
-
-        // 尝试获取模型ID
-        if (jsonResponse.containsKey("model")) {
-            modelResponse.setModelId(jsonResponse.getString("model"));
-        }
-
-        // 设置创建时间
-        modelResponse.setCreatedAt(System.currentTimeMillis());
-
-        // 设置Token使用情况
-        if (jsonResponse.containsKey("usage")) {
-            JSONObject usage = jsonResponse.getJSONObject("usage");
-            TokenUsage tokenUsage = TokenUsage.of(
-                    usage.getIntValue("prompt_tokens") + usage.getIntValue("prompt_tokens"),
-                    usage.getIntValue("completion_tokens")
-            );
-            modelResponse.setTokenUsage(tokenUsage);
-        }
-
-        // 设置原始响应
-        modelResponse.setRawResponse((Map<String, Object>) JSON.toJSON(jsonResponse));
-
-        return modelResponse;
-    }
-
-    /**
-     * 映射Dify错误类型到内部错误类型
-     *
-     * @param difyErrorType Dify错误类型
-     * @return 内部错误类型
-     */
-    private ErrorType mapErrorType(String difyErrorType) {
-        if (difyErrorType == null) {
+    @Override
+    protected ErrorType mapErrorType(String errorType) {
+        if (errorType == null) {
             return ErrorType.UNKNOWN_ERROR;
         }
 
-        switch (difyErrorType) {
+        switch (errorType) {
             case "authentication_error":
             case "unauthorized":
                 return ErrorType.AUTHENTICATION_ERROR;
@@ -270,5 +158,15 @@ public class DifyAdapter extends AbstractModelAdapter {
             default:
                 return ErrorType.UNKNOWN_ERROR;
         }
+    }
+
+    @Override
+    protected String getVendorName() {
+        return "Dify";
+    }
+
+    @Override
+    protected String getDefaultModelName() {
+        return "dify-app";
     }
 }
