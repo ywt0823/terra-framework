@@ -214,6 +214,39 @@ terra:
       enabled: true
       strategy: WEIGHTED
 
+    # Agent代理系统配置
+    agent:
+      enabled: true
+      default-type: REACT
+      default-model-id: gpt-4
+      max-steps: 10
+      timeout-ms: 60000
+      thread-pool-size: 10
+      base-packages: com.terra.framework.nova
+      
+      # 工具配置
+      tool:
+        auto-register: true
+        base-packages: com.terra.framework.nova.agent.tool.scanner.tools
+        timeout-ms: 30000
+      
+      # 对话集成
+      conversation:
+        enabled: true
+        record-steps: false
+      
+      # ReAct代理配置
+      react:
+        prompt-template-id: agent.react
+        backtracking-enabled: true
+        backtracking-depth: 3
+      
+      # Plan-and-Execute代理配置
+      plan-and-execute:
+        planner-prompt-template-id: agent.planner
+        executor-prompt-template-id: agent.executor
+        max-plan-steps: 5
+
 logging:
   level:
     com.terra.framework.nova: INFO 

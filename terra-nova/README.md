@@ -285,6 +285,167 @@ public List<Document> loadAndSplitDocument(String filePath) {
 }
 ```
 
+### 8. 智能代理系统
+
+Terra Nova 提供了完整的智能代理（Agent）系统，可以通过结合大语言模型和工具来自动完成复杂任务：
+
+- **代理实现**：
+  - ReAct 代理：基于思考-行动-观察循环的代理实现
+  - PlanAndExecute 代理：基于先规划后执行的代理实现
+  - 支持自定义代理类型扩展
+
+- **工具管理**：
+  - 工具注册与发现
+  - 可扩展的工具接口
+  - 自动扫描注册工具
+
+- **代理监控**：
+  - 执行跟踪
+  - 执行步骤记录
+  - 工具使用统计
+  - 执行时间统计
+
+- **记忆管理**：
+  - 状态持久化
+  - 上下文记忆
+  - 短期/长期记忆
+
+- **集成功能**：
+  - 与对话系统集成
+  - 与提示词模板系统集成
+  - 与函数调用系统集成
+
+#### 代理系统架构
+
+代理系统由以下核心组件组成：
+
+1. **Agent接口**：定义代理的基本行为
+2. **AgentConfig**：代理配置接口
+3. **AgentFactory**：代理工厂，创建不同类型的代理
+4. **Tool**：工具接口，定义代理可以使用的工具
+5. **ToolRegistry**：工具注册表，管理可用工具
+6. **MemoryManager**：记忆管理器，管理代理的记忆
+
+#### 使用示例
+
+```java
+// 创建代理工厂
+@Autowired
+private AgentFactory agentFactory;
+
+// 使用默认配置创建ReAct代理
+Agent reactAgent = agentFactory.createAgent(AgentType.REACT);
+
+// 执行任务
+AgentResponse response = reactAgent.execute(
+    "查找客户John Doe的最近订单并计算总金额",
+    Map.of("customerId", "JD123")
+);
+
+// 输出执行结果
+System.out.println("执行结果: " + response.getOutput());
+System.out.println("工具使用统计: " + response.getToolUsage());
+System.out.println("执行时间: " + response.getMetadata().get("taskTimeMs") + "ms");
+
+// 获取详细执行痕迹
+AgentExecutionTrace trace = reactAgent.executeWithTrace(
+    "为产品A、B、C创建营销计划",
+    Map.of("budget", 10000)
+);
+
+// 分析执行步骤
+for (AgentStep step : trace.getSteps()) {
+    System.out.println("步骤 " + step.getId());
+    System.out.println("思考: " + step.getThought());
+    System.out.println("动作: " + step.getAction().getType());
+    System.out.println("结果: " + step.getActionResult());
+}
+
+// 自定义代理配置
+DefaultAgentConfig config = new DefaultAgentConfig();
+config.setModelId("gpt-4");
+config.setMaxSteps(15);
+config.setTimeoutMs(120000);
+config.setTools(List.of("search", "calculator", "database"));
+
+// 创建Plan-and-Execute代理
+Agent planAgent = agentFactory.createAgent(AgentType.PLAN_AND_EXECUTE, config);
+```
+
+#### 配置示例
+
+```yaml
+# 代理系统配置
+terra:
+  nova:
+    agent:
+      enabled: true
+      default-type: REACT
+      default-model-id: gpt-4
+      max-steps: 10
+      timeout-ms: 60000
+      thread-pool-size: 10
+      base-packages: com.mycompany.tools
+      
+      # 工具配置
+      tool:
+        auto-register: true
+        base-packages: com.mycompany.tools
+        timeout-ms: 30000
+      
+      # 对话集成
+      conversation:
+        enabled: true
+        record-steps: false
+      
+      # ReAct代理配置
+      react:
+        prompt-template-id: agent.react
+        backtracking-enabled: true
+        backtracking-depth: 3
+      
+      # Plan-and-Execute代理配置
+      plan-and-execute:
+        planner-prompt-template-id: agent.planner
+        executor-prompt-template-id: agent.executor
+        max-plan-steps: 5
+```
+
+#### 自定义工具实现
+
+```java
+@Component
+public class WeatherTool implements Tool {
+    
+    @Override
+    public String getName() {
+        return "weather";
+    }
+    
+    @Override
+    public String getDescription() {
+        return "获取指定城市的天气信息";
+    }
+    
+    @Override
+    public List<ToolParameter> getParameters() {
+        return List.of(
+            new ToolParameter("city", "string", "城市名称", true),
+            new ToolParameter("date", "string", "日期，格式YYYY-MM-DD", false)
+        );
+    }
+    
+    @Override
+    public Object execute(Map<String, Object> parameters) {
+        String city = (String) parameters.get("city");
+        String date = (String) parameters.getOrDefault("date", "today");
+        
+        // 实际实现应调用天气API
+        return String.format("%s 天气：晴，温度20-28℃，湿度60%%", city);
+    }
+}
+```
+
 ## 快速开始
 
 ### 环境要求

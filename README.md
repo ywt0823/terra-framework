@@ -112,6 +112,13 @@ LLM 集成与应用框架，是 Terra Framework 的核心模块。
    - 请求监控
    - 异常处理
 
+4. **Agent系统与工具**
+   - 多种Agent类型支持（ReAct、Plan-and-Execute）
+   - 工具注册与管理系统
+   - 基于注解的工具开发
+   - 内置常用工具集（计算器、日期时间处理、文本分析等）
+   - 记忆管理和上下文维护
+
 **引入方式**：
 ```xml
 <dependency>
@@ -427,3 +434,227 @@ terra:
 3. **模型选择**：对于大型知识库，使用高维度嵌入模型提高表示能力
 4. **上下文管理**：监控上下文长度，避免超出LLM模型最大输入限制
 5. **缓存利用**：启用嵌入缓存提高性能，特别是对于频繁检索的文档 
+
+## 8. Agent工具注解开发指南
+
+### 8.1 简介
+
+Terra-Nova框架提供了两种注册Agent工具的方式：
+1. 实现`Tool`接口并使用`@Component`注解（传统方式）
+2. 使用`@AITool`注解在任何Spring Bean方法上（注解方式）
+
+本指南主要介绍第二种注解方式的使用方法，这种方式无需创建专门的工具类，可以直接将现有业务方法转变为Agent工具。
+
+### 8.2 注解工具的优势
+
+- **简化开发**：无需创建单独的工具类，直接注解现有方法
+- **轻松集成**：将业务逻辑与Agent工具能力无缝结合
+- **职责分离**：业务服务专注于功能实现，而不是工具适配
+- **减少样板代码**：不必手动实现Tool接口的所有方法
+
+### 8.3 使用方法
+
+#### 步骤1：添加方法注解
+
+在任何Spring托管的Bean中，为方法添加`@AITool`注解：
+
+```java
+@Service
+public class WeatherService {
+
+    @AITool(
+        name = "weather_query",
+        description = "查询指定城市的天气信息"
+    )
+    public String getWeather(
+            @AIToolParameter(name = "city", description = "城市名称") String city,
+            @AIToolParameter(name = "forecast", description = "是否查询未来几天的天气", required = false) boolean forecast) {
+        // 方法实现...
+    }
+}
+```
+
+#### 步骤2：添加参数注解
+
+为方法参数添加`@AIToolParameter`注解，提供参数描述：
+
+```java
+@AIToolParameter(
+    name = "paramName",     // 参数名称
+    description = "参数描述", // 参数描述
+    type = "string",        // 参数类型（可选，默认根据Java类型推断）
+    required = true,        // 是否必需（可选，默认为true）
+    defaultValue = ""       // 默认值（可选，仅用于非必需参数）
+)
+```
+
+#### 8.3.1 快速开始
+
+在项目中使用注解式工具：
+
+```java
+// 1. 创建带注解的工具类
+@Service
+public class DefaultTools {
+
+    @AITool(
+        name = "calculator",
+        description = "执行基本数学运算，包括加减乘除和指数"
+    )
+    public Object calculator(
+            @AIToolParameter(name = "operation", description = "操作类型，支持：add, subtract, multiply, divide, power") String operation,
+            @AIToolParameter(name = "a", description = "第一个操作数") Object a,
+            @AIToolParameter(name = "b", description = "第二个操作数") Object b) {
+        // 实现计算逻辑...
+    }
+    
+    @AITool(
+        name = "datetime",
+        description = "处理日期时间相关操作，包括当前时间、日期计算等"
+    )
+    public String datetimeTool(
+            @AIToolParameter(name = "operation", description = "操作类型(now/parse/format/add/subtract等)") String operation,
+            @AIToolParameter(name = "date", description = "日期字符串", required = false) String date) {
+        // 实现日期处理逻辑...
+    }
+}
+
+// 2. 在Agent中使用工具
+@Service
+public class MyApplicationService {
+
+    @Autowired
+    private AgentFactory agentFactory;
+    
+    public String processUserQuery(String query) {
+        // 创建Agent配置，包含要使用的工具
+        AgentConfig config = DefaultAgentConfig.builder()
+            .modelId("gpt-4")
+            .addTool("calculator") 
+            .addTool("datetime")
+            .build();
+            
+        // 创建Agent实例
+        Agent agent = agentFactory.createAgent(AgentType.REACT, config);
+        
+        // 执行Agent任务
+        AgentResponse response = agent.execute(query, null);
+        
+        return response.getOutput();
+    }
+}
+```
+
+配置自动工具扫描：
+
+```yaml
+terra:
+  nova:
+    agent:
+      enabled: true
+      tool:
+        auto-register: true
+        base-packages: com.example.myapp
+```
+
+### 8.4 注解说明
+
+#### @AITool
+
+| 属性 | 类型 | 必需 | 描述 |
+|-----|-----|------|-----|
+| name | String | 否 | 工具名称，如果未指定则使用方法名 |
+| description | String | 是 | 工具描述 |
+
+#### @AIToolParameter
+
+| 属性 | 类型 | 必需 | 描述 |
+|-----|-----|------|-----|
+| name | String | 否 | 参数名称，如果未指定则使用方法参数名 |
+| description | String | 是 | 参数描述 |
+| type | String | 否 | 参数类型，如果未指定则根据Java类型推断 |
+| required | boolean | 否 | 是否为必需参数，默认为true |
+| defaultValue | String | 否 | 默认值，仅用于非必需参数 |
+
+### 8.5 类型映射
+
+Java类型会自动映射为工具参数类型：
+
+| Java类型 | 工具参数类型 |
+|---------|------------|
+| String | string |
+| Integer, int, Long, long | number |
+| Double, double, Float, float | number |
+| Boolean, boolean | boolean |
+| 数组, List | array |
+| 其他类型 | object |
+
+### 8.6 示例
+
+#### 基本示例
+
+```java
+@Service
+public class UtilityService {
+
+    @AITool(description = "获取当前时间")
+    public String getCurrentTime(
+            @AIToolParameter(description = "时间格式", required = false, defaultValue = "yyyy-MM-dd HH:mm:ss") String format) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        return LocalDateTime.now().format(formatter);
+    }
+}
+```
+
+#### 复杂示例
+
+```java
+@Service
+public class TextService {
+
+    @AITool(
+        name = "text_analyzer",
+        description = "分析文本，包括字数统计、关键词提取等"
+    )
+    public Map<String, Object> analyzeText(
+            @AIToolParameter(description = "要分析的文本") String text,
+            @AIToolParameter(description = "分析类型", defaultValue = "all") String type,
+            @AIToolParameter(description = "是否包含详细信息", required = false) Boolean detailed) {
+        
+        // 实现文本分析逻辑...
+        Map<String, Object> result = new HashMap<>();
+        // ...填充结果
+        return result;
+    }
+}
+```
+
+### 8.7 最佳实践
+
+1. **提供清晰描述**：为工具和每个参数提供详细、准确的描述
+2. **使用合适的类型**：选择最合适的参数类型，帮助Agent正确使用工具
+3. **设置合理默认值**：为非必需参数提供合理的默认值
+4. **保持方法简单**：一个工具应专注于一个特定功能
+5. **处理异常**：妥善处理异常情况，返回友好的错误信息
+6. **日志记录**：添加适当的日志记录，方便调试和监控
+
+### 8.8 配置
+
+在`application.yml`或`application.properties`中可以设置扫描包路径：
+
+```yaml
+terra:
+  nova:
+    agent:
+      tool:
+        base-packages: com.example.myapp
+```
+
+### 8.9 故障排除
+
+如果注解工具未被正确注册，请检查：
+
+1. 确保类被Spring正确管理（@Component、@Service等）
+2. 验证方法是否为public
+3. 检查扫描包路径配置是否正确
+4. 查看应用日志中是否有相关错误信息 
