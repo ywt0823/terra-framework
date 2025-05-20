@@ -194,7 +194,7 @@ public abstract class AbstractVendorModel extends AbstractAIModel {
             vendorRequest.toJSONString(),
             StandardCharsets.UTF_8,
             headers
-        );
+        ).toJSONString();
     }
 
     /**
