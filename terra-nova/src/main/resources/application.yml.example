@@ -77,4 +77,108 @@ terra:
           endpoint: "https://api.dify.ai/v1"
           apiKey: "your-api-key"
           timeout: 30000
-          streamSupport: true 
+          streamSupport: true
+
+  nova:
+    # AI服务配置
+    ai:
+      enabled: true
+      default-model-id: openai:gpt-3.5-turbo
+      providers:
+        openai:
+          api-key: ${OPENAI_API_KEY:sk-xxx}
+          organization-id: ${OPENAI_ORG_ID:}
+          timeout: 30000
+        claude:
+          api-key: ${CLAUDE_API_KEY:sk-xxx}
+          timeout: 60000
+        wenxin:
+          api-key-id: ${WENXIN_API_KEY_ID:xxx}
+          api-key-secret: ${WENXIN_API_KEY_SECRET:xxx}
+          timeout: 30000
+        coze:
+          api-key: ${COZE_API_KEY:xxx}
+          bot-id: ${COZE_BOT_ID:xxx}
+        ollama:
+          base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    
+    # 对话功能配置
+    conversation:
+      enabled: true
+      max-messages-per-conversation: 100
+    
+    # 函数调用配置
+    function:
+      enabled: true
+      base-packages: com.terra.framework.nova.function
+    
+    # 提示词配置
+    prompt:
+      enabled: true
+      template-location: classpath:prompts/
+    
+    # RAG检索增强生成配置
+    rag:
+      enabled: true
+      # 文档分割配置
+      splitting:
+        chunk-size: 1000
+        overlap: 200
+        splitter: character
+      # 检索配置
+      retrieval:
+        top-k: 5
+        rerank: false
+        rerank-model: ""
+        minimum-score: 0.7
+      # 上下文构建配置
+      context:
+        template: |
+          根据以下上下文回答问题:
+          
+          {context}
+          
+          问题: {question}
+        max-tokens: 3500
+        format-documents: true
+        document-template: "文档[{index}]: {content}\n来源: {source}"
+      # 向量存储配置
+      vector-store:
+        type: in-memory
+        url: localhost:19530
+        collection-name: documents
+    
+    # 嵌入服务配置
+    rag.embedding:
+      enabled: true
+      model-id: deepseek:text-embedding
+      dimension: 1024
+      batch-size: 20
+      cache-enabled: true
+      cache-size: 1000
+      cache-ttl-seconds: 3600
+    
+    # 缓存配置
+    cache:
+      enabled: true
+      ttl-seconds: 3600
+    
+    # 重试配置
+    retry:
+      enabled: true
+      max-retries: 3
+      initial-delay-ms: 1000
+      max-delay-ms: 10000
+    
+    # 监控配置
+    monitoring:
+      enabled: true
+    
+    # 模型混合配置
+    blend:
+      enabled: true
+      strategy: WEIGHTED
+
+logging:
+  level:
+    com.terra.framework.nova: INFO 

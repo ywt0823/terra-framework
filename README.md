@@ -251,3 +251,179 @@ Spring Boot 启动器模块，实现自动配置，简化框架的集成和使�
 ## 许可证
 
 [Apache License 2.0](LICENSE) 
+
+## 7. RAG检索增强生成系统
+
+Terra Framework提供了完整的检索增强生成(RAG)支持，通过RAG系统，您可以将大型文档库集成到LLM应用中，实现知识增强型的生成能力。
+
+### 7.1 核心功能
+
+- **文档处理**：加载、解析和分割各种格式的文档
+- **嵌入生成**：将文档转换为向量表示
+- **向量存储**：高效存储和检索文档向量
+- **相似度搜索**：根据用户查询检索相关文档
+- **上下文构建**：根据检索结果构建LLM输入上下文
+- **灵活配置**：支持自定义分块大小、检索参数等
+
+### 7.2 快速开始
+
+#### 添加依赖
+
+```xml
+<dependency>
+    <groupId>com.terra.framework</groupId>
+    <artifactId>terra-nova-spring-boot-starter</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+
+#### 配置示例
+
+在`application.yml`中添加:
+
+```yaml
+terra:
+  nova:
+    rag:
+      enabled: true
+      # 文档分割配置
+      splitting:
+        chunk-size: 1000
+        overlap: 200
+      # 检索配置
+      retrieval:
+        top-k: 5
+        minimum-score: 0.7
+      # 嵌入配置
+      embedding:
+        model-id: deepseek:text-embedding
+        dimension: 1024
+      # 向量存储配置
+      vector-store:
+        type: in-memory
+        collection-name: documents
+```
+
+#### 使用示例
+
+```java
+@Service
+public class DocumentService {
+
+    @Autowired
+    private RAGService ragService;
+
+    // 加载文档到知识库
+    public void loadDocuments(String directory) {
+        try {
+            int docCount = ragService.loadDocuments(directory);
+            log.info("成功加载{}个文档", docCount);
+        } catch (DocumentLoadException e) {
+            log.error("文档加载失败", e);
+        }
+    }
+    
+    // 根据用户问题检索相关文档
+    public String answerQuestion(String question) {
+        // 生成包含相关文档的上下文
+        String context = ragService.generateContext(question, 3);
+        
+        // 将上下文和问题一起发送给LLM
+        return aiService.chat("请根据以下上下文回答问题:\n\n" + context);
+    }
+}
+```
+
+### 7.3 自定义组件
+
+Terra的RAG系统支持自定义各个组件:
+
+```java
+// 自定义文档加载器
+@Component
+public class PDFDocumentLoader implements DocumentLoader {
+    
+    @Override
+    public List<Document> loadDocuments(String source) {
+        // 实现PDF文件加载逻辑
+    }
+}
+
+// 注册自定义加载器
+@Configuration
+public class RAGConfig {
+    
+    @Autowired
+    private RAGService ragService;
+    
+    @Autowired
+    private PDFDocumentLoader pdfLoader;
+    
+    @PostConstruct
+    public void setup() {
+        // 为RAGService设置文档加载器
+        if (ragService instanceof DefaultRAGService) {
+            ((DefaultRAGService) ragService).setDocumentLoader(pdfLoader);
+        }
+    }
+}
+```
+
+### 7.4 配置详解
+
+#### 文档分割配置
+
+```yaml
+terra:
+  nova:
+    rag:
+      splitting:
+        # 每个文档块的大小（按字符数计算）
+        chunk-size: 1000
+        # 块之间的重叠大小（按字符数计算）
+        overlap: 200
+        # 分割器类型: character, token, sentence, paragraph
+        splitter: character
+```
+
+#### 检索配置
+
+```yaml
+terra:
+  nova:
+    rag:
+      retrieval:
+        # 检索结果数量
+        top-k: 5
+        # 是否启用重排序
+        rerank: false
+        # 重排序模型ID（如启用）
+        rerank-model: ""
+        # 最低相似度阈值
+        minimum-score: 0.7
+```
+
+#### 嵌入配置
+
+```yaml
+terra:
+  nova:
+    rag:
+      embedding:
+        # 使用的嵌入模型ID
+        model-id: deepseek:text-embedding
+        # 嵌入向量维度
+        dimension: 1024
+        # 批处理大小
+        batch-size: 20
+        # 是否启用嵌入缓存
+        cache-enabled: true
+```
+
+### 7.5 最佳实践
+
+1. **文档分割**：根据文档类型调整分块大小，对于结构化文档，保持段落、章节完整
+2. **检索优化**：通过调整top-k和最低相似度阈值平衡召回率和准确率
+3. **模型选择**：对于大型知识库，使用高维度嵌入模型提高表示能力
+4. **上下文管理**：监控上下文长度，避免超出LLM模型最大输入限制
+5. **缓存利用**：启用嵌入缓存提高性能，特别是对于频繁检索的文档 

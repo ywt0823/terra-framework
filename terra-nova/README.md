@@ -132,6 +132,41 @@ Terra Nova 提供了强大的提示词模板管理系统：
   - 文件扩展名配置
   - 缓存大小和过期时间配置
 
+### 7. RAG 检索增强生成系统
+
+Terra Nova 提供了完整的RAG（Retrieval-Augmented Generation，检索增强生成）解决方案，通过将文档知识库与大型语言模型结合，生成更加准确、可靠的回答，减少幻觉问题：
+
+- **文档处理模块**：
+  - Document：文档接口与SimpleDocument实现
+  - DocumentLoader：文档加载器接口与多种实现
+  - DocumentProcessor：文档处理器接口
+  - DocumentSplitter：文档分割器接口与递归字符分割实现
+
+- **嵌入模块**：
+  - EmbeddingModel：嵌入模型接口
+  - EmbeddingService：嵌入服务接口与默认实现
+  - 多种嵌入模型支持与缓存
+
+- **向量存储**：
+  - VectorStore：向量存储接口
+  - InMemoryVectorStore：内存向量存储实现
+  - SearchResult：检索结果封装
+
+- **检索模块**：
+  - Retriever：检索器接口与默认实现
+  - RetrievalOptions：检索参数配置
+  - 相似度过滤与重排序支持
+
+- **上下文构建**：
+  - ContextBuilder：上下文构建器接口
+  - 自定义模板支持
+  - 文档格式化
+
+- **服务模块**：
+  - RAGService：统一服务接口
+  - 文档加载与管理
+  - 知识库检索与上下文生成
+
 ## 快速开始
 
 ### 环境要求
@@ -179,6 +214,45 @@ terra:
           type: tongyi
           api-key: ${TONGYI_API_KEY}
   nova:
+    # RAG检索增强生成配置
+    rag:
+      enabled: true
+      # 文档分割配置
+      splitting:
+        chunk-size: 1000
+        overlap: 200
+        splitter: character
+      # 检索配置
+      retrieval:
+        top-k: 5
+        rerank: false
+        rerank-model: ""
+        minimum-score: 0.7
+      # 上下文构建配置
+      context:
+        template: |
+          根据以下上下文回答问题:
+          
+          {context}
+          
+          问题: {question}
+        max-tokens: 3500
+        format-documents: true
+        document-template: "文档[{index}]: {content}\n来源: {source}"
+      # 向量存储配置
+      vector-store:
+        type: in-memory
+    
+    # 嵌入服务配置
+    rag.embedding:
+      enabled: true
+      model-id: openai:text-embedding-ada-002
+      dimension: 1536
+      batch-size: 20
+      cache-enabled: true
+      cache-size: 1000
+      cache-ttl-seconds: 3600
+      
     blend:
       enabled: true
       merge-strategy: WEIGHTED
@@ -359,6 +433,50 @@ Prompt prompt = promptService.createPrompt("weather_report", Map.of(
 String result = aiService.generateText(prompt.getContent());
 ```
 
+### RAG检索增强生成
+
+```java
+@Autowired
+private RAGService ragService;
+
+@Autowired
+private AIService aiService;
+
+// 添加文档到知识库
+public void addDocument(String content, Map<String, Object> metadata) {
+    Document document = SimpleDocument.builder()
+            .content(content)
+            .metadata(metadata)
+            .build();
+    ragService.addDocument(document);
+}
+
+// 从文件加载文档
+public void loadDocuments(String filePath) throws DocumentLoadException {
+    DocumentLoader loader = new TextFileDocumentLoader();
+    List<Document> documents = loader.loadDocuments(filePath);
+    ragService.addDocuments(documents);
+}
+
+// 基于RAG进行问答
+public String answer(String question) {
+    // 生成包含相关文档的上下文
+    String context = ragService.generateContext(question, 5);
+    
+    // 使用生成的上下文回答问题
+    return aiService.generateText(context);
+}
+
+// 使用过滤条件检索
+RetrievalOptions options = RetrievalOptions.builder()
+        .topK(10)
+        .addFilter("category", "技术文档")
+        .addFilter("language", "中文")
+        .build();
+
+List<Document> documents = ragService.retrieve(query, options);
+```
+
 ## 模型注册与管理
 
 Terra Nova 允许动态注册和管理模型：
@@ -459,6 +577,74 @@ public class CustomFunctionAdapter implements FunctionFormatAdapter {
     }
 }
 ```
+
+### 自定义文档加载器
+
+```java
+public class MyCustomDocumentLoader implements DocumentLoader {
+    @Override
+    public List<Document> loadDocuments(String source) throws DocumentLoadException {
+        // 自定义实现
+    }
+}
+```
+
+### 自定义文档分割器
+
+```java
+public class MyCustomSplitter implements DocumentSplitter {
+    @Override
+    public List<Document> split(Document document, SplitterConfig config) {
+        // 自定义实现
+    }
+}
+```
+
+### 自定义向量存储
+
+```java
+public class ExternalVectorStore implements VectorStore {
+    // 实现与外部向量数据库（如Milvus、Qdrant等）的集成
+    
+    @Override
+    public void addDocuments(List<Document> documents, List<float[]> embeddings) {
+        // 添加文档和向量到外部存储
+    }
+    
+    @Override
+    public List<SearchResult> similaritySearch(float[] queryEmbedding, int topK, Map<String, Object> filter) {
+        // 执行向量相似度检索
+    }
+    
+    // 其他方法实现...
+}
+```
+
+## RAG 配置详解
+
+| 配置项 | 说明 | 默认值 |
+|-------|------|--------|
+| terra.nova.rag.enabled | 是否启用RAG功能 | true |
+| terra.nova.rag.splitting.chunk-size | 文档分块大小 | 1000 |
+| terra.nova.rag.splitting.overlap | 分块重叠大小 | 200 |
+| terra.nova.rag.splitting.splitter | 分割器类型 | character |
+| terra.nova.rag.retrieval.top-k | 默认返回文档数量 | 5 |
+| terra.nova.rag.retrieval.minimum-score | 最低相似度阈值 | 0.7 |
+| terra.nova.rag.retrieval.rerank | 是否启用重排序 | false |
+| terra.nova.rag.context.template | 上下文模板 | 预设模板 |
+| terra.nova.rag.context.format-documents | 是否格式化文档 | true |
+| terra.nova.rag.vector-store.type | 向量存储类型 | in-memory |
+| terra.nova.rag.embedding.model-id | 嵌入模型ID | openai:text-embedding-ada-002 |
+| terra.nova.rag.embedding.dimension | 嵌入向量维度 | 1536 |
+| terra.nova.rag.embedding.batch-size | 批处理大小 | 20 |
+
+## RAG 最佳实践
+
+1. 为文档添加丰富的元数据，以便能够进行精确过滤
+2. 适当调整分块大小，较小的块适合精确检索，较大的块提供更多上下文
+3. 对于大型知识库，考虑使用外部向量数据库如Milvus、Qdrant等
+4. 使用高质量的嵌入模型，如OpenAI的text-embedding-3-large
+5. 根据应用场景定制上下文模板，使LLM能够更好地理解检索到的信息
 
 ## 贡献指南
 
