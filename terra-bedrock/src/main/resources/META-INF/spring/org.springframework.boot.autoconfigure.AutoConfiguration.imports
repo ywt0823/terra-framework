@@ -1,3 +1,4 @@
 com.terra.framework.bedrock.config.httpclient.HttpClientAutoConfiguration
 com.terra.framework.bedrock.config.snowflake.SnowflakeAutoconfiguration
 com.terra.framework.bedrock.config.log.LogAutoConfiguration
+com.terra.framework.bedrock.config.json.JsonAutoConfiguration

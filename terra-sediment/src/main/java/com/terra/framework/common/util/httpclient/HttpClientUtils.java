@@ -1,257 +1,426 @@
 package com.terra.framework.common.util.httpclient;
 
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.terra.framework.common.exception.HttpClientException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.util.Timeout;
 
+import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
- * Httpclient工具类，在引用时记得把log等级调成debug或者更低，否则会导致日志打印很多信息 (log4j.logger.org.apache.commons.httpclient=DEBUG)
+ * HTTP客户端工具类
+ * 提供基于Apache HttpClient的HTTP请求封装
  *
- * @author ywt
- * @date 2019年2月9日 09:00:02
- * @since 1.3.9
- **/
+ * @author Terra Framework Team
+ * @date 2025年6月1日
+ */
 @Slf4j
-public class HttpClientUtils {
+public class HttpClientUtils implements AutoCloseable {
 
-    private final CloseableHttpClient closeableHttpClient;
-    private final RequestConfig requestConfig;
+    private final CloseableHttpClient httpClient;
+    private final HttpClientConfig config;
     private final ExecutorService executorService;
+    private final boolean ownsHttpClient;
+
 
     /**
-     * HTTP请求结果接口
-     */
-    @FunctionalInterface
-    private interface HttpResult {
-        /**
-         * 执行HTTP请求并返回响应
-         *
-         * @param apiUrl      请求URL
-         * @param body        请求体
-         * @param contentType 内容类型
-         * @return HTTP响应
-         * @throws Exception 请求异常
-         */
-        CloseableHttpResponse apply(URL apiUrl, Object body, ContentType contentType) throws Exception;
-    }
-
-    public HttpClientUtils(CloseableHttpClient closeableHttpClient, RequestConfig requestConfig) {
-        this.closeableHttpClient = closeableHttpClient;
-        this.requestConfig = requestConfig;
-        this.executorService = Executors.newCachedThreadPool();
-    }
-
-    /**
-     * 表单提交
+     * 使用自定义配置创建HttpClientUtils实例
      *
-     * @param url     请求路径
-     * @param map     参数K-V
-     * @param charset 编码
-     * @param token   Token
-     * @return 返回结果
+     * @param config 自定义配置
      */
-    public JSONObject sendPostByFormData(final String url, final Map<String, String> map, final Charset charset, final String token) throws MalformedURLException {
-        return getResult(Objects.requireNonNull(sendData(new URL(url), map, ContentType.APPLICATION_FORM_URLENCODED, (apiUrl, body, contentType) -> {
-            // 创建post方式请求对象
-            HttpPost httpPost = getHttpPost(url);
-            // 装填参数
-            List<NameValuePair> nameValuePairs = new ArrayList<>();
-            if (map != null) {
-                for (Map.Entry<String, String> entry : map.entrySet()) {
-                    nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+    public HttpClientUtils(HttpClientConfig config) {
+        this.config = config;
+        this.httpClient = createHttpClient();
+        this.executorService = Executors.newFixedThreadPool(config.getThreadPoolSize(), r -> {
+            Thread thread = new Thread(r, "terra-http-client-");
+            thread.setDaemon(true);
+            return thread;
+        });
+        this.ownsHttpClient = true;
+    }
+
+    /**
+     * 使用外部提供的HttpClient创建HttpClientUtils实例
+     *
+     * @param httpClient 外部HttpClient
+     * @param config 客户端配置
+     */
+    public HttpClientUtils(CloseableHttpClient httpClient, HttpClientConfig config) {
+        this.httpClient = httpClient;
+        this.config = config;
+        this.executorService = Executors.newFixedThreadPool(config.getThreadPoolSize(), r -> {
+            Thread thread = new Thread(r, "terra-http-client-");
+            thread.setDaemon(true);
+            return thread;
+        });
+        this.ownsHttpClient = false;
+    }
+
+    /**
+     * 创建HttpClient实例
+     */
+    private CloseableHttpClient createHttpClient() {
+        try {
+            // 创建连接管理器
+            PoolingHttpClientConnectionManager connectionManager = createConnectionManager();
+
+            // 创建HttpClient构建器
+            HttpClientBuilder clientBuilder = HttpClients.custom()
+                    .setConnectionManager(connectionManager)
+                    .setConnectionManagerShared(false)
+                    .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy());
+
+            // 配置重试策略
+            if (config.isRetryEnabled()) {
+                clientBuilder.setRetryStrategy(new DefaultHttpRequestRetryStrategy(
+                        config.getMaxRetryCount(),
+                        Timeout.ofSeconds(1)
+                ));
+            }
+
+            // 配置默认请求参数
+            clientBuilder.setDefaultRequestConfig(createRequestConfig());
+
+            return clientBuilder.build();
+        } catch (Exception e) {
+            log.error("创建HttpClient实例失败", e);
+            throw new RuntimeException("创建HttpClient实例失败", e);
+        }
+    }
+
+    /**
+     * 创建连接管理器
+     */
+    private PoolingHttpClientConnectionManager createConnectionManager() throws Exception {
+        PoolingHttpClientConnectionManager connectionManager;
+
+        // 如果需要验证SSL证书，使用默认的SSL上下文
+        if (config.isValidateSSLCertificate()) {
+            connectionManager = new PoolingHttpClientConnectionManager();
+        } else {
+            // 否则创建信任所有证书的SSL上下文
+            SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+                    .build();
+
+            SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
+                    sslContext,
+                    new NoopHostnameVerifier()
+            );
+
+            connectionManager = new PoolingHttpClientConnectionManager();
+        }
+
+        // 配置连接参数
+        ConnectionConfig connConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+                .setSocketTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+                .build();
+
+        connectionManager.setDefaultConnectionConfig(connConfig);
+        connectionManager.setMaxTotal(config.getMaxTotalConnections());
+        connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerRoute());
+
+        return connectionManager;
+    }
+
+    /**
+     * 创建请求配置
+     */
+    private RequestConfig createRequestConfig() {
+        return RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+                .setResponseTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+                .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+                .build();
+    }
+
+    /**
+     * 发送表单POST请求
+     *
+     * @param url     请求URL
+     * @param params  表单参数
+     * @param charset 编码
+     * @param token   认证令牌
+     * @return JSON响应
+     */
+    public JSONObject sendPostForm(String url, Map<String, String> params, Charset charset, String token) {
+        try {
+            return executeRequest(url, req -> {
+                HttpPost httpPost = createHttpPost(url);
+
+                // 设置表单参数
+                if (params != null && !params.isEmpty()) {
+                    List<NameValuePair> nameValuePairs = new ArrayList<>();
+                    params.forEach((key, value) -> nameValuePairs.add(new BasicNameValuePair(key, value)));
+                    httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, charset));
                 }
-            }
-            // 设置参数到请求对象中
-            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, charset));
-            // 设置header信息
-            httpPost.setHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
-            httpPost.setHeader("Content-type", contentType);
-            if (!StringUtils.isEmpty(token)) {
-                httpPost.setHeader("Authorization", "Bearer " + token);
-            }
-            return HttpClients.createDefault().execute(httpPost);
-        })), charset);
-    }
 
+                // 设置请求头
+                httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+                httpPost.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
-    /**
-     * body 提交
-     *
-     * @param url     请求路径
-     * @param json    参数
-     * @param charset 编码
-     * @param token   Token
-     * @return 返回结果
-     * @throws MalformedURLException
-     */
-    public JSONObject sendPostDataByJson(final String url, final String json, final Charset charset, final String token) throws MalformedURLException {
-        return getResult(Objects.requireNonNull(sendData(new URL(url), json, ContentType.APPLICATION_FORM_URLENCODED, (apiUrl, body, contentType) -> {
-            // 创建post方式请求对象
-            HttpPost httpPost = getHttpPost(url);
-            // 设置参数到请求对象中
-            StringEntity stringEntity = new StringEntity(json, charset);
-            httpPost.setEntity(stringEntity);
-            if (!StringUtils.isEmpty(token)) {
-                httpPost.setHeader("Authorization", "Bearer " + token);
-            }
-            // 设置header信息
-            return closeableHttpClient.execute(httpPost);
-        })), charset);
+                if (StringUtils.isNotEmpty(token)) {
+                    httpPost.setHeader("Authorization", "Bearer " + token);
+                }
+
+                return httpClient.execute(httpPost);
+            }, charset);
+        } catch (Exception e) {
+            handleException(url, e);
+            return null; // 不会执行到这里，handleException会抛出异常
+        }
     }
 
     /**
-     * body 提交
-     *
-     * @param url     请求路径
-     * @param json    参数
-     * @param charset 编码
-     * @param headers 请求头
-     * @return 返回结果
-     * @throws MalformedURLException
-     */
-    public JSONObject sendPostDataByJson(final String url, final String json, final Charset charset, Header... headers) throws MalformedURLException {
-        return getResult(Objects.requireNonNull(sendData(new URL(url), json, ContentType.APPLICATION_FORM_URLENCODED, (apiUrl, body, contentType) -> {
-            // 创建post方式请求对象
-            HttpPost httpPost = getHttpPost(url);
-            // 设置参数到请求对象中
-            StringEntity stringEntity = new StringEntity(json, charset);
-            httpPost.setEntity(stringEntity);
-            httpPost.setHeaders(headers);
-            // 设置header信息
-            return closeableHttpClient.execute(httpPost);
-        })), charset);
-    }
-
-
-    /**
-     * GET提交
-     *
-     * @param url     请求路径
-     * @param charset 编码
-     * @param token   token
-     * @return 返回结果
-     * @throws MalformedURLException
-     */
-    public JSONObject sendGetData(final String url, final Charset charset, final String token) throws MalformedURLException {
-        // 通过请求对象获取响应对象
-        return getResult(Objects.requireNonNull(sendData(new URL(url), null, null, (apiUrl, body, contentType) -> {
-            HttpGet httpGet = getHttpGet(url);
-            if (!StringUtils.isEmpty(token)) {
-                httpGet.setHeader("Authorization", "Bearer " + token);
-            }
-            return closeableHttpClient.execute(httpGet);
-        })), charset);
-    }
-
-
-    /**
-     * GET提交
-     *
-     * @param url     请求路径
-     * @param charset 编码
-     * @param headers headers
-     * @return 返回结果
-     * @throws MalformedURLException
-     */
-    public JSONObject sendGetData(final String url, final Charset charset, final Header... headers) throws MalformedURLException {
-        // 通过请求对象获取响应对象
-        return getResult(Objects.requireNonNull(sendData(new URL(url), null, null, (apiUrl, body, contentType) -> {
-            HttpGet httpGet = getHttpGet(url);
-            httpGet.setHeaders(headers);
-            return closeableHttpClient.execute(httpGet);
-        })), charset);
-    }
-
-    // 新增方法 - 开始
-
-    /**
-     * 发送POST请求，返回JSON字符串
+     * 发送JSON POST请求
      *
      * @param url     请求URL
      * @param json    JSON请求体
-     * @param charset 字符集
-     * @param headers 请求头
-     * @return JSON响应字符串
+     * @param charset 编码
+     * @param token   认证令牌
+     * @return JSON响应
      */
-    public String sendPostJson(final String url, final String json, final Charset charset, final Header... headers) {
+    public JSONObject sendPostJson(String url, String json, Charset charset, String token) {
         try {
-            // 创建post方式请求对象
-            HttpPost httpPost = getHttpPost(url);
+            return executeRequest(url, req -> {
+                HttpPost httpPost = createHttpPost(url);
 
-            // 设置Content-Type
-            boolean hasContentType = false;
-            if (headers != null) {
-                for (Header header : headers) {
-                    if ("Content-Type".equalsIgnoreCase(header.getName())) {
-                        hasContentType = true;
-                        break;
-                    }
+                // 设置JSON请求体
+                if (StringUtils.isNotEmpty(json)) {
+                    StringEntity entity = new StringEntity(json, charset);
+                    httpPost.setEntity(entity);
                 }
-            }
 
-            if (!hasContentType) {
+                // 设置请求头
                 httpPost.setHeader("Content-Type", "application/json");
-            }
+                httpPost.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
-            // 设置请求体
-            if (json != null && !json.isEmpty()) {
-                StringEntity stringEntity = new StringEntity(json, charset);
-                httpPost.setEntity(stringEntity);
-            }
-
-            // 设置请求头
-            if (headers != null && headers.length > 0) {
-                httpPost.setHeaders(headers);
-            }
-
-            // 执行请求
-            try (CloseableHttpResponse response = closeableHttpClient.execute(httpPost)) {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    return EntityUtils.toString(response.getEntity(), charset);
-                } else {
-                    String errorResponse;
-                    try {
-                        errorResponse = EntityUtils.toString(response.getEntity(), charset);
-                    } catch (ParseException e) {
-                        errorResponse = "无法解析响应内容: " + e.getMessage();
-                    }
-                    log.error("HTTP POST请求失败: URL={}, 状态码={}, 响应={}", url, response.getCode(), errorResponse);
-                    throw new IOException("HTTP请求失败: " + errorResponse);
+                if (StringUtils.isNotEmpty(token)) {
+                    httpPost.setHeader("Authorization", "Bearer " + token);
                 }
-            }
-        } catch (IOException e) {
-            log.error("发送POST请求异常: URL={}", url, e);
-            throw new RuntimeException("发送POST请求异常", e);
-        } catch (ParseException e) {
-            log.error("解析HTTP响应异常: URL={}", url, e);
-            throw new RuntimeException("解析HTTP响应异常", e);
+
+                return httpClient.execute(httpPost);
+            }, charset);
+        } catch (Exception e) {
+            handleException(url, e);
+            return null; // 不会执行到这里，handleException会抛出异常
+        }
+    }
+
+    /**
+     * 发送JSON POST请求（自定义请求头）
+     *
+     * @param url     请求URL
+     * @param json    JSON请求体
+     * @param charset 编码
+     * @param headers 自定义请求头
+     * @return JSON响应
+     */
+    public JSONObject sendPostJson(String url, String json, Charset charset, Header... headers) {
+        try {
+            return executeRequest(url, req -> {
+                HttpPost httpPost = createHttpPost(url);
+
+                // 设置JSON请求体
+                if (StringUtils.isNotEmpty(json)) {
+                    StringEntity entity = new StringEntity(json, charset);
+                    httpPost.setEntity(entity);
+                }
+
+                // 设置内容类型（如果没有在headers中指定）
+                boolean hasContentType = false;
+                if (headers != null) {
+                    for (Header header : headers) {
+                        if ("Content-Type".equalsIgnoreCase(header.getName())) {
+                            hasContentType = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasContentType) {
+                    httpPost.setHeader("Content-Type", "application/json");
+                }
+
+                // 设置用户代理（如果没有在headers中指定）
+                boolean hasUserAgent = false;
+                if (headers != null) {
+                    for (Header header : headers) {
+                        if ("User-Agent".equalsIgnoreCase(header.getName())) {
+                            hasUserAgent = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasUserAgent) {
+                    httpPost.setHeader("User-Agent", "Terra-Http-Client/1.0");
+                }
+
+                // 设置自定义请求头
+                if (headers != null && headers.length > 0) {
+                    httpPost.setHeaders(headers);
+                }
+
+                return httpClient.execute(httpPost);
+            }, charset);
+        } catch (Exception e) {
+            handleException(url, e);
+            return null; // 不会执行到这里，handleException会抛出异常
+        }
+    }
+
+    /**
+     * 发送GET请求
+     *
+     * @param url     请求URL
+     * @param charset 编码
+     * @param token   认证令牌
+     * @return JSON响应
+     */
+    public JSONObject sendGet(String url, Charset charset, String token) {
+        try {
+            return executeRequest(url, req -> {
+                HttpGet httpGet = createHttpGet(url);
+
+                // 设置请求头
+                httpGet.setHeader("User-Agent", "Terra-Http-Client/1.0");
+
+                if (StringUtils.isNotEmpty(token)) {
+                    httpGet.setHeader("Authorization", "Bearer " + token);
+                }
+
+                return httpClient.execute(httpGet);
+            }, charset);
+        } catch (Exception e) {
+            handleException(url, e);
+            return null; // 不会执行到这里，handleException会抛出异常
+        }
+    }
+
+    /**
+     * 发送GET请求（自定义请求头）
+     *
+     * @param url     请求URL
+     * @param charset 编码
+     * @param headers 自定义请求头
+     * @return JSON响应
+     */
+    public JSONObject sendGet(String url, Charset charset, Header... headers) {
+        try {
+            return executeRequest(url, req -> {
+                HttpGet httpGet = createHttpGet(url);
+
+                // 设置用户代理（如果没有在headers中指定）
+                boolean hasUserAgent = false;
+                if (headers != null) {
+                    for (Header header : headers) {
+                        if ("User-Agent".equalsIgnoreCase(header.getName())) {
+                            hasUserAgent = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasUserAgent) {
+                    httpGet.setHeader("User-Agent", "Terra-Http-Client/1.0");
+                }
+
+                // 设置自定义请求头
+                if (headers != null && headers.length > 0) {
+                    httpGet.setHeaders(headers);
+                }
+
+                return httpClient.execute(httpGet);
+            }, charset);
+        } catch (Exception e) {
+            handleException(url, e);
+            return null; // 不会执行到这里，handleException会抛出异常
+        }
+    }
+
+    /**
+     * 发送POST请求并返回字符串结果
+     *
+     * @param url     请求URL
+     * @param json    JSON请求体
+     * @param charset 编码
+     * @param headers 请求头
+     * @return 响应字符串
+     */
+    public String sendPostJsonForString(String url, String json, Charset charset, Header... headers) {
+        try {
+            return executeRequestForString(url, req -> {
+                HttpPost httpPost = createHttpPost(url);
+
+                // 设置JSON请求体
+                if (StringUtils.isNotEmpty(json)) {
+                    StringEntity entity = new StringEntity(json, charset);
+                    httpPost.setEntity(entity);
+                }
+
+                // 设置内容类型（如果没有在headers中指定）
+                boolean hasContentType = false;
+                if (headers != null) {
+                    for (Header header : headers) {
+                        if ("Content-Type".equalsIgnoreCase(header.getName())) {
+                            hasContentType = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasContentType) {
+                    httpPost.setHeader("Content-Type", "application/json");
+                }
+
+                // 设置自定义请求头
+                if (headers != null && headers.length > 0) {
+                    httpPost.setHeaders(headers);
+                }
+
+                return httpClient.execute(httpPost);
+            }, charset);
+        } catch (Exception e) {
+            handleException(url, e);
+            return null; // 不会执行到这里，handleException会抛出异常
         }
     }
 
@@ -288,16 +457,21 @@ public class HttpClientUtils {
      * @param headers  请求头
      * @param callback 流式回调
      */
-    public void sendPostJsonStream(final String url, final String json, final Charset charset,
-                                   final Header[] headers, final StreamCallback callback) {
-        executorService.execute(() -> {
+    public void sendPostJsonStream(String url, String json, Charset charset, Header[] headers, StreamCallback callback) {
+        CompletableFuture.runAsync(() -> {
             HttpPost httpPost = null;
             CloseableHttpResponse response = null;
-            try {
-                // 创建post方式请求对象
-                httpPost = getHttpPost(url);
 
-                // 设置Content-Type
+            try {
+                httpPost = createHttpPost(url);
+
+                // 设置JSON请求体
+                if (StringUtils.isNotEmpty(json)) {
+                    StringEntity entity = new StringEntity(json, charset);
+                    httpPost.setEntity(entity);
+                }
+
+                // 设置内容类型（如果没有在headers中指定）
                 boolean hasContentType = false;
                 if (headers != null) {
                     for (Header header : headers) {
@@ -312,21 +486,17 @@ public class HttpClientUtils {
                     httpPost.setHeader("Content-Type", "application/json");
                 }
 
-                // 设置请求体
-                if (json != null && !json.isEmpty()) {
-                    StringEntity stringEntity = new StringEntity(json, charset);
-                    httpPost.setEntity(stringEntity);
-                }
-
-                // 设置请求头
+                // 设置自定义请求头
                 if (headers != null && headers.length > 0) {
                     httpPost.setHeaders(headers);
                 }
 
                 // 执行请求
-                response = closeableHttpClient.execute(httpPost);
+                response = httpClient.execute(httpPost);
 
-                if (response.getCode() == HttpStatus.SC_OK) {
+                // 检查响应状态
+                int statusCode = response.getCode();
+                if (statusCode >= 200 && statusCode < 300) {
                     try (InputStream inputStream = response.getEntity().getContent();
                          BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, charset))) {
 
@@ -339,105 +509,411 @@ public class HttpClientUtils {
                         callback.onComplete();
                     }
                 } else {
-                    String errorResponse;
-                    try {
-                        errorResponse = EntityUtils.toString(response.getEntity(), charset);
-                    } catch (ParseException e) {
-                        errorResponse = "无法解析响应内容: " + e.getMessage();
+                    // 处理错误响应
+                    String errorBody = EntityUtils.toString(response.getEntity(), charset);
+                    HttpClientException exception;
+
+                    if (statusCode >= 400 && statusCode < 500) {
+                        exception = HttpClientException.clientError(url, statusCode, errorBody);
+                    } else if (statusCode >= 500) {
+                        exception = HttpClientException.serverError(url, statusCode, errorBody);
+                    } else {
+                        exception = new HttpClientException(
+                                HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                                "未知HTTP错误 [" + statusCode + "]: " + errorBody,
+                                url,
+                                statusCode
+                        );
                     }
-                    log.error("HTTP POST流式请求失败: URL={}, 状态码={}, 响应={}", url, response.getCode(), errorResponse);
-                    callback.onError(new IOException("HTTP请求失败: " + errorResponse));
+
+                    callback.onError(exception);
                 }
-            } catch (IOException e) {
-                log.error("发送POST流式请求异常: URL={}", url, e);
-                callback.onError(e);
+            } catch (Exception e) {
+                HttpClientException exception;
+
+                if (e instanceof SocketTimeoutException) {
+                    if (e.getMessage().contains("connect")) {
+                        exception = HttpClientException.connectionTimeout(url, e);
+                    } else {
+                        exception = HttpClientException.readTimeout(url, e);
+                    }
+                } else {
+                    exception = new HttpClientException(
+                            HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                            "HTTP请求异常: " + e.getMessage(),
+                            url,
+                            0,
+                            e
+                    );
+                }
+
+                callback.onError(exception);
             } finally {
                 try {
                     if (response != null) {
                         response.close();
                     }
                 } catch (IOException e) {
-                    log.error("关闭HTTP响应异常", e);
+                    log.error("关闭HTTP响应失败", e);
                 }
             }
-        });
+        }, executorService);
+    }
+
+    /**
+     * 创建HttpPost实例
+     *
+     * @param url 请求URL
+     * @return HttpPost实例
+     */
+    private HttpPost createHttpPost(String url) {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setConfig(createRequestConfig());
+        return httpPost;
+    }
+
+    /**
+     * 创建HttpGet实例
+     *
+     * @param url 请求URL
+     * @return HttpGet实例
+     */
+    private HttpGet createHttpGet(String url) {
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setConfig(createRequestConfig());
+        return httpGet;
+    }
+
+    /**
+     * 执行HTTP请求并解析JSON响应
+     *
+     * @param url      请求URL
+     * @param executor HTTP请求执行器
+     * @param charset  响应编码
+     * @return JSON响应
+     * @throws Exception 执行异常
+     */
+    private JSONObject executeRequest(String url, HttpRequestExecutor executor, Charset charset) throws Exception {
+        CloseableHttpResponse response = null;
+
+        try {
+            // 执行请求
+            response = executor.execute(url);
+
+            // 处理响应
+            int statusCode = response.getCode();
+            if (statusCode >= 200 && statusCode < 300) {
+                String responseBody = EntityUtils.toString(response.getEntity(), charset);
+                if (StringUtils.isNotEmpty(responseBody)) {
+                    try {
+                        return JSON.parseObject(responseBody);
+                    } catch (Exception e) {
+                        log.warn("解析JSON响应失败: {}", responseBody, e);
+                        JSONObject errorResult = new JSONObject();
+                        errorResult.put("rawResponse", responseBody);
+                        errorResult.put("parseError", e.getMessage());
+                        return errorResult;
+                    }
+                } else {
+                    return new JSONObject();
+                }
+            } else {
+                // 处理错误响应
+                String errorBody = EntityUtils.toString(response.getEntity(), charset);
+                if (statusCode >= 400 && statusCode < 500) {
+                    throw HttpClientException.clientError(url, statusCode, errorBody);
+                } else if (statusCode >= 500) {
+                    throw HttpClientException.serverError(url, statusCode, errorBody);
+                } else {
+                    throw new HttpClientException(
+                            HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                            "未知HTTP错误 [" + statusCode + "]: " + errorBody,
+                            url,
+                            statusCode
+                    );
+                }
+            }
+        } finally {
+            if (response != null && config.isCloseResponseAfterExecution()) {
+                try {
+                    response.close();
+                } catch (IOException e) {
+                    log.error("关闭HTTP响应失败", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * 执行HTTP请求并返回字符串响应
+     *
+     * @param url      请求URL
+     * @param executor HTTP请求执行器
+     * @param charset  响应编码
+     * @return 字符串响应
+     * @throws Exception 执行异常
+     */
+    private String executeRequestForString(String url, HttpRequestExecutor executor, Charset charset) throws Exception {
+        CloseableHttpResponse response = null;
+
+        try {
+            // 执行请求
+            response = executor.execute(url);
+
+            // 处理响应
+            int statusCode = response.getCode();
+            if (statusCode >= 200 && statusCode < 300) {
+                return EntityUtils.toString(response.getEntity(), charset);
+            } else {
+                // 处理错误响应
+                String errorBody = EntityUtils.toString(response.getEntity(), charset);
+                if (statusCode >= 400 && statusCode < 500) {
+                    throw HttpClientException.clientError(url, statusCode, errorBody);
+                } else if (statusCode >= 500) {
+                    throw HttpClientException.serverError(url, statusCode, errorBody);
+                } else {
+                    throw new HttpClientException(
+                            HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                            "未知HTTP错误 [" + statusCode + "]: " + errorBody,
+                            url,
+                            statusCode
+                    );
+                }
+            }
+        } finally {
+            if (response != null && config.isCloseResponseAfterExecution()) {
+                try {
+                    response.close();
+                } catch (IOException e) {
+                    log.error("关闭HTTP响应失败", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * 处理异常
+     *
+     * @param url 请求URL
+     * @param e   异常
+     */
+    private void handleException(String url, Exception e) {
+        if (e instanceof HttpClientException) {
+            throw (HttpClientException) e;
+        } else if (e instanceof SocketTimeoutException) {
+            if (e.getMessage().contains("connect")) {
+                throw HttpClientException.connectionTimeout(url, e);
+            } else {
+                throw HttpClientException.readTimeout(url, e);
+            }
+        } else {
+            throw new HttpClientException(
+                    HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                    "HTTP请求异常: " + e.getMessage(),
+                    url,
+                    0,
+                    e
+            );
+        }
+    }
+
+    /**
+     * HTTP请求执行器接口
+     */
+    @FunctionalInterface
+    private interface HttpRequestExecutor {
+        /**
+         * 执行HTTP请求
+         *
+         * @param url 请求URL
+         * @return HTTP响应
+         * @throws Exception 执行异常
+         */
+        CloseableHttpResponse execute(String url) throws Exception;
     }
 
     /**
      * 关闭HTTP客户端和线程池
      */
+    @Override
     public void close() {
-        try {
-            if (closeableHttpClient != null) {
-                closeableHttpClient.close();
-            }
-            if (executorService != null) {
-                executorService.shutdown();
-            }
-        } catch (IOException e) {
-            log.error("关闭HTTP客户端异常", e);
-        }
-    }
-
-    // 新增方法 - 结束
-
-    /**
-     * 获取HttpPost实体类
-     *
-     * @param url 路径
-     * @return
-     */
-    private HttpPost getHttpPost(String url) {
-        // 创建post方式请求对象
-        HttpPost httpPost = new HttpPost(url);
-        httpPost.setConfig(requestConfig);
-        return httpPost;
-    }
-
-
-    /**
-     * 获取HttpGet实体类
-     *
-     * @param url 路径
-     * @return
-     */
-    private HttpGet getHttpGet(String url) {
-        // 创建post方式请求对象
-        HttpGet httpGet = new HttpGet(url);
-        httpGet.setConfig(requestConfig);
-        return httpGet;
-    }
-
-    private CloseableHttpResponse sendData(URL apiUrl, Object body, ContentType contentType, HttpResult httpResult) {
-        try {
-            return httpResult.apply(apiUrl, body, contentType);
-        } catch (Exception e) {
-            log.error("http请求错误-处理数据异常", e);
-            return null;
-        }
-    }
-
-
-    private JSONObject getResult(CloseableHttpResponse response, Charset charset) {
-        if (response == null) {
-            return null;
-        }
-        String result = "";
-        if (response.getCode() == HttpStatus.SC_OK) {
+        // 关闭线程池
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
             try {
-                result = EntityUtils.toString(response.getEntity(), charset);
-            } catch (IOException | ParseException e) {
-                log.error("http请求错误-IO异常", e);
+                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executorService.shutdownNow();
+                Thread.currentThread().interrupt();
             }
-        } else {
-            log.error("http请求错误 {}", JSON.toJSONString(response));
         }
-        try {
-            response.close();
-        } catch (IOException e) {
-            log.error("http请求错误-释放链接异常", e);
+
+        // 如果HttpClient是由此类创建的，则关闭它
+        if (ownsHttpClient && httpClient != null) {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                log.error("关闭HttpClient失败", e);
+            }
         }
-        return JSON.parseObject(result);
     }
 
+    /**
+     * 构建HttpClientUtils实例的Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * HttpClientUtils构建器
+     */
+    public static class Builder {
+        private Integer connectTimeout;
+        private Integer readTimeout;
+        private Integer maxTotalConnections;
+        private Integer maxConnectionsPerRoute;
+        private Boolean retryEnabled;
+        private Integer maxRetryCount;
+        private Boolean validateSSLCertificate;
+        private Boolean closeResponseAfterExecution;
+        private Integer threadPoolSize;
+
+        private Builder() {
+        }
+
+        public Builder connectTimeout(int connectTimeout) {
+            this.connectTimeout = connectTimeout;
+            return this;
+        }
+
+        public Builder readTimeout(int readTimeout) {
+            this.readTimeout = readTimeout;
+            return this;
+        }
+
+        public Builder maxTotalConnections(int maxTotalConnections) {
+            this.maxTotalConnections = maxTotalConnections;
+            return this;
+        }
+
+        public Builder maxConnectionsPerRoute(int maxConnectionsPerRoute) {
+            this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+            return this;
+        }
+
+        public Builder retryEnabled(boolean retryEnabled) {
+            this.retryEnabled = retryEnabled;
+            return this;
+        }
+
+        public Builder maxRetryCount(int maxRetryCount) {
+            this.maxRetryCount = maxRetryCount;
+            return this;
+        }
+
+        public Builder validateSSLCertificate(boolean validateSSLCertificate) {
+            this.validateSSLCertificate = validateSSLCertificate;
+            return this;
+        }
+
+        public Builder closeResponseAfterExecution(boolean closeResponseAfterExecution) {
+            this.closeResponseAfterExecution = closeResponseAfterExecution;
+            return this;
+        }
+
+        public Builder threadPoolSize(int threadPoolSize) {
+            this.threadPoolSize = threadPoolSize;
+            return this;
+        }
+
+        public HttpClientUtils build() {
+            HttpClientConfig.Builder configBuilder = HttpClientConfig.builder();
+
+            if (connectTimeout != null) configBuilder.connectTimeout(connectTimeout);
+            if (readTimeout != null) configBuilder.readTimeout(readTimeout);
+            if (maxTotalConnections != null) configBuilder.maxTotalConnections(maxTotalConnections);
+            if (maxConnectionsPerRoute != null) configBuilder.maxConnectionsPerRoute(maxConnectionsPerRoute);
+            if (retryEnabled != null) configBuilder.retryEnabled(retryEnabled);
+            if (maxRetryCount != null) configBuilder.maxRetryCount(maxRetryCount);
+            if (validateSSLCertificate != null) configBuilder.validateSSLCertificate(validateSSLCertificate);
+            if (closeResponseAfterExecution != null) configBuilder.closeResponseAfterExecution(closeResponseAfterExecution);
+            if (threadPoolSize != null) configBuilder.threadPoolSize(threadPoolSize);
+
+            return new HttpClientUtils(configBuilder.build());
+        }
+    }
+
+    /**
+     * 创建连接管理器
+     *
+     * @param config HTTP客户端配置
+     * @return 连接管理器
+     */
+    public static PoolingHttpClientConnectionManager createConnectionManager(HttpClientConfig config) {
+        try {
+            PoolingHttpClientConnectionManager connectionManager;
+
+            // 如果需要验证SSL证书，使用默认的SSL上下文
+            if (config.isValidateSSLCertificate()) {
+                connectionManager = new PoolingHttpClientConnectionManager();
+            } else {
+                // 否则创建信任所有证书的SSL上下文
+                SSLContext sslContext = new SSLContextBuilder()
+                        .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+                        .build();
+
+                SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
+                        sslContext,
+                        new NoopHostnameVerifier()
+                );
+
+                connectionManager = new PoolingHttpClientConnectionManager();
+            }
+
+            // 配置连接参数
+            ConnectionConfig connConfig = ConnectionConfig.custom()
+                    .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+                    .setSocketTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+                    .build();
+
+            connectionManager.setDefaultConnectionConfig(connConfig);
+            connectionManager.setMaxTotal(config.getMaxTotalConnections());
+            connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerRoute());
+
+            return connectionManager;
+        } catch (Exception e) {
+            log.error("创建HttpClient连接管理器失败", e);
+            throw new RuntimeException("创建HttpClient连接管理器失败", e);
+        }
+    }
+
+    /**
+     * 创建请求配置
+     *
+     * @param config HTTP客户端配置
+     * @return 请求配置
+     */
+    public static RequestConfig createRequestConfig(HttpClientConfig config) {
+        return RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+                .setResponseTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+                .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+                .build();
+    }
+
+    /**
+     * 创建重试策略
+     *
+     * @param maxRetryCount 最大重试次数
+     * @return 重试策略
+     */
+    public static DefaultHttpRequestRetryStrategy createRetryStrategy(int maxRetryCount) {
+        return new DefaultHttpRequestRetryStrategy(
+                maxRetryCount,
+                Timeout.ofSeconds(1)
+        );
+    }
 }

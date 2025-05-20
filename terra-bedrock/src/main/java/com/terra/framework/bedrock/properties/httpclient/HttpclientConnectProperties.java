@@ -4,38 +4,62 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author ywt
- * @description
- * @date 2022年12月24日 23:45
+ * HTTP客户端连接配置属性
+ * 
+ * @author Terra Framework Team
+ * @date 2025年6月1日
  */
 @Data
 @ConfigurationProperties(prefix = "terra.httpclient")
 public class HttpclientConnectProperties {
 
     /**
-     * 是否开启valhalla的Httpclient
+     * 是否开启HttpClient
      */
-    private Boolean enabled = false;
+    private Boolean enabled = true;
+    
     /**
-     * httpclient链接配置-链接请求超时时间
+     * 连接请求超时时间（毫秒）
      */
-    private Integer connectionRequestTimeout = 1000;
+    private Integer connectionRequestTimeout = 5000;
+    
     /**
-     * httpclient链接配置-链接超时时间
+     * 连接超时时间（毫秒）
      */
-    private Integer connectTimeout = 1000;
+    private Integer connectTimeout = 5000;
+    
     /**
-     * httpclient链接配置-链接socket超时时间
+     * Socket超时时间（毫秒）
      */
-    private Integer socketTimeout = 1000;
+    private Integer socketTimeout = 10000;
 
     /**
      * 连接池最大生成连接数
      */
-    private Integer requestMaxNum = 100;
+    private Integer requestMaxNum = 200;
+    
     /**
-     * 默认设置route最大连接数
+     * 每个路由最大连接数
      */
-    private Integer maxPerRoute = 100;
-
+    private Integer maxPerRoute = 50;
+    
+    /**
+     * 是否开启自动重试
+     */
+    private Boolean retryEnabled = true;
+    
+    /**
+     * 最大重试次数
+     */
+    private Integer maxRetryCount = 3;
+    
+    /**
+     * 是否验证SSL证书
+     */
+    private Boolean validateSslCertificate = true;
+    
+    /**
+     * 线程池大小
+     */
+    private Integer threadPoolSize = 10;
 }
