@@ -5,9 +5,12 @@ import com.terra.framework.nova.rag.embedding.EmbeddingService;
 import com.terra.framework.nova.rag.properties.RAGProperties;
 import com.terra.framework.nova.rag.retrieval.RetrievalOptions;
 import com.terra.framework.nova.rag.retrieval.Retriever;
+import com.terra.framework.nova.rag.retrieval.rerank.RerankedDocument;
+import com.terra.framework.nova.rag.retrieval.rerank.Reranker;
 import com.terra.framework.nova.rag.storage.SearchResult;
 import com.terra.framework.nova.rag.storage.VectorStore;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +28,7 @@ public class DefaultRetriever implements Retriever {
     private final VectorStore vectorStore;
     private final EmbeddingService embeddingService;
     private final RAGProperties properties;
+    private final ObjectProvider<Reranker> rerankerProvider;
     
     /**
      * 创建检索器
@@ -32,11 +36,17 @@ public class DefaultRetriever implements Retriever {
      * @param vectorStore 向量存储
      * @param embeddingService 嵌入服务
      * @param properties RAG配置
+     * @param rerankerProvider 重排序器提供者(可选)
      */
-    public DefaultRetriever(VectorStore vectorStore, EmbeddingService embeddingService, RAGProperties properties) {
+    public DefaultRetriever(
+            VectorStore vectorStore, 
+            EmbeddingService embeddingService, 
+            RAGProperties properties,
+            ObjectProvider<Reranker> rerankerProvider) {
         this.vectorStore = vectorStore;
         this.embeddingService = embeddingService;
         this.properties = properties;
+        this.rerankerProvider = rerankerProvider;
     }
     
     /**
@@ -84,8 +94,8 @@ public class DefaultRetriever implements Retriever {
                     .collect(Collectors.toList());
             
             // 如果开启了重排序，对结果进行重排序
-            if (options.isRerank() && !documents.isEmpty() && options.getRerankModelId() != null) {
-                documents = rerankDocuments(query, documents, options.getRerankModelId());
+            if (options.isRerank() && !documents.isEmpty()) {
+                documents = rerankDocuments(query, documents, options);
             }
             
             log.debug("检索到 {} 个文档，查询: {}", documents.size(), query);
@@ -102,12 +112,34 @@ public class DefaultRetriever implements Retriever {
      *
      * @param query 查询文本
      * @param documents 待重排序的文档
-     * @param rerankModelId 重排序模型ID
+     * @param options 检索选项
      * @return 重排序后的文档
      */
-    private List<Document> rerankDocuments(String query, List<Document> documents, String rerankModelId) {
-        // 目前简单实现，后续可整合专门的重排序模型
-        log.info("执行重排序，模型ID: {}", rerankModelId);
-        return documents;
+    private List<Document> rerankDocuments(String query, List<Document> documents, RetrievalOptions options) {
+        Reranker reranker = rerankerProvider.getIfAvailable();
+        if (reranker == null) {
+            log.info("未找到Reranker实现，跳过重排序");
+            return documents;
+        }
+        
+        try {
+            log.info("使用 {} 重排序器对 {} 个文档进行重排序", reranker.getName(), documents.size());
+            List<RerankedDocument> rerankedDocs = reranker.rerank(documents, query);
+            
+            // 过滤低分文档（如果有阈值设置）
+            if (options.getMinScoreThreshold() > 0) {
+                rerankedDocs = rerankedDocs.stream()
+                        .filter(doc -> doc.getScore() >= options.getMinScoreThreshold())
+                        .collect(Collectors.toList());
+            }
+            
+            // 将重排序后的文档转回Document列表
+            return rerankedDocs.stream()
+                    .map(RerankedDocument::getDocument)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("重排序过程中发生错误: {}", e.getMessage(), e);
+            return documents; // 出错时返回原始文档列表
+        }
     }
 } 

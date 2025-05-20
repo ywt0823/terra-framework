@@ -267,6 +267,41 @@
       "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
       "description": "嵌入缓存过期时间（秒）",
       "defaultValue": 3600
+    },
+    {
+      "name": "terra.nova.rag.rerank",
+      "type": "com.terra.framework.nova.rag.properties.RerankProperties",
+      "description": "RAG重排序配置"
+    },
+    {
+      "name": "terra.nova.rag.rerank.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用重排序",
+      "defaultValue": false
+    },
+    {
+      "name": "terra.nova.rag.rerank.type",
+      "type": "java.lang.String",
+      "description": "重排序器类型：cross-encoder, llm",
+      "defaultValue": "cross-encoder"
+    },
+    {
+      "name": "terra.nova.rag.rerank.model-id",
+      "type": "java.lang.String",
+      "description": "重排序使用的模型ID",
+      "defaultValue": ""
+    },
+    {
+      "name": "terra.nova.rag.rerank.threshold",
+      "type": "java.lang.Double",
+      "description": "重排序最低分数阈值",
+      "defaultValue": 0.0
+    },
+    {
+      "name": "terra.nova.rag.rerank.max-documents",
+      "type": "java.lang.Integer",
+      "description": "最大重排序文档数量",
+      "defaultValue": 50
     }
   ],
   "hints": [

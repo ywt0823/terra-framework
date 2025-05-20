@@ -22,6 +22,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.ObjectProvider;
+import com.terra.framework.nova.rag.retrieval.rerank.Reranker;
 
 /**
  * RAG自动配置类
@@ -79,9 +81,9 @@ public class RAGAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Retriever retriever(VectorStore vectorStore, EmbeddingService embeddingService, RAGProperties properties) {
+    public Retriever retriever(VectorStore vectorStore, EmbeddingService embeddingService, RAGProperties properties, ObjectProvider<Reranker> rerankerProvider) {
         log.info("初始化检索器, 默认返回结果数量: {}", properties.getRetrieval().getTopK());
-        return new DefaultRetriever(vectorStore, embeddingService, properties);
+        return new DefaultRetriever(vectorStore, embeddingService, properties, rerankerProvider);
     }
 
     @Bean

@@ -138,9 +138,12 @@ Terra Nova 提供了完整的RAG（Retrieval-Augmented Generation，检索增强
 
 - **文档处理模块**：
   - Document：文档接口与SimpleDocument实现
-  - DocumentLoader：文档加载器接口与多种实现
-  - DocumentProcessor：文档处理器接口
-  - DocumentSplitter：文档分割器接口与递归字符分割实现
+  - EnhancedDocument：增强型文档实现，支持更丰富的元数据
+  - DocumentLoader：文档加载器接口与多种实现（文本、PDF、HTML、URL等）
+  - DocumentProcessor：文档处理器接口与归一化、去重等实现
+  - DocumentSplitter：文档分割器接口与递归字符分割、语义分割等实现
+  - DocumentLoaderFactory：文档加载器工厂，智能选择合适的加载器
+  - DocumentProcessorChain：文档处理链，支持多处理器顺序应用
 
 - **嵌入模块**：
   - EmbeddingModel：嵌入模型接口
@@ -157,6 +160,12 @@ Terra Nova 提供了完整的RAG（Retrieval-Augmented Generation，检索增强
   - RetrievalOptions：检索参数配置
   - 相似度过滤与重排序支持
 
+- **重排序模块**：
+  - Reranker：重排序器接口与抽象实现
+  - CrossEncoderReranker：基于交叉编码器的高效实现
+  - LLMReranker：基于大语言模型的灵活实现，默认使用DeepSeek模型
+  - 多级过滤与精准排序机制
+
 - **上下文构建**：
   - ContextBuilder：上下文构建器接口
   - 自定义模板支持
@@ -166,6 +175,115 @@ Terra Nova 提供了完整的RAG（Retrieval-Augmented Generation，检索增强
   - RAGService：统一服务接口
   - 文档加载与管理
   - 知识库检索与上下文生成
+
+#### RAG 文档重排序功能
+
+Terra框架RAG模块的文档重排序(Rerank)功能可以显著提升检索质量，通过在初始向量相似度检索后进行更精准的文档排序：
+
+**重排序工作流程**：
+
+1. 首先通过向量相似度检索出初步的候选文档
+2. 然后使用更精确的语义匹配模型对这些文档进行重新评分和排序
+3. 根据新的分数对文档进行排序，过滤低质量的匹配结果
+
+**重排序策略**：
+
+- **交叉编码器(Cross-Encoder)**：使用专门的相似度评分模型，适合短文本的快速评分，精度高效率好
+- **LLM重排序**：使用大语言模型进行评分，更灵活但计算开销较大，适合需要复杂判断的场景
+
+#### 增强文档处理功能
+
+Terra框架支持多种文档类型的处理和加载，提供了统一的接口和丰富的实现：
+
+**主要特性**：
+
+1. **多格式文档支持**：
+   - 文本文件：TXT、CSV、JSON、XML等
+   - 富文本文档：PDF、Word、HTML、Markdown等
+   - 网络资源：URL链接、网页内容
+   - 图像文档：带OCR功能的图像处理（可选）
+
+2. **智能文档加载**：
+   - 自动识别文件类型
+   - 选择适合的加载器
+   - 提取丰富的元数据
+   - 处理复杂的文档结构
+
+3. **高级语义分割**：
+   - 基于语义单元的智能分割
+   - 保留段落和句子的完整性
+   - 自定义分隔符和分割策略
+   - 避免语义截断问题
+
+4. **文档处理链**：
+   - 组合多个处理器顺序应用
+   - 文本归一化和清洗
+   - 内容去重和过滤
+   - 性能监控和错误处理
+
+**配置示例**：
+
+```yaml
+# 文档处理配置示例
+terra:
+  nova:
+    rag:
+      document:
+        # 基本配置
+        enabled: true
+        default-chunk-size: 1000
+        default-chunk-overlap: 200
+        default-splitting-strategy: semantic
+        
+        # 加载器配置
+        loaders:
+          pdf:
+            extract-tables: true
+            extract-metadata: true
+          html:
+            strip-tags: true
+          url:
+            follow-redirects: true
+            read-timeout: 30000
+        
+        # 分割器配置
+        splitters:
+          semantic:
+            respect-paragraphs: true
+            sentence-separators: ['.', '!', '?', '。', '！', '？', '\n']
+          
+        # 处理器配置
+        processors:
+          remove-extra-whitespace: true
+          enable-duplicate-removal: true
+```
+
+**使用示例**：
+
+```java
+// 使用增强文档处理加载和分割文档
+@Autowired
+private DocumentLoaderFactory loaderFactory;
+
+@Autowired
+private SemanticTextSplitter semanticSplitter;
+
+public List<Document> loadAndSplitDocument(String filePath) {
+    // 根据文件类型获取合适的加载器
+    DocumentLoader loader = loaderFactory.getLoaderForFile(filePath);
+    
+    // 加载文档
+    List<Document> documents = loader.loadDocuments(filePath);
+    
+    // 使用语义分割器分割文档
+    List<Document> chunks = new ArrayList<>();
+    for (Document doc : documents) {
+        chunks.addAll(semanticSplitter.split(doc));
+    }
+    
+    return chunks;
+}
+```
 
 ## 快速开始
 
@@ -637,6 +755,11 @@ public class ExternalVectorStore implements VectorStore {
 | terra.nova.rag.embedding.model-id | 嵌入模型ID | openai:text-embedding-ada-002 |
 | terra.nova.rag.embedding.dimension | 嵌入向量维度 | 1536 |
 | terra.nova.rag.embedding.batch-size | 批处理大小 | 20 |
+| terra.nova.rag.rerank.enabled | 是否启用重排序功能 | false |
+| terra.nova.rag.rerank.type | 重排序器类型 | cross-encoder |
+| terra.nova.rag.rerank.model-id | 重排序使用的模型ID | deepseek:deepseek-chat |
+| terra.nova.rag.rerank.threshold | 重排序最低分数阈值 | 0.0 |
+| terra.nova.rag.rerank.max-documents | 最大重排序文档数量 | 50 |
 
 ## RAG 最佳实践
 
@@ -645,6 +768,9 @@ public class ExternalVectorStore implements VectorStore {
 3. 对于大型知识库，考虑使用外部向量数据库如Milvus、Qdrant等
 4. 使用高质量的嵌入模型，如OpenAI的text-embedding-3-large
 5. 根据应用场景定制上下文模板，使LLM能够更好地理解检索到的信息
+6. 启用重排序功能提高检索精度，对于中文场景建议使用DeepSeek模型进行重排序
+7. 对于大规模生产环境，建议使用交叉编码器(cross-encoder)模式，提供更好的性能
+8. 通过调整重排序阈值(threshold)参数过滤低质量匹配，提高结果质量
 
 ## 贡献指南
 

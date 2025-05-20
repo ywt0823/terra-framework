@@ -187,7 +187,7 @@ public class HttpClientUtils implements AutoCloseable {
 
                 // 设置表单参数
                 if (params != null && !params.isEmpty()) {
-                    List<NameValuePair> nameValuePairs = new ArrayList<>();
+            List<NameValuePair> nameValuePairs = new ArrayList<>();
                     params.forEach((key, value) -> nameValuePairs.add(new BasicNameValuePair(key, value)));
                     httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, charset));
                 }
@@ -197,8 +197,8 @@ public class HttpClientUtils implements AutoCloseable {
                 httpPost.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
                 if (StringUtils.isNotEmpty(token)) {
-                    httpPost.setHeader("Authorization", "Bearer " + token);
-                }
+                httpPost.setHeader("Authorization", "Bearer " + token);
+            }
 
                 return httpClient.execute(httpPost);
             }, charset);
@@ -233,8 +233,8 @@ public class HttpClientUtils implements AutoCloseable {
                 httpPost.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
                 if (StringUtils.isNotEmpty(token)) {
-                    httpPost.setHeader("Authorization", "Bearer " + token);
-                }
+                httpPost.setHeader("Authorization", "Bearer " + token);
+            }
 
                 return httpClient.execute(httpPost);
             }, charset);
@@ -296,7 +296,7 @@ public class HttpClientUtils implements AutoCloseable {
 
                 // 设置自定义请求头
                 if (headers != null && headers.length > 0) {
-                    httpPost.setHeaders(headers);
+            httpPost.setHeaders(headers);
                 }
 
                 return httpClient.execute(httpPost);
@@ -324,8 +324,8 @@ public class HttpClientUtils implements AutoCloseable {
                 httpGet.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
                 if (StringUtils.isNotEmpty(token)) {
-                    httpGet.setHeader("Authorization", "Bearer " + token);
-                }
+                httpGet.setHeader("Authorization", "Bearer " + token);
+            }
 
                 return httpClient.execute(httpGet);
             }, charset);
@@ -365,7 +365,7 @@ public class HttpClientUtils implements AutoCloseable {
 
                 // 设置自定义请求头
                 if (headers != null && headers.length > 0) {
-                    httpGet.setHeaders(headers);
+            httpGet.setHeaders(headers);
                 }
 
                 return httpClient.execute(httpGet);
@@ -397,24 +397,24 @@ public class HttpClientUtils implements AutoCloseable {
                 }
 
                 // 设置内容类型（如果没有在headers中指定）
-                boolean hasContentType = false;
-                if (headers != null) {
-                    for (Header header : headers) {
-                        if ("Content-Type".equalsIgnoreCase(header.getName())) {
-                            hasContentType = true;
-                            break;
-                        }
+            boolean hasContentType = false;
+            if (headers != null) {
+                for (Header header : headers) {
+                    if ("Content-Type".equalsIgnoreCase(header.getName())) {
+                        hasContentType = true;
+                        break;
                     }
                 }
+            }
 
-                if (!hasContentType) {
-                    httpPost.setHeader("Content-Type", "application/json");
-                }
+            if (!hasContentType) {
+                httpPost.setHeader("Content-Type", "application/json");
+            }
 
                 // 设置自定义请求头
-                if (headers != null && headers.length > 0) {
-                    httpPost.setHeaders(headers);
-                }
+            if (headers != null && headers.length > 0) {
+                httpPost.setHeaders(headers);
+            }
 
                 return httpClient.execute(httpPost);
             }, charset);
@@ -607,7 +607,7 @@ public class HttpClientUtils implements AutoCloseable {
                 if (StringUtils.isNotEmpty(responseBody)) {
                     try {
                         return JSON.parseObject(responseBody);
-                    } catch (Exception e) {
+        } catch (Exception e) {
                         log.warn("解析JSON响应失败: {}", responseBody, e);
                         JSONObject errorResult = new JSONObject();
                         errorResult.put("rawResponse", responseBody);

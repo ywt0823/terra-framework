@@ -141,7 +141,7 @@ terra:
       # 检索配置
       retrieval:
         top-k: 5
-        rerank: false
+        rerank: true
         rerank-model: ""
         minimum-score: 0.7
       # 上下文构建配置
@@ -160,6 +160,27 @@ terra:
         type: in-memory
         url: localhost:19530
         collection-name: documents
+    
+    # 重排序配置
+    rag.rerank:
+      enabled: true
+      type: cross-encoder
+      model-id: "deepseek:deepseek-chat"
+      threshold: 0.3
+      max-documents: 50
+      # 交叉编码器配置
+      cross-encoder:
+        model-name: ms-marco-MiniLM-L-6-v2
+        batch-size: 16
+      # LLM重排序配置  
+      llm-rerank:
+        prompt-template: |
+          请评估以下文档与问题"{query}"的相关性，返回0到100之间的相关性分数。
+          
+          文档内容：{content}
+        temperature: 0.0
+        parameters:
+          max_tokens: 10
     
     # 嵌入服务配置
     rag.embedding:
