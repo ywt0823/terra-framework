@@ -1,5 +1,24 @@
 ---
-description:
-globs:
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
+# Terra Framework 项目概述
+
+Terra Framework 是一个现代化的 Java 企业级应用开发框架，专注于大语言模型(LLM)的集成与应用。
+
+## 核心模块
+
+- [terra-dependencies](mdc:terra-dependencies/pom.xml): 依赖管理模块，统一管理所有第三方依赖版本
+- [terra-bedrock](mdc:terra-bedrock/pom.xml): 核心基础设施模块，提供异常处理、统一响应、安全框架、事件机制
+- [terra-nova](mdc:terra-nova/pom.xml): LLM 集成与应用框架，是框架的核心模块
+- [terra-crust](mdc:terra-crust/pom.xml): 业务核心模块，提供领域模型、业务规则、状态机
+- [terra-strata](mdc:terra-strata/pom.xml): 数据访问层模块,提供ORM支持、事务管理、查询增强
+- [terra-geyser](mdc:terra-geyser/pom.xml): 缓存处理模块，提供多级缓存、缓存同步、过期策略
+- [terra-stream](mdc:terra-stream/pom.xml): 流处理模块，提供消息队列、事件驱动、流式处理
+- [terra-sediment](mdc:terra-sediment/pom.xml): 公共工具模块，提供通用工具类、助手函数
+- [terra-spring-boot-starter](mdc:terra-spring-boot-starter/pom.xml): Spring Boot 启动器模块，提供自动配置、便捷集成
+
+项目主要配置文件：[pom.xml](mdc:pom.xml)
+项目文档：[README.md](mdc:README.md)
+贡献指南：[CONTRIBUTING.md](mdc:CONTRIBUTING.md)
