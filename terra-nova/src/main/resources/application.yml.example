@@ -70,6 +70,16 @@ terra:
           defaultParameters:
             temperature: 0.7
             top_p: 0.8
+            
+        # DeepSeek嵌入模型配置
+        "deepseek:text-embedding":
+          type: "DEEPSEEK"
+          endpoint: "https://api.deepseek.com/v1"
+          apiKey: "your-api-key"
+          timeout: 30000
+          streamSupport: false
+          defaultParameters:
+            dimensions: 1024
         
         # Dify模型配置
         "dify:default":
@@ -95,6 +105,9 @@ terra:
         wenxin:
           api-key-id: ${WENXIN_API_KEY_ID:xxx}
           api-key-secret: ${WENXIN_API_KEY_SECRET:xxx}
+          timeout: 30000
+        deepseek:
+          api-key: ${DEEPSEEK_API_KEY:sk-xxx}
           timeout: 30000
         coze:
           api-key: ${COZE_API_KEY:xxx}
@@ -151,7 +164,8 @@ terra:
     # 嵌入服务配置
     rag.embedding:
       enabled: true
-      model-id: deepseek:text-embedding
+      model-id: "deepseek:text-embedding"
+      model-type: "deepseek"
       dimension: 1024
       batch-size: 20
       cache-enabled: true

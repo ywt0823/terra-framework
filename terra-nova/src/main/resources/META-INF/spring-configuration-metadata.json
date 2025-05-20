@@ -17,6 +17,18 @@
       "type": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
       "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
       "description": "HTTP提示词模板配置"
+    },
+    {
+      "name": "terra.nova.rag",
+      "type": "com.terra.framework.nova.rag.properties.RAGProperties",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties",
+      "description": "检索增强生成(RAG)配置"
+    },
+    {
+      "name": "terra.nova.rag.embedding",
+      "type": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "嵌入模型配置"
     }
   ],
   "properties": [
@@ -94,6 +106,167 @@
       "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
       "description": "HTTP提示词模板服务认证头名称",
       "defaultValue": "Authorization"
+    },
+    {
+      "name": "terra.nova.rag.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties",
+      "description": "是否启用RAG功能",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.nova.rag.splitting.chunk-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Splitting",
+      "description": "文档分块大小",
+      "defaultValue": 1000
+    },
+    {
+      "name": "terra.nova.rag.splitting.overlap",
+      "type": "java.lang.Integer",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Splitting",
+      "description": "分块重叠大小",
+      "defaultValue": 200
+    },
+    {
+      "name": "terra.nova.rag.splitting.splitter",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Splitting",
+      "description": "分割器类型",
+      "defaultValue": "character"
+    },
+    {
+      "name": "terra.nova.rag.context.template",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
+      "description": "上下文模板格式",
+      "defaultValue": "根据以下上下文回答问题:\n\n{context}\n\n问题: {question}"
+    },
+    {
+      "name": "terra.nova.rag.context.max-tokens",
+      "type": "java.lang.Integer",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
+      "description": "上下文最大Token数",
+      "defaultValue": 3500
+    },
+    {
+      "name": "terra.nova.rag.context.format-documents",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
+      "description": "是否格式化文档",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.nova.rag.context.document-template",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
+      "description": "文档格式化模板",
+      "defaultValue": "文档[{index}]: {content}\n来源: {source}"
+    },
+    {
+      "name": "terra.nova.rag.retrieval.top-k",
+      "type": "java.lang.Integer",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
+      "description": "检索返回的最大结果数",
+      "defaultValue": 5
+    },
+    {
+      "name": "terra.nova.rag.retrieval.rerank",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
+      "description": "是否对检索结果进行重排序",
+      "defaultValue": false
+    },
+    {
+      "name": "terra.nova.rag.retrieval.rerank-model",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
+      "description": "重排序模型ID",
+      "defaultValue": ""
+    },
+    {
+      "name": "terra.nova.rag.retrieval.minimum-score",
+      "type": "java.lang.Double",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
+      "description": "检索结果最低相似度阈值",
+      "defaultValue": 0.7
+    },
+    {
+      "name": "terra.nova.rag.vector-store.type",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$VectorStore",
+      "description": "向量存储类型",
+      "defaultValue": "in-memory"
+    },
+    {
+      "name": "terra.nova.rag.vector-store.url",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$VectorStore",
+      "description": "向量存储连接URL",
+      "defaultValue": "localhost:19530"
+    },
+    {
+      "name": "terra.nova.rag.vector-store.collection-name",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$VectorStore",
+      "description": "向量存储集合名称",
+      "defaultValue": "documents"
+    },
+    {
+      "name": "terra.nova.rag.embedding.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "是否启用嵌入功能",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.nova.rag.embedding.model-id",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "嵌入模型ID",
+      "defaultValue": "text-embedding"
+    },
+    {
+      "name": "terra.nova.rag.embedding.model-type",
+      "type": "java.lang.String",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "嵌入模型类型",
+      "defaultValue": "deepseek"
+    },
+    {
+      "name": "terra.nova.rag.embedding.dimension",
+      "type": "java.lang.Integer",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "嵌入向量维度",
+      "defaultValue": 1024
+    },
+    {
+      "name": "terra.nova.rag.embedding.batch-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "嵌入批处理大小",
+      "defaultValue": 20
+    },
+    {
+      "name": "terra.nova.rag.embedding.cache-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "是否启用嵌入缓存",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.nova.rag.embedding.cache-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "嵌入缓存大小",
+      "defaultValue": 1000
+    },
+    {
+      "name": "terra.nova.rag.embedding.cache-ttl-seconds",
+      "type": "java.lang.Long",
+      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
+      "description": "嵌入缓存过期时间（秒）",
+      "defaultValue": 3600
     }
   ],
   "hints": [
@@ -127,6 +300,77 @@
         {
           "value": "deepseek:deepseek-chat",
           "description": "DeepSeek Chat模型"
+        }
+      ]
+    },
+    {
+      "name": "terra.nova.rag.splitting.splitter",
+      "values": [
+        {
+          "value": "character",
+          "description": "字符分割器"
+        },
+        {
+          "value": "token",
+          "description": "Token分割器"
+        },
+        {
+          "value": "sentence",
+          "description": "句子分割器"
+        },
+        {
+          "value": "paragraph",
+          "description": "段落分割器"
+        }
+      ]
+    },
+    {
+      "name": "terra.nova.rag.vector-store.type",
+      "values": [
+        {
+          "value": "in-memory",
+          "description": "内存向量存储"
+        },
+        {
+          "value": "milvus",
+          "description": "Milvus向量数据库"
+        },
+        {
+          "value": "qdrant",
+          "description": "Qdrant向量数据库"
+        },
+        {
+          "value": "weaviate",
+          "description": "Weaviate向量数据库"
+        },
+        {
+          "value": "pinecone",
+          "description": "Pinecone向量数据库"
+        }
+      ]
+    },
+    {
+      "name": "terra.nova.rag.embedding.model-type",
+      "values": [
+        {
+          "value": "openai",
+          "description": "OpenAI嵌入模型"
+        },
+        {
+          "value": "deepseek",
+          "description": "DeepSeek嵌入模型"
+        },
+        {
+          "value": "wenxin",
+          "description": "百度文心嵌入模型"
+        },
+        {
+          "value": "tongyi",
+          "description": "阿里通义嵌入模型"
+        },
+        {
+          "value": "sentence-transformers",
+          "description": "本地Sentence Transformers模型"
         }
       ]
     }
