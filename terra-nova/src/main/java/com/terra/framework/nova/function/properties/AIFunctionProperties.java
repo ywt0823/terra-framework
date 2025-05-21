@@ -36,4 +36,4 @@ public class AIFunctionProperties {
      * Base packages to scan for AI functions.
      */
     private String[] basePackages = {};
-} 
+}

@@ -658,3 +658,42 @@ terra:
 2. 验证方法是否为public
 3. 检查扫描包路径配置是否正确
 4. 查看应用日志中是否有相关错误信息 
+
+## 9. 统一AI组件系统
+
+Terra-Nova框架现在提供了统一的AI组件系统，允许开发者使用同一套注解创建同时支持Agent工具和LLM函数调用的组件。
+
+> **重要通知**: 传统的`@AITool`、`@AIToolParameter`和`@AIFunction`、`@AIParameter`注解系统已被完全移除。
+> 只能使用新的统一`@AIComponent`和`@AIParameter`注解系统进行开发。详见[统一AI组件开发指南](terra-nova/doc/agent/unified-component-guide.md)。
+
+### 9.1 核心特性
+
+- **统一注解**：使用`@AIComponent`和`@AIParameter`注解标记方法和参数
+- **灵活配置**：通过`types`属性指定组件类型（Tool、Function或两者都是）
+- **简化开发**：一次开发，双重用途，减少代码冗余
+
+### 9.2 迁移指南
+
+如果你之前使用了旧的`@AITool`或`@AIFunction`注解，现在必须迁移到新的`@AIComponent`注解：
+
+1. 将`@AITool`或`@AIFunction`替换为`@AIComponent`
+2. 将`@AIToolParameter`或原函数的`@AIParameter`替换为新的`@AIParameter`
+3. 根据需要设置`types`属性指定使用场景
+
+例如，从：
+```java
+@AITool(name = "calc", description = "计算器")
+public double calculate(
+    @AIToolParameter(description = "表达式") String expr
+) { ... }
+```
+
+迁移到：
+```java
+@AIComponent(name = "calc", description = "计算器")
+public double calculate(
+    @AIParameter(description = "表达式") String expr
+) { ... }
+```
+
+更多详细信息请参考[统一AI组件开发指南](terra-nova/doc/agent/unified-component-guide.md)。 

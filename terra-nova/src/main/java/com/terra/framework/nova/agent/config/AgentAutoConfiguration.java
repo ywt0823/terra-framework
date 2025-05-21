@@ -3,7 +3,6 @@ package com.terra.framework.nova.agent.config;
 import com.terra.framework.nova.agent.AgentFactory;
 import com.terra.framework.nova.agent.properties.AgentProperties;
 import com.terra.framework.nova.agent.tool.ToolRegistry;
-import com.terra.framework.nova.agent.tool.scanner.ToolScanner;
 import com.terra.framework.nova.llm.config.AIServiceAutoConfiguration;
 import com.terra.framework.nova.llm.service.AIService;
 import com.terra.framework.nova.prompt.template.PromptTemplateRegistry;
@@ -40,20 +39,6 @@ public class AgentAutoConfiguration {
     @ConditionalOnMissingBean
     public ToolRegistry toolRegistry() {
         return new ToolRegistry();
-    }
-
-    /**
-     * 创建工具扫描器
-     *
-     * @param toolRegistry 工具注册表
-     * @param properties 代理配置属性
-     * @return 工具扫描器
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "terra.nova.agent.tool", name = "auto-register", havingValue = "true", matchIfMissing = true)
-    public ToolScanner toolScanner(ToolRegistry toolRegistry, AgentProperties properties) {
-        return new ToolScanner(toolRegistry, properties.getTool().getBasePackages());
     }
 
     /**

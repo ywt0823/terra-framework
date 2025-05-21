@@ -1,7 +1,7 @@
 package com.terra.framework.nova.function.handler;
 
 import com.terra.framework.nova.function.FunctionHandler;
-import com.terra.framework.nova.function.annotation.AIParameter;
+import com.terra.framework.nova.common.annotation.AIParameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;

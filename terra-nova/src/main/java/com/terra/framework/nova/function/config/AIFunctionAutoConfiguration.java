@@ -4,10 +4,8 @@ import com.terra.framework.nova.function.FunctionExecutor;
 import com.terra.framework.nova.function.FunctionRegistry;
 import com.terra.framework.nova.function.adapter.FunctionFormatAdapter;
 import com.terra.framework.nova.function.adapter.impl.DefaultFunctionAdapter;
-import com.terra.framework.nova.function.converter.MethodToFunctionConverter;
 import com.terra.framework.nova.function.impl.DefaultFunctionExecutor;
 import com.terra.framework.nova.function.properties.AIFunctionProperties;
-import com.terra.framework.nova.function.scanner.FunctionScanner;
 import com.terra.framework.nova.function.service.FunctionCallingService;
 import com.terra.framework.nova.function.service.impl.DefaultFunctionCallingService;
 import com.terra.framework.nova.llm.model.AIModelManager;
@@ -27,25 +25,6 @@ import org.springframework.context.annotation.Bean;
 @EnableConfigurationProperties(AIFunctionProperties.class)
 @ConditionalOnProperty(prefix = "terra.nova.function", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AIFunctionAutoConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MethodToFunctionConverter methodToFunctionConverter(AIFunctionProperties properties) {
-        return new MethodToFunctionConverter();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public FunctionScanner functionScanner(FunctionRegistry functionRegistry,
-                                           MethodToFunctionConverter converter,
-                                           AIFunctionProperties properties) {
-        FunctionScanner scanner = new FunctionScanner(functionRegistry, converter);
-        if (properties.getBasePackages().length > 0) {
-            log.info("Configuring base packages for AI function scanning: {}",
-                String.join(", ", properties.getBasePackages()));
-        }
-        return scanner;
-    }
 
     /**
      * 函数注册表
