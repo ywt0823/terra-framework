@@ -1,10 +1,16 @@
 package com.terra.framework.nova.llm.model.deepseek;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.terra.framework.nova.llm.exception.ErrorType;
 import com.terra.framework.nova.llm.model.AbstractVendorAdapter;
 import com.terra.framework.nova.llm.model.AuthProvider;
+import com.terra.framework.nova.llm.model.Message;
+import com.terra.framework.nova.llm.model.MessageRole;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DeepSeek模型适配器
@@ -26,8 +32,34 @@ public class DeepSeekAdapter extends AbstractVendorAdapter {
 
     @Override
     protected void processPrompt(String prompt, JSONObject vendorRequest, String model) {
-        // DeepSeek API需要使用prompt字段，而不是转换为消息格式
-        vendorRequest.put("prompt", prompt);
+        // 对于chat格式的模型，将prompt转换为messages数组
+        if (model.contains("chat")) {
+            JSONArray messages = new JSONArray();
+            JSONObject message = new JSONObject();
+            message.put("role", "user");
+            message.put("content", prompt);
+            messages.add(message);
+            vendorRequest.put("messages", messages);
+        } else {
+            // 对于非chat模型，使用prompt字段
+            vendorRequest.put("prompt", prompt);
+        }
+    }
+    
+    @Override
+    protected void customizeRequest(JSONObject vendorRequest, com.terra.framework.nova.llm.model.ModelRequest originalRequest) {
+        super.customizeRequest(vendorRequest, originalRequest);
+        
+        // 确保在Chat模式下使用正确的格式
+        if (originalRequest.getMessages() != null && !originalRequest.getMessages().isEmpty()) {
+            log.debug("使用消息模式，确保DeepSeek请求格式正确");
+            
+            // 如果设置了工具但没有设置工具选择策略，默认使用auto
+            if (vendorRequest.containsKey("tools") && !vendorRequest.containsKey("tool_choice")) {
+                vendorRequest.put("tool_choice", "auto");
+                log.debug("设置默认工具选择策略: auto");
+            }
+        }
     }
 
     @Override
@@ -65,5 +97,17 @@ public class DeepSeekAdapter extends AbstractVendorAdapter {
     @Override
     protected String getDefaultModelName() {
         return "deepseek-chat";
+    }
+
+    @Override
+    protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
+        super.customizeMessage(vendorMessage, originalMessage);
+        
+        if (MessageRole.ASSISTANT.equals(originalMessage.getRole()) && 
+            originalMessage.getToolCalls() != null && !originalMessage.getToolCalls().isEmpty()) {
+            log.debug("DeepSeek处理助手工具调用消息: {}", originalMessage.getToolCalls());
+            // 确保以DeepSeek期望的格式设置工具调用
+            // 大多数情况下super.customizeMessage已经处理了，这里只是额外确认
+        }
     }
 }
