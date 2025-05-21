@@ -1,5 +1,6 @@
 package com.terra.framework.nova.llm.model.deepseek;
 
+import com.alibaba.fastjson.JSONObject;
 import com.terra.framework.nova.llm.exception.ErrorType;
 import com.terra.framework.nova.llm.model.AbstractVendorAdapter;
 import com.terra.framework.nova.llm.model.AuthProvider;
@@ -21,6 +22,12 @@ public class DeepSeekAdapter extends AbstractVendorAdapter {
      */
     public DeepSeekAdapter(DeepSeekRequestMappingStrategy requestMappingStrategy, AuthProvider authProvider) {
         super(requestMappingStrategy, authProvider);
+    }
+
+    @Override
+    protected void processPrompt(String prompt, JSONObject vendorRequest, String model) {
+        // DeepSeek API需要使用prompt字段，而不是转换为消息格式
+        vendorRequest.put("prompt", prompt);
     }
 
     @Override

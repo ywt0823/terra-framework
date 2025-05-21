@@ -8,7 +8,6 @@ import com.terra.framework.nova.prompt.template.PromptTemplateRegistry;
 import com.terra.framework.nova.prompt.template.TemplateEngine;
 import com.terra.framework.nova.prompt.template.impl.FilePromptTemplateLoader;
 import com.terra.framework.nova.prompt.template.impl.StringTemplateEngine;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ResourceLoader;
@@ -18,7 +17,6 @@ import org.springframework.core.io.ResourceLoader;
  *
  * @author terra-nova
  */
-@ConditionalOnResource(resources = "classpath:/**/*.prompt")
 @EnableConfigurationProperties(PromptProperties.class)
 public class PromptAutoConfiguration {
 

@@ -20,7 +20,8 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
-import org.apache.hc.core5.http.*;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
@@ -32,16 +33,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * HTTP客户端工具类
@@ -79,7 +79,7 @@ public class HttpClientUtils implements AutoCloseable {
      * 使用外部提供的HttpClient创建HttpClientUtils实例
      *
      * @param httpClient 外部HttpClient
-     * @param config 客户端配置
+     * @param config     客户端配置
      */
     public HttpClientUtils(CloseableHttpClient httpClient, HttpClientConfig config) {
         this.httpClient = httpClient;
@@ -102,15 +102,15 @@ public class HttpClientUtils implements AutoCloseable {
 
             // 创建HttpClient构建器
             HttpClientBuilder clientBuilder = HttpClients.custom()
-                    .setConnectionManager(connectionManager)
-                    .setConnectionManagerShared(false)
-                    .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy());
+                .setConnectionManager(connectionManager)
+                .setConnectionManagerShared(false)
+                .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy());
 
             // 配置重试策略
             if (config.isRetryEnabled()) {
                 clientBuilder.setRetryStrategy(new DefaultHttpRequestRetryStrategy(
-                        config.getMaxRetryCount(),
-                        Timeout.ofSeconds(1)
+                    config.getMaxRetryCount(),
+                    Timeout.ofSeconds(1)
                 ));
             }
 
@@ -136,12 +136,12 @@ public class HttpClientUtils implements AutoCloseable {
         } else {
             // 否则创建信任所有证书的SSL上下文
             SSLContext sslContext = new SSLContextBuilder()
-                    .loadTrustMaterial(null, new TrustSelfSignedStrategy())
-                    .build();
+                .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+                .build();
 
             SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
-                    sslContext,
-                    new NoopHostnameVerifier()
+                sslContext,
+                new NoopHostnameVerifier()
             );
 
             connectionManager = new PoolingHttpClientConnectionManager();
@@ -149,9 +149,9 @@ public class HttpClientUtils implements AutoCloseable {
 
         // 配置连接参数
         ConnectionConfig connConfig = ConnectionConfig.custom()
-                .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
-                .setSocketTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
-                .build();
+            .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+            .setSocketTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+            .build();
 
         connectionManager.setDefaultConnectionConfig(connConfig);
         connectionManager.setMaxTotal(config.getMaxTotalConnections());
@@ -165,10 +165,10 @@ public class HttpClientUtils implements AutoCloseable {
      */
     private RequestConfig createRequestConfig() {
         return RequestConfig.custom()
-                .setConnectionRequestTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
-                .setResponseTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
-                .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
-                .build();
+            .setConnectionRequestTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+            .setResponseTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+            .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+            .build();
     }
 
     /**
@@ -187,7 +187,7 @@ public class HttpClientUtils implements AutoCloseable {
 
                 // 设置表单参数
                 if (params != null && !params.isEmpty()) {
-            List<NameValuePair> nameValuePairs = new ArrayList<>();
+                    List<NameValuePair> nameValuePairs = new ArrayList<>();
                     params.forEach((key, value) -> nameValuePairs.add(new BasicNameValuePair(key, value)));
                     httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, charset));
                 }
@@ -197,8 +197,8 @@ public class HttpClientUtils implements AutoCloseable {
                 httpPost.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
                 if (StringUtils.isNotEmpty(token)) {
-                httpPost.setHeader("Authorization", "Bearer " + token);
-            }
+                    httpPost.setHeader("Authorization", "Bearer " + token);
+                }
 
                 return httpClient.execute(httpPost);
             }, charset);
@@ -233,8 +233,8 @@ public class HttpClientUtils implements AutoCloseable {
                 httpPost.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
                 if (StringUtils.isNotEmpty(token)) {
-                httpPost.setHeader("Authorization", "Bearer " + token);
-            }
+                    httpPost.setHeader("Authorization", "Bearer " + token);
+                }
 
                 return httpClient.execute(httpPost);
             }, charset);
@@ -296,10 +296,11 @@ public class HttpClientUtils implements AutoCloseable {
 
                 // 设置自定义请求头
                 if (headers != null && headers.length > 0) {
-            httpPost.setHeaders(headers);
+                    httpPost.setHeaders(headers);
                 }
 
-                return httpClient.execute(httpPost);
+                CloseableHttpResponse execute = httpClient.execute(httpPost);
+                return execute;
             }, charset);
         } catch (Exception e) {
             handleException(url, e);
@@ -324,8 +325,8 @@ public class HttpClientUtils implements AutoCloseable {
                 httpGet.setHeader("User-Agent", "Terra-Http-Client/1.0");
 
                 if (StringUtils.isNotEmpty(token)) {
-                httpGet.setHeader("Authorization", "Bearer " + token);
-            }
+                    httpGet.setHeader("Authorization", "Bearer " + token);
+                }
 
                 return httpClient.execute(httpGet);
             }, charset);
@@ -365,7 +366,7 @@ public class HttpClientUtils implements AutoCloseable {
 
                 // 设置自定义请求头
                 if (headers != null && headers.length > 0) {
-            httpGet.setHeaders(headers);
+                    httpGet.setHeaders(headers);
                 }
 
                 return httpClient.execute(httpGet);
@@ -397,24 +398,24 @@ public class HttpClientUtils implements AutoCloseable {
                 }
 
                 // 设置内容类型（如果没有在headers中指定）
-            boolean hasContentType = false;
-            if (headers != null) {
-                for (Header header : headers) {
-                    if ("Content-Type".equalsIgnoreCase(header.getName())) {
-                        hasContentType = true;
-                        break;
+                boolean hasContentType = false;
+                if (headers != null) {
+                    for (Header header : headers) {
+                        if ("Content-Type".equalsIgnoreCase(header.getName())) {
+                            hasContentType = true;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (!hasContentType) {
-                httpPost.setHeader("Content-Type", "application/json");
-            }
+                if (!hasContentType) {
+                    httpPost.setHeader("Content-Type", "application/json");
+                }
 
                 // 设置自定义请求头
-            if (headers != null && headers.length > 0) {
-                httpPost.setHeaders(headers);
-            }
+                if (headers != null && headers.length > 0) {
+                    httpPost.setHeaders(headers);
+                }
 
                 return httpClient.execute(httpPost);
             }, charset);
@@ -519,10 +520,10 @@ public class HttpClientUtils implements AutoCloseable {
                         exception = HttpClientException.serverError(url, statusCode, errorBody);
                     } else {
                         exception = new HttpClientException(
-                                HttpClientException.HttpErrorType.UNKNOWN_ERROR,
-                                "未知HTTP错误 [" + statusCode + "]: " + errorBody,
-                                url,
-                                statusCode
+                            HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                            "未知HTTP错误 [" + statusCode + "]: " + errorBody,
+                            url,
+                            statusCode
                         );
                     }
 
@@ -539,11 +540,11 @@ public class HttpClientUtils implements AutoCloseable {
                     }
                 } else {
                     exception = new HttpClientException(
-                            HttpClientException.HttpErrorType.UNKNOWN_ERROR,
-                            "HTTP请求异常: " + e.getMessage(),
-                            url,
-                            0,
-                            e
+                        HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                        "HTTP请求异常: " + e.getMessage(),
+                        url,
+                        0,
+                        e
                     );
                 }
 
@@ -607,7 +608,7 @@ public class HttpClientUtils implements AutoCloseable {
                 if (StringUtils.isNotEmpty(responseBody)) {
                     try {
                         return JSON.parseObject(responseBody);
-        } catch (Exception e) {
+                    } catch (Exception e) {
                         log.warn("解析JSON响应失败: {}", responseBody, e);
                         JSONObject errorResult = new JSONObject();
                         errorResult.put("rawResponse", responseBody);
@@ -626,10 +627,10 @@ public class HttpClientUtils implements AutoCloseable {
                     throw HttpClientException.serverError(url, statusCode, errorBody);
                 } else {
                     throw new HttpClientException(
-                            HttpClientException.HttpErrorType.UNKNOWN_ERROR,
-                            "未知HTTP错误 [" + statusCode + "]: " + errorBody,
-                            url,
-                            statusCode
+                        HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                        "未知HTTP错误 [" + statusCode + "]: " + errorBody,
+                        url,
+                        statusCode
                     );
                 }
             }
@@ -673,10 +674,10 @@ public class HttpClientUtils implements AutoCloseable {
                     throw HttpClientException.serverError(url, statusCode, errorBody);
                 } else {
                     throw new HttpClientException(
-                            HttpClientException.HttpErrorType.UNKNOWN_ERROR,
-                            "未知HTTP错误 [" + statusCode + "]: " + errorBody,
-                            url,
-                            statusCode
+                        HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                        "未知HTTP错误 [" + statusCode + "]: " + errorBody,
+                        url,
+                        statusCode
                     );
                 }
             }
@@ -708,11 +709,11 @@ public class HttpClientUtils implements AutoCloseable {
             }
         } else {
             throw new HttpClientException(
-                    HttpClientException.HttpErrorType.UNKNOWN_ERROR,
-                    "HTTP请求异常: " + e.getMessage(),
-                    url,
-                    0,
-                    e
+                HttpClientException.HttpErrorType.UNKNOWN_ERROR,
+                "HTTP请求异常: " + e.getMessage(),
+                url,
+                0,
+                e
             );
         }
     }
@@ -839,7 +840,8 @@ public class HttpClientUtils implements AutoCloseable {
             if (retryEnabled != null) configBuilder.retryEnabled(retryEnabled);
             if (maxRetryCount != null) configBuilder.maxRetryCount(maxRetryCount);
             if (validateSSLCertificate != null) configBuilder.validateSSLCertificate(validateSSLCertificate);
-            if (closeResponseAfterExecution != null) configBuilder.closeResponseAfterExecution(closeResponseAfterExecution);
+            if (closeResponseAfterExecution != null)
+                configBuilder.closeResponseAfterExecution(closeResponseAfterExecution);
             if (threadPoolSize != null) configBuilder.threadPoolSize(threadPoolSize);
 
             return new HttpClientUtils(configBuilder.build());
@@ -862,12 +864,12 @@ public class HttpClientUtils implements AutoCloseable {
             } else {
                 // 否则创建信任所有证书的SSL上下文
                 SSLContext sslContext = new SSLContextBuilder()
-                        .loadTrustMaterial(null, new TrustSelfSignedStrategy())
-                        .build();
+                    .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+                    .build();
 
                 SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
-                        sslContext,
-                        new NoopHostnameVerifier()
+                    sslContext,
+                    new NoopHostnameVerifier()
                 );
 
                 connectionManager = new PoolingHttpClientConnectionManager();
@@ -875,9 +877,9 @@ public class HttpClientUtils implements AutoCloseable {
 
             // 配置连接参数
             ConnectionConfig connConfig = ConnectionConfig.custom()
-                    .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
-                    .setSocketTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
-                    .build();
+                .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+                .setSocketTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+                .build();
 
             connectionManager.setDefaultConnectionConfig(connConfig);
             connectionManager.setMaxTotal(config.getMaxTotalConnections());
@@ -898,10 +900,10 @@ public class HttpClientUtils implements AutoCloseable {
      */
     public static RequestConfig createRequestConfig(HttpClientConfig config) {
         return RequestConfig.custom()
-                .setConnectionRequestTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
-                .setResponseTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
-                .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
-                .build();
+            .setConnectionRequestTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+            .setResponseTimeout(Timeout.ofMilliseconds(config.getReadTimeout()))
+            .setConnectTimeout(Timeout.ofMilliseconds(config.getConnectTimeout()))
+            .build();
     }
 
     /**
@@ -912,8 +914,8 @@ public class HttpClientUtils implements AutoCloseable {
      */
     public static DefaultHttpRequestRetryStrategy createRetryStrategy(int maxRetryCount) {
         return new DefaultHttpRequestRetryStrategy(
-                maxRetryCount,
-                Timeout.ofSeconds(1)
+            maxRetryCount,
+            Timeout.ofSeconds(1)
         );
     }
 }

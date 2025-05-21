@@ -1,7 +1,0 @@
-# ============================================================================
-# Terra Nova Prompt配置
-# ============================================================================
-# 提示词模板路径
-terra.nova.prompt.template-path=classpath:/prompts
-# 提示词模板文件扩展名
-terra.nova.prompt.template-extension=.prompt 

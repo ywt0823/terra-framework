@@ -1,13 +1,14 @@
 package com.terra.framework.nova.llm.model;
 
+import com.google.common.collect.Maps;
 import com.terra.framework.common.util.httpclient.HttpClientUtils;
 import com.terra.framework.nova.llm.exception.ModelException;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 抽象模型实现
@@ -35,7 +36,7 @@ public abstract class AbstractAIModel implements AIModel {
     /**
      * 构造函数
      *
-     * @param config 模型配置
+     * @param config          模型配置
      * @param httpClientUtils HTTP客户端工具
      */
     protected AbstractAIModel(ModelConfig config, HttpClientUtils httpClientUtils) {
@@ -64,12 +65,10 @@ public abstract class AbstractAIModel implements AIModel {
 
         // 如果存在默认参数，合并
         if (config.getDefaultParameters() != null && !config.getDefaultParameters().isEmpty()) {
-            Map<String, Object> result = Map.copyOf(config.getDefaultParameters());
+            Map<String, Object> result = Maps.newHashMap(config.getDefaultParameters());
 
             // 传入的参数覆盖默认参数
-            for (Map.Entry<String, Object> entry : mergedParams.entrySet()) {
-                result.put(entry.getKey(), entry.getValue());
-            }
+            result.putAll(mergedParams);
 
             return result;
         }
@@ -80,8 +79,8 @@ public abstract class AbstractAIModel implements AIModel {
     /**
      * 获取参数中的布尔值
      *
-     * @param parameters 参数
-     * @param key 参数名
+     * @param parameters   参数
+     * @param key          参数名
      * @param defaultValue 默认值
      * @return 布尔值
      */
@@ -96,8 +95,8 @@ public abstract class AbstractAIModel implements AIModel {
     /**
      * 获取参数中的整数值
      *
-     * @param parameters 参数
-     * @param key 参数名
+     * @param parameters   参数
+     * @param key          参数名
      * @param defaultValue 默认值
      * @return 整数值
      */
@@ -112,8 +111,8 @@ public abstract class AbstractAIModel implements AIModel {
     /**
      * 获取参数中的浮点值
      *
-     * @param parameters 参数
-     * @param key 参数名
+     * @param parameters   参数
+     * @param key          参数名
      * @param defaultValue 默认值
      * @return 浮点值
      */
@@ -128,8 +127,8 @@ public abstract class AbstractAIModel implements AIModel {
     /**
      * 获取参数中的字符串值
      *
-     * @param parameters 参数
-     * @param key 参数名
+     * @param parameters   参数
+     * @param key          参数名
      * @param defaultValue 默认值
      * @return 字符串值
      */
@@ -157,7 +156,7 @@ public abstract class AbstractAIModel implements AIModel {
      * 创建异常
      *
      * @param message 异常消息
-     * @param cause 原因异常
+     * @param cause   原因异常
      * @return 模型异常
      */
     protected ModelException createException(String message, Throwable cause) {
