@@ -8,12 +8,16 @@ import com.terra.framework.nova.llm.exception.ModelException;
 import com.terra.framework.nova.llm.model.AbstractVendorAdapter;
 import com.terra.framework.nova.llm.model.AuthProvider;
 import com.terra.framework.nova.llm.model.Message;
+import com.terra.framework.nova.llm.model.MessageRole;
 import com.terra.framework.nova.llm.model.ModelRequest;
 import com.terra.framework.nova.llm.model.ModelResponse;
 import com.terra.framework.nova.llm.model.TokenUsage;
+import com.terra.framework.nova.llm.model.ToolCall;
+import com.terra.framework.nova.llm.model.FunctionCallInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -36,6 +40,8 @@ public class DifyAdapter extends AbstractVendorAdapter {
 
     @Override
     protected void customizeRequest(JSONObject vendorRequest, ModelRequest originalRequest) {
+        super.customizeRequest(vendorRequest, originalRequest);
+        
         // Dify特有的请求处理
         
         // 设置inputs和query
@@ -44,6 +50,39 @@ public class DifyAdapter extends AbstractVendorAdapter {
         // 根据请求类型处理
         if (originalRequest.getMessages() != null && !originalRequest.getMessages().isEmpty()) {
             vendorRequest.put("query", null); // 不使用query方式
+            
+            // 处理工具调用 - Dify支持通过tools参数传递函数定义
+            if (originalRequest.getTools() != null && !originalRequest.getTools().isEmpty()) {
+                // Dify使用tools数组 - 格式可能与标准OpenAI格式略有不同
+                JSONArray toolsArray = new JSONArray();
+                
+                for (Object tool : originalRequest.getTools()) {
+                    if (tool instanceof Map) {
+                        Map<String, Object> toolMap = (Map<String, Object>) tool;
+                        
+                        // 处理函数类型的工具
+                        if ("function".equals(toolMap.get("type")) && toolMap.containsKey("function")) {
+                            toolsArray.add(toolMap);
+                        }
+                    }
+                }
+                
+                if (!toolsArray.isEmpty()) {
+                    // 在inputs中添加工具定义
+                    JSONObject inputs = vendorRequest.getJSONObject("inputs");
+                    inputs.put("tools", toolsArray);
+                    log.debug("设置Dify工具定义: {}", toolsArray);
+                    
+                    // 设置工具选择策略
+                    if (originalRequest.getToolChoice() != null) {
+                        inputs.put("tool_choice", originalRequest.getToolChoice());
+                        log.debug("设置Dify工具选择策略: {}", originalRequest.getToolChoice());
+                    } else {
+                        inputs.put("tool_choice", "auto");
+                        log.debug("设置Dify默认工具选择策略: auto");
+                    }
+                }
+            }
         } else if (originalRequest.getPrompt() != null && !originalRequest.getPrompt().isEmpty()) {
             // 对于提示词，使用query模式
             vendorRequest.put("query", originalRequest.getPrompt());
@@ -65,6 +104,8 @@ public class DifyAdapter extends AbstractVendorAdapter {
 
     @Override
     protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
+        super.customizeMessage(vendorMessage, originalMessage);
+        
         // 处理Dify特有的消息格式
         switch (originalMessage.getRole()) {
             case SYSTEM:
@@ -74,17 +115,74 @@ public class DifyAdapter extends AbstractVendorAdapter {
                 break;
             case FUNCTION:
             case TOOL:
-                // Dify可能不直接支持function和tool角色，作为assistant消息处理
+                // Dify处理工具响应
                 vendorMessage.put("role", "assistant");
+                
+                // 添加工具名称和ID（如果有）
+                if (originalMessage.getName() != null) {
+                    vendorMessage.put("name", originalMessage.getName());
+                }
+                
+                if (originalMessage.getToolCallId() != null) {
+                    vendorMessage.put("tool_call_id", originalMessage.getToolCallId());
+                    log.debug("设置Dify工具调用ID: {}", originalMessage.getToolCallId());
+                }
+                
+                // 内容格式特殊处理
                 vendorMessage.put("content", "工具/函数调用结果: " + originalMessage.getContent());
+                break;
+            case ASSISTANT:
+                // 处理助手消息中的工具调用
+                if (originalMessage.getToolCalls() != null && !originalMessage.getToolCalls().isEmpty()) {
+                    log.debug("Dify处理助手工具调用消息: {}", originalMessage.getToolCalls());
+                    vendorMessage.put("tool_calls", JSON.toJSON(originalMessage.getToolCalls()));
+                }
                 break;
         }
     }
 
     @Override
     protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
-        // Dify不使用标准的choices格式，这个方法不会被调用，但仍需实现
+        // Dify不使用标准的choices格式，这个方法可能不会被直接调用
         super.extractContent(choice, modelResponse);
+        
+        // 但我们仍然需要处理可能的工具调用
+        if (choice.containsKey("tool_calls")) {
+            JSONArray toolCallsArray = choice.getJSONArray("tool_calls");
+            if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
+                List<ToolCall> toolCalls = new ArrayList<>();
+                
+                for (int i = 0; i < toolCallsArray.size(); i++) {
+                    JSONObject callObject = toolCallsArray.getJSONObject(i);
+                    String id = callObject.getString("id");
+                    String type = callObject.getString("type");
+                    
+                    if ("function".equals(type) && callObject.containsKey("function")) {
+                        JSONObject functionObject = callObject.getJSONObject("function");
+                        String name = functionObject.getString("name");
+                        String arguments = functionObject.getString("arguments");
+                        
+                        FunctionCallInfo functionCall = FunctionCallInfo.builder()
+                            .name(name)
+                            .arguments(arguments)
+                            .build();
+                            
+                        ToolCall toolCall = ToolCall.builder()
+                            .id(id)
+                            .type(type)
+                            .function(functionCall)
+                            .build();
+                            
+                        toolCalls.add(toolCall);
+                    }
+                }
+                
+                if (!toolCalls.isEmpty()) {
+                    modelResponse.setToolCalls(toolCalls);
+                    log.debug("解析Dify工具调用: {}", toolCalls);
+                }
+            }
+        }
     }
 
     @Override
@@ -103,6 +201,54 @@ public class DifyAdapter extends AbstractVendorAdapter {
         // 设置响应ID（Dify特有字段）
         if (jsonResponse.containsKey("conversation_id")) {
             modelResponse.setResponseId(jsonResponse.getString("conversation_id"));
+        }
+        
+        // 处理工具调用 - Dify可能以特殊格式返回工具调用
+        if (jsonResponse.containsKey("tool_calls")) {
+            JSONArray toolCallsArray = jsonResponse.getJSONArray("tool_calls");
+            if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
+                try {
+                    List<ToolCall> toolCalls = JSON.parseArray(toolCallsArray.toJSONString(), ToolCall.class);
+                    modelResponse.setToolCalls(toolCalls);
+                    log.debug("解析Dify工具调用响应: {}", toolCalls);
+                } catch (Exception e) {
+                    log.error("解析Dify工具调用失败: {}", e.getMessage());
+                }
+            }
+        }
+        
+        // 如果响应中包含工具调用信息，但格式特殊，尝试解析
+        if (jsonResponse.containsKey("tool_call") || 
+            (jsonResponse.containsKey("extra") && jsonResponse.getJSONObject("extra").containsKey("tool_call"))) {
+            
+            JSONObject toolCallObj = jsonResponse.containsKey("tool_call") ? 
+                jsonResponse.getJSONObject("tool_call") : 
+                jsonResponse.getJSONObject("extra").getJSONObject("tool_call");
+                
+            // 确保工具调用包含必要字段
+            if (toolCallObj.containsKey("name") && toolCallObj.containsKey("arguments")) {
+                // 为工具调用生成唯一ID
+                String id = "tool-" + System.currentTimeMillis();
+                String name = toolCallObj.getString("name");
+                String arguments = toolCallObj.getString("arguments");
+                
+                FunctionCallInfo functionCall = FunctionCallInfo.builder()
+                    .name(name)
+                    .arguments(arguments)
+                    .build();
+                    
+                ToolCall toolCall = ToolCall.builder()
+                    .id(id)
+                    .type("function")
+                    .function(functionCall)
+                    .build();
+                
+                List<ToolCall> toolCalls = new ArrayList<>();
+                toolCalls.add(toolCall);
+                modelResponse.setToolCalls(toolCalls);
+                
+                log.debug("从特殊格式中解析Dify工具调用: {}", toolCall);
+            }
         }
     }
 

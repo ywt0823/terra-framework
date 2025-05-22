@@ -7,4 +7,4 @@ com.terra.framework.nova.prompt.config.HttpPromptAutoconfiguration
 com.terra.framework.nova.rag.config.RAGAutoConfiguration
 com.terra.framework.nova.rag.config.RerankAutoConfiguration
 com.terra.framework.nova.common.component.AIComponentAutoConfiguration
-com.terra.framework.nova.common.component.demo.DefaultComponentsConfiguration
+com.terra.framework.nova.agent.config.AgentAutoConfiguration

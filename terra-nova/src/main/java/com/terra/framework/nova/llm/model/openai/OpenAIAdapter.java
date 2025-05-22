@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.terra.framework.nova.llm.exception.ErrorType;
 import com.terra.framework.nova.llm.model.AbstractVendorAdapter;
 import com.terra.framework.nova.llm.model.AuthProvider;
+import com.terra.framework.nova.llm.model.Message;
+import com.terra.framework.nova.llm.model.MessageRole;
+import com.terra.framework.nova.llm.model.ModelRequest;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -32,6 +35,33 @@ public class OpenAIAdapter extends AbstractVendorAdapter {
         } else {
             // 对于聊天模型，使用默认的消息格式
             super.processPrompt(prompt, vendorRequest, model);
+        }
+    }
+    
+    @Override
+    protected void customizeRequest(JSONObject vendorRequest, ModelRequest originalRequest) {
+        super.customizeRequest(vendorRequest, originalRequest);
+        
+        // 确保在Chat模式下使用正确的格式
+        if (originalRequest.getMessages() != null && !originalRequest.getMessages().isEmpty()) {
+            log.debug("使用消息模式，确保OpenAI请求格式正确");
+            
+            // 如果设置了工具但没有设置工具选择策略，默认使用auto
+            if (vendorRequest.containsKey("tools") && !vendorRequest.containsKey("tool_choice")) {
+                vendorRequest.put("tool_choice", "auto");
+                log.debug("设置默认工具选择策略: auto");
+            }
+        }
+    }
+    
+    @Override
+    protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
+        super.customizeMessage(vendorMessage, originalMessage);
+        
+        if (MessageRole.ASSISTANT.equals(originalMessage.getRole()) && 
+            originalMessage.getToolCalls() != null && !originalMessage.getToolCalls().isEmpty()) {
+            log.debug("OpenAI处理助手工具调用消息: {}", originalMessage.getToolCalls());
+            // 确保以OpenAI期望的格式设置工具调用
         }
     }
 

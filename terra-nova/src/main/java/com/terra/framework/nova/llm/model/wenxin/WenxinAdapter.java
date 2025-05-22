@@ -12,9 +12,12 @@ import com.terra.framework.nova.llm.model.MessageRole;
 import com.terra.framework.nova.llm.model.ModelRequest;
 import com.terra.framework.nova.llm.model.ModelResponse;
 import com.terra.framework.nova.llm.model.TokenUsage;
+import com.terra.framework.nova.llm.model.ToolCall;
+import com.terra.framework.nova.llm.model.FunctionCallInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -36,7 +39,61 @@ public class WenxinAdapter extends AbstractVendorAdapter {
     }
 
     @Override
+    protected void customizeRequest(JSONObject vendorRequest, ModelRequest originalRequest) {
+        super.customizeRequest(vendorRequest, originalRequest);
+        
+        if (originalRequest.getMessages() != null && !originalRequest.getMessages().isEmpty()) {
+            log.debug("使用消息模式，确保文心一言请求格式正确");
+            
+            // 文心一言的函数调用格式与其他模型不同
+            if (originalRequest.getTools() != null && !originalRequest.getTools().isEmpty()) {
+                // 文心一言使用functions数组而不是tools
+                JSONArray functionsArray = new JSONArray();
+                for (Object tool : originalRequest.getTools()) {
+                    if (tool instanceof Map) {
+                        Map<String, Object> toolMap = (Map<String, Object>)tool;
+                        // 只处理function类型的工具
+                        if ("function".equals(toolMap.get("type"))) {
+                            Map<String, Object> functionDetails = (Map<String, Object>)toolMap.get("function");
+                            functionsArray.add(functionDetails);
+                        }
+                    }
+                }
+                
+                if (!functionsArray.isEmpty()) {
+                    vendorRequest.put("functions", functionsArray);
+                    log.debug("设置文心一言函数定义: {}", functionsArray);
+                    
+                    // 设置函数调用策略
+                    if (originalRequest.getToolChoice() != null) {
+                        if ("auto".equals(originalRequest.getToolChoice())) {
+                            vendorRequest.put("function_call", "auto");
+                        } else if (originalRequest.getToolChoice() instanceof Map) {
+                            // 文心一言特定函数选择格式
+                            Map<String, Object> choice = (Map<String, Object>)originalRequest.getToolChoice();
+                            if (choice.containsKey("function")) {
+                                Map<String, Object> functionChoice = (Map<String, Object>)choice.get("function");
+                                String name = (String)functionChoice.get("name");
+                                if (name != null) {
+                                    JSONObject functionCall = new JSONObject();
+                                    functionCall.put("name", name);
+                                    vendorRequest.put("function_call", functionCall);
+                                }
+                            }
+                        }
+                    } else {
+                        vendorRequest.put("function_call", "auto");
+                    }
+                    log.debug("设置文心一言函数调用策略: {}", vendorRequest.get("function_call"));
+                }
+            }
+        }
+    }
+
+    @Override
     protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
+        super.customizeMessage(vendorMessage, originalMessage);
+        
         // 文心一言特殊处理角色
         switch (originalMessage.getRole()) {
             case SYSTEM:
@@ -46,10 +103,71 @@ public class WenxinAdapter extends AbstractVendorAdapter {
                 break;
             case FUNCTION:
             case TOOL:
-                // 文心一言不直接支持function或tool角色，将其转换为附加信息
+                // 文心一言使用不同的格式表示函数响应
                 vendorMessage.put("role", "assistant");
-                vendorMessage.put("content", "工具调用结果: " + originalMessage.getContent());
+                // 如果有函数名称，添加函数响应格式
+                if (originalMessage.getName() != null) {
+                    JSONObject functionResponse = new JSONObject();
+                    functionResponse.put("name", originalMessage.getName());
+                    functionResponse.put("content", originalMessage.getContent());
+                    vendorMessage.put("function_call", functionResponse);
+                    // 清空内容，避免重复
+                    vendorMessage.put("content", null);
+                } else {
+                    vendorMessage.put("content", "工具调用结果: " + originalMessage.getContent());
+                }
                 break;
+            case ASSISTANT:
+                // 处理带函数调用的助手消息
+                if (originalMessage.getToolCalls() != null && !originalMessage.getToolCalls().isEmpty()) {
+                    // 文心一言只支持单个函数调用
+                    ToolCall toolCall = originalMessage.getToolCalls().get(0);
+                    if (toolCall.getFunction() != null) {
+                        JSONObject functionCall = new JSONObject();
+                        functionCall.put("name", toolCall.getFunction().getName());
+                        functionCall.put("arguments", toolCall.getFunction().getArguments());
+                        vendorMessage.put("function_call", functionCall);
+                        // 如果没有内容，确保content字段为空
+                        if (originalMessage.getContent() == null) {
+                            vendorMessage.put("content", null);
+                        }
+                    }
+                }
+                break;
+        }
+    }
+    
+    @Override
+    protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
+        super.extractContent(choice, modelResponse);
+        
+        // 文心一言的函数调用响应格式
+        if (choice.containsKey("function_call")) {
+            JSONObject functionCall = choice.getJSONObject("function_call");
+            String name = functionCall.getString("name");
+            String arguments = functionCall.getString("arguments");
+            log.debug("解析文心一言函数调用: name={}, arguments={}", name, arguments);
+            
+            FunctionCallInfo functionCallInfo = FunctionCallInfo.builder()
+                .name(name)
+                .arguments(arguments)
+                .build();
+                
+            // 生成一个唯一ID
+            String id = "tool-" + System.currentTimeMillis();
+            
+            ToolCall toolCall = ToolCall.builder()
+                .id(id)
+                .type("function")
+                .function(functionCallInfo)
+                .build();
+                
+            List<ToolCall> toolCalls = new ArrayList<>();
+            toolCalls.add(toolCall);
+            modelResponse.setToolCalls(toolCalls);
+            
+            // 当有函数调用时，通常内容为空
+            modelResponse.setContent(null);
         }
     }
 

@@ -9,6 +9,7 @@ import com.terra.framework.nova.llm.model.AbstractVendorAdapter;
 import com.terra.framework.nova.llm.model.AuthProvider;
 import com.terra.framework.nova.llm.model.Message;
 import com.terra.framework.nova.llm.model.MessageRole;
+import com.terra.framework.nova.llm.model.ModelRequest;
 import com.terra.framework.nova.llm.model.ModelResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,10 +32,49 @@ public class ClaudeAdapter extends AbstractVendorAdapter {
     }
 
     @Override
+    protected void customizeRequest(JSONObject vendorRequest, ModelRequest originalRequest) {
+        super.customizeRequest(vendorRequest, originalRequest);
+        
+        if (originalRequest.getMessages() != null && !originalRequest.getMessages().isEmpty()) {
+            log.debug("使用消息模式，确保Claude请求格式正确");
+            
+            // Claude模型的工具调用请求格式有所不同
+            if (originalRequest.getTools() != null && !originalRequest.getTools().isEmpty()) {
+                // Claude使用tools数组
+                vendorRequest.put("tools", JSON.toJSON(originalRequest.getTools()));
+                log.debug("设置Claude工具定义: {}", originalRequest.getTools());
+                
+                // 默认使用"auto"工具选择模式
+                if (originalRequest.getToolChoice() != null) {
+                    vendorRequest.put("tool_choice", originalRequest.getToolChoice());
+                } else {
+                    vendorRequest.put("tool_choice", "auto");
+                }
+                log.debug("设置Claude工具选择策略: {}", 
+                    originalRequest.getToolChoice() != null ? originalRequest.getToolChoice() : "auto");
+            }
+        }
+    }
+
+    @Override
     protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
+        super.customizeMessage(vendorMessage, originalMessage);
+        
         // Claude不支持function和tool角色，需要转换
         if (originalMessage.getRole() == MessageRole.FUNCTION || originalMessage.getRole() == MessageRole.TOOL) {
             vendorMessage.put("role", "user");
+            // 如果有tool_call_id，确保添加
+            if (originalMessage.getToolCallId() != null) {
+                vendorMessage.put("tool_call_id", originalMessage.getToolCallId());
+                log.debug("设置Claude工具调用ID: {}", originalMessage.getToolCallId());
+            }
+        }
+        
+        // 处理带工具调用的助手消息
+        if (MessageRole.ASSISTANT.equals(originalMessage.getRole()) && 
+            originalMessage.getToolCalls() != null && !originalMessage.getToolCalls().isEmpty()) {
+            log.debug("Claude处理助手工具调用消息: {}", originalMessage.getToolCalls());
+            vendorMessage.put("tool_calls", JSON.toJSON(originalMessage.getToolCalls()));
         }
     }
 
@@ -46,6 +86,16 @@ public class ClaudeAdapter extends AbstractVendorAdapter {
         } else if (choice.containsKey("delta") && choice.getJSONObject("delta").containsKey("text")) {
             // 处理流式响应
             modelResponse.setContent(choice.getJSONObject("delta").getString("text"));
+        }
+        
+        // 处理工具调用响应
+        if (choice.containsKey("message") && choice.getJSONObject("message").containsKey("tool_calls")) {
+            JSONArray toolCallsArray = choice.getJSONObject("message").getJSONArray("tool_calls");
+            if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
+                modelResponse.setToolCalls(JSON.parseArray(toolCallsArray.toJSONString(), 
+                    com.terra.framework.nova.llm.model.ToolCall.class));
+                log.debug("解析Claude工具调用响应: {}", toolCallsArray);
+            }
         }
     }
 
@@ -88,6 +138,22 @@ public class ClaudeAdapter extends AbstractVendorAdapter {
             } catch (Exception e) {
                 modelResponse.setCreatedAt(System.currentTimeMillis());
             }
+        }
+        
+        // 检查是否有工具调用但未被解析
+        if (jsonResponse.containsKey("choices") && 
+            jsonResponse.getJSONArray("choices").size() > 0 &&
+            jsonResponse.getJSONArray("choices").getJSONObject(0).containsKey("message") &&
+            jsonResponse.getJSONArray("choices").getJSONObject(0).getJSONObject("message").containsKey("tool_calls")) {
+            
+            JSONArray toolCallsArray = jsonResponse.getJSONArray("choices")
+                .getJSONObject(0)
+                .getJSONObject("message")
+                .getJSONArray("tool_calls");
+                
+            modelResponse.setToolCalls(JSON.parseArray(toolCallsArray.toJSONString(), 
+                com.terra.framework.nova.llm.model.ToolCall.class));
+            log.debug("从完整响应中解析Claude工具调用: {}", toolCallsArray);
         }
     }
 

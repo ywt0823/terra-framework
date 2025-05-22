@@ -1,11 +1,15 @@
 package com.terra.framework.nova.common.component;
 
+import com.terra.framework.nova.agent.config.AgentAutoConfiguration;
 import com.terra.framework.nova.agent.tool.ToolRegistry;
 import com.terra.framework.nova.common.annotation.AIComponent;
 import com.terra.framework.nova.common.annotation.AIParameter;
 import com.terra.framework.nova.common.annotation.ComponentType;
 import com.terra.framework.nova.function.FunctionRegistry;
+import com.terra.framework.nova.function.config.AIFunctionAutoConfiguration;
+import com.terra.framework.nova.llm.config.AIServiceAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,6 +39,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @EnableConfigurationProperties(AIComponentProperties.class)
 @ConditionalOnProperty(prefix = "terra.nova.component", name = "enabled", havingValue = "true", matchIfMissing = true)
+@AutoConfigureAfter({AIServiceAutoConfiguration.class, AgentAutoConfiguration.class, AIFunctionAutoConfiguration.class})
 public class AIComponentAutoConfiguration {
 
     /**
