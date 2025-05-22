@@ -180,9 +180,10 @@ public class TongyiAdapter extends AbstractVendorAdapter {
 
     @Override
     protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
-        super.extractContent(choice, modelResponse);
+        // 使用父类的方法提取基本内容
+        super.extractTextContent(choice, modelResponse);
         
-        // 通义千问可能有特殊的工具调用格式
+        // 通义千问特有的工具调用格式处理
         if (choice.containsKey("tool_calls")) {
             JSONArray toolCallsArray = choice.getJSONArray("tool_calls");
             if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
@@ -215,8 +216,12 @@ public class TongyiAdapter extends AbstractVendorAdapter {
                 
                 if (!toolCalls.isEmpty()) {
                     modelResponse.setToolCalls(toolCalls);
+                    log.debug("{}解析特殊格式工具调用: {}", getVendorName(), toolCalls);
                 }
             }
+        } else {
+            // 对于标准格式的工具调用，使用父类方法
+            super.extractToolCalls(choice, modelResponse);
         }
     }
 

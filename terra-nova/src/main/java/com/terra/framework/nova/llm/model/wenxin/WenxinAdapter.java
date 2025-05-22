@@ -139,14 +139,16 @@ public class WenxinAdapter extends AbstractVendorAdapter {
     
     @Override
     protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
-        super.extractContent(choice, modelResponse);
+        // 使用父类方法提取基本内容
+        super.extractTextContent(choice, modelResponse);
+        super.extractToolCalls(choice, modelResponse);
         
         // 文心一言的函数调用响应格式
         if (choice.containsKey("function_call")) {
             JSONObject functionCall = choice.getJSONObject("function_call");
             String name = functionCall.getString("name");
             String arguments = functionCall.getString("arguments");
-            log.debug("解析文心一言函数调用: name={}, arguments={}", name, arguments);
+            log.debug("{}解析特殊格式函数调用: name={}, arguments={}", getVendorName(), name, arguments);
             
             FunctionCallInfo functionCallInfo = FunctionCallInfo.builder()
                 .name(name)

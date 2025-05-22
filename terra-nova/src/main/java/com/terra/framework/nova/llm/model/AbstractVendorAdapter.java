@@ -5,11 +5,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.terra.framework.nova.llm.exception.ErrorType;
 import com.terra.framework.nova.llm.exception.ModelException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 抽象供应商适配器实现，提供通用功能
@@ -23,12 +22,12 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
      * 构造函数
      *
      * @param requestMappingStrategy 请求参数映射策略
-     * @param authProvider 认证提供者
+     * @param authProvider           认证提供者
      */
     protected AbstractVendorAdapter(RequestMappingStrategy requestMappingStrategy, AuthProvider authProvider) {
         super(requestMappingStrategy, authProvider);
     }
-    
+
     @Override
     public <T> T convertRequest(ModelRequest request, Class<T> vendorRequestType) {
         try {
@@ -62,14 +61,14 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
                 log.debug("{}使用提示词模式，提示词长度: {}", getVendorName(), request.getPrompt().length());
                 processPrompt(request.getPrompt(), vendorRequest, model);
             }
-            
+
             // 添加工具相关配置
             if (request.getTools() != null && !request.getTools().isEmpty()) {
                 // 将工具列表转换为JSON并添加到请求中
                 vendorRequest.put("tools", JSON.toJSON(request.getTools()));
                 log.debug("{}添加工具到请求，工具数量: {}", getVendorName(), request.getTools().size());
                 log.debug("{}工具定义详情: {}", getVendorName(), JSON.toJSONString(request.getTools()));
-                
+
                 // 如果指定了工具选择策略，也添加到请求中
                 if (request.getToolChoice() != null) {
                     vendorRequest.put("tool_choice", request.getToolChoice());
@@ -161,22 +160,22 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
 
             // 转换角色
             vendorMessage.put("role", mapRole(message.getRole()));
-            
+
             // 添加内容（如果非空）
             if (message.getContent() != null) {
                 vendorMessage.put("content", message.getContent());
             }
-            
+
             // 处理工具调用（assistant角色）
-            if (message.getToolCalls() != null && !message.getToolCalls().isEmpty() && 
-                MessageRole.ASSISTANT.equals(message.getRole())) {
+            if (message.getToolCalls() != null && !message.getToolCalls().isEmpty() &&
+                    MessageRole.ASSISTANT.equals(message.getRole())) {
                 vendorMessage.put("tool_calls", JSON.toJSON(message.getToolCalls()));
                 log.debug("添加工具调用到assistant消息: {}", message.getToolCalls());
             }
-            
+
             // 允许子类添加额外消息属性
             customizeMessage(vendorMessage, message);
-            
+
             messagesArray.add(vendorMessage);
         }
 
@@ -186,9 +185,9 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
     /**
      * 处理提示词
      *
-     * @param prompt 提示词
+     * @param prompt        提示词
      * @param vendorRequest 供应商请求
-     * @param model 模型名称
+     * @param model         模型名称
      */
     protected void processPrompt(String prompt, JSONObject vendorRequest, String model) {
         // 默认转换为消息格式
@@ -226,7 +225,7 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
      */
     protected ModelResponse parseJsonResponse(JSONObject jsonResponse) {
         ModelResponse modelResponse = new ModelResponse();
-        
+
         log.debug("原始JSON响应: {}", jsonResponse);
 
         // 处理完成响应
@@ -267,7 +266,7 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
 
         // 允许子类进行自定义处理
         customizeResponse(modelResponse, jsonResponse);
-        
+
         log.debug("最终解析的模型响应: {}", modelResponse);
 
         return modelResponse;
@@ -276,50 +275,105 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
     /**
      * 从选择对象中提取内容
      *
-     * @param choice 选择对象
+     * @param choice        选择对象
      * @param modelResponse 模型响应
      */
     protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
-        // Claude的响应格式可能有所不同
+        log.debug("{}开始提取内容，选择对象: {}", getVendorName(), choice);
+
+        // 提取文本内容
+        extractTextContent(choice, modelResponse);
+
+        // 提取工具调用
+        extractToolCalls(choice, modelResponse);
+
+        log.debug("{}内容提取完成，最终内容: {}", getVendorName(), modelResponse.getContent());
+    }
+
+    /**
+     * 提取文本内容（从不同格式的响应中）
+     *
+     * @param choice        选择对象
+     * @param modelResponse 模型响应
+     */
+    protected void extractTextContent(JSONObject choice, ModelResponse modelResponse) {
+        String content = null;
+
+        // 1. 直接content字段 (Claude, OpenAI等)
         if (choice.containsKey("content")) {
-            modelResponse.setContent(choice.getString("content"));
-            log.debug("从响应中提取内容: {}", choice.getString("content"));
-        } else if (choice.containsKey("delta") && choice.getJSONObject("delta").containsKey("text")) {
-            // 处理流式响应
-            modelResponse.setContent(choice.getJSONObject("delta").getString("text"));
-            log.debug("从增量响应中提取内容: {}", choice.getJSONObject("delta").getString("text"));
+            content = choice.getString("content");
+            log.debug("{}从content字段提取内容: {}", getVendorName(), content);
         }
-        
-        // 处理工具调用响应
-        if (choice.containsKey("message") && choice.getJSONObject("message").containsKey("tool_calls")) {
-            JSONArray toolCallsArray = choice.getJSONObject("message").getJSONArray("tool_calls");
-            log.debug("检测到消息中的工具调用: {}", toolCallsArray);
-            
-            if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
-                try {
-                    List<ToolCall> toolCalls = JSON.parseArray(toolCallsArray.toJSONString(), 
-                        com.terra.framework.nova.llm.model.ToolCall.class);
-                    modelResponse.setToolCalls(toolCalls);
-                    log.debug("成功解析工具调用: {}", toolCalls);
-                } catch (Exception e) {
-                    log.error("解析工具调用失败: {}", e.getMessage(), e);
+        // 2. text字段 (Ollama等)
+        else if (choice.containsKey("text")) {
+            content = choice.getString("text");
+            log.debug("{}从text字段提取内容: {}", getVendorName(), content);
+        }
+        // 3. delta.content字段 (流式响应，通义等)
+        else if (choice.containsKey("delta") && choice.getJSONObject("delta").containsKey("content")) {
+            content = choice.getJSONObject("delta").getString("content");
+            log.debug("{}从delta.content字段提取内容: {}", getVendorName(), content);
+        }
+        // 4. delta.text字段 (流式响应，某些模型)
+        else if (choice.containsKey("delta") && choice.getJSONObject("delta").containsKey("text")) {
+            content = choice.getJSONObject("delta").getString("text");
+            log.debug("{}从delta.text字段提取内容: {}", getVendorName(), content);
+        }
+        // 5. message.content字段 (GPT等)
+        else if (choice.containsKey("message") && choice.getJSONObject("message").containsKey("content")) {
+            content = choice.getJSONObject("message").getString("content");
+            log.debug("{}从message.content字段提取内容: {}", getVendorName(), content);
+        }
+
+        // 如果提取到内容，设置到响应中
+        if (content != null) {
+            modelResponse.setContent(content);
+        } else {
+            log.debug("{}未能从选择对象中提取文本内容", getVendorName());
+        }
+    }
+
+    /**
+     * 提取工具调用
+     *
+     * @param choice        选择对象
+     * @param modelResponse 模型响应
+     */
+    protected void extractToolCalls(JSONObject choice, ModelResponse modelResponse) {
+        try {
+            List<ToolCall> toolCalls = null;
+
+            // 1. 直接tool_calls字段
+            if (choice.containsKey("tool_calls")) {
+                JSONArray toolCallsArray = choice.getJSONArray("tool_calls");
+                if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
+                    toolCalls = JSON.parseArray(toolCallsArray.toJSONString(), ToolCall.class);
+                    log.debug("{}从tool_calls字段提取工具调用: {}", getVendorName(), toolCalls);
                 }
             }
-        } else if (choice.containsKey("tool_calls")) {
-            // 某些模型可能直接在choice下包含tool_calls
-            JSONArray toolCallsArray = choice.getJSONArray("tool_calls");
-            log.debug("检测到choice直接包含的工具调用: {}", toolCallsArray);
-            
-            if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
-                try {
-                    List<ToolCall> toolCalls = JSON.parseArray(toolCallsArray.toJSONString(), 
-                        com.terra.framework.nova.llm.model.ToolCall.class);
-                    modelResponse.setToolCalls(toolCalls);
-                    log.debug("成功解析工具调用: {}", toolCalls);
-                } catch (Exception e) {
-                    log.error("解析工具调用失败: {}", e.getMessage(), e);
+            // 2. message.tool_calls字段 (OpenAI等)
+            else if (choice.containsKey("message") && choice.getJSONObject("message").containsKey("tool_calls")) {
+                JSONArray toolCallsArray = choice.getJSONObject("message").getJSONArray("tool_calls");
+                if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
+                    toolCalls = JSON.parseArray(toolCallsArray.toJSONString(), ToolCall.class);
+                    log.debug("{}从message.tool_calls字段提取工具调用: {}", getVendorName(), toolCalls);
                 }
             }
+            // 3. delta.tool_calls字段 (流式响应)
+            else if (choice.containsKey("delta") && choice.getJSONObject("delta").containsKey("tool_calls")) {
+                JSONArray toolCallsArray = choice.getJSONObject("delta").getJSONArray("tool_calls");
+                if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
+                    toolCalls = JSON.parseArray(toolCallsArray.toJSONString(), ToolCall.class);
+                    log.debug("{}从delta.tool_calls字段提取工具调用: {}", getVendorName(), toolCalls);
+                }
+            }
+
+            // 如果提取到工具调用，设置到响应中
+            if (toolCalls != null && !toolCalls.isEmpty()) {
+                modelResponse.setToolCalls(toolCalls);
+            }
+        } catch (Exception e) {
+            log.error("{}解析工具调用时发生错误: {}", getVendorName(), e.getMessage(), e);
         }
     }
 
@@ -330,20 +384,13 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
      * @return 供应商特定的角色值
      */
     protected String mapRole(MessageRole role) {
-        switch (role) {
-            case SYSTEM:
-                return "system";
-            case USER:
-                return "user";
-            case ASSISTANT:
-                return "assistant";
-            case FUNCTION:
-                return "function";
-            case TOOL:
-                return "tool";
-            default:
-                return "user";
-        }
+        return switch (role) {
+            case SYSTEM -> "system";
+            case ASSISTANT -> "assistant";
+            case FUNCTION -> "function";
+            case TOOL -> "tool";
+            default -> "user";
+        };
     }
 
     /**
@@ -371,7 +418,7 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
     /**
      * 自定义请求对象，供子类重写
      *
-     * @param vendorRequest 供应商请求对象
+     * @param vendorRequest   供应商请求对象
      * @param originalRequest 原始请求
      */
     protected void customizeRequest(JSONObject vendorRequest, ModelRequest originalRequest) {
@@ -381,7 +428,7 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
     /**
      * 自定义消息对象，供子类重写
      *
-     * @param vendorMessage 供应商消息对象
+     * @param vendorMessage   供应商消息对象
      * @param originalMessage 原始消息
      */
     protected void customizeMessage(JSONObject vendorMessage, Message originalMessage) {
@@ -389,7 +436,7 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
         if (originalMessage.getName() != null) {
             vendorMessage.put("name", originalMessage.getName());
         }
-        
+
         if (originalMessage.getToolCallId() != null) {
             vendorMessage.put("tool_call_id", originalMessage.getToolCallId());
             log.debug("设置工具调用ID: {}", originalMessage.getToolCallId());
@@ -400,9 +447,9 @@ public abstract class AbstractVendorAdapter extends AbstractModelAdapter {
      * 自定义响应对象，供子类重写
      *
      * @param modelResponse 模型响应对象
-     * @param jsonResponse JSON响应
+     * @param jsonResponse  JSON响应
      */
     protected void customizeResponse(ModelResponse modelResponse, JSONObject jsonResponse) {
         // 默认不做额外处理
     }
-} 
+}

@@ -80,22 +80,15 @@ public class ClaudeAdapter extends AbstractVendorAdapter {
 
     @Override
     protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
-        // Claude的响应格式可能有所不同
-        if (choice.containsKey("content")) {
-            modelResponse.setContent(choice.getString("content"));
-        } else if (choice.containsKey("delta") && choice.getJSONObject("delta").containsKey("text")) {
-            // 处理流式响应
-            modelResponse.setContent(choice.getJSONObject("delta").getString("text"));
-        }
-        
-        // 处理工具调用响应
-        if (choice.containsKey("message") && choice.getJSONObject("message").containsKey("tool_calls")) {
-            JSONArray toolCallsArray = choice.getJSONObject("message").getJSONArray("tool_calls");
-            if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
-                modelResponse.setToolCalls(JSON.parseArray(toolCallsArray.toJSONString(), 
-                    com.terra.framework.nova.llm.model.ToolCall.class));
-                log.debug("解析Claude工具调用响应: {}", toolCallsArray);
-            }
+        // 使用父类的方法提取通用内容
+        super.extractTextContent(choice, modelResponse);
+        super.extractToolCalls(choice, modelResponse);
+
+        // Claude特有的处理逻辑（如果有的话）
+        if (modelResponse.getContent() == null && choice.containsKey("delta") && 
+            choice.getJSONObject("delta").containsKey("stop_reason")) {
+            // 某些Claude响应可能没有内容，但有停止原因
+            log.debug("Claude响应包含停止原因但无内容: {}", choice.getJSONObject("delta").getString("stop_reason"));
         }
     }
 

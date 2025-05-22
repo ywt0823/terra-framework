@@ -88,21 +88,12 @@ public class CozeAdapter extends AbstractVendorAdapter {
     
     @Override
     protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
-        super.extractContent(choice, modelResponse);
+        // 使用父类方法提取基本内容
+        super.extractTextContent(choice, modelResponse);
+        super.extractToolCalls(choice, modelResponse);
         
-        // 特殊处理Coze的工具调用响应
-        if (choice.containsKey("message") && choice.getJSONObject("message").containsKey("tool_calls")) {
-            JSONArray toolCallsArray = choice.getJSONObject("message").getJSONArray("tool_calls");
-            if (toolCallsArray != null && !toolCallsArray.isEmpty()) {
-                try {
-                    List<ToolCall> toolCalls = JSON.parseArray(toolCallsArray.toJSONString(), ToolCall.class);
-                    modelResponse.setToolCalls(toolCalls);
-                    log.debug("解析Coze工具调用响应: {}", toolCalls);
-                } catch (Exception e) {
-                    log.error("解析Coze工具调用失败: {}", e.getMessage(), e);
-                }
-            }
-        }
+        // Coze特有的处理逻辑（如果有的话）
+        // 目前Coze的格式基本与父类兼容，不需要特殊处理
     }
     
     @Override

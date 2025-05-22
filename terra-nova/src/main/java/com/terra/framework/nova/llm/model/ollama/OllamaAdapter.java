@@ -263,8 +263,24 @@ public class OllamaAdapter extends AbstractVendorAdapter {
 
     @Override
     protected void extractContent(JSONObject choice, ModelResponse modelResponse) {
-        // 首先使用标准方法提取内容
-        super.extractContent(choice, modelResponse);
+        // 首先使用父类方法提取基本内容
+        super.extractTextContent(choice, modelResponse);
+        
+        // Ollama使用不同的字段提取内容
+        if (modelResponse.getContent() == null) {
+            if (choice.containsKey("response")) {
+                // generate接口的响应
+                modelResponse.setContent(choice.getString("response"));
+                log.debug("{}从response字段提取内容: {}", getVendorName(), choice.getString("response"));
+            } else if (choice.containsKey("message")) {
+                // chat接口的响应
+                JSONObject message = choice.getJSONObject("message");
+                if (message.containsKey("content")) {
+                    modelResponse.setContent(message.getString("content"));
+                    log.debug("{}从message.content字段提取内容: {}", getVendorName(), message.getString("content"));
+                }
+            }
+        }
         
         // 尝试从内容中解析工具调用
         String content = modelResponse.getContent();
@@ -328,29 +344,19 @@ public class OllamaAdapter extends AbstractVendorAdapter {
                                 String cleanContent = content.substring(0, jsonStart).trim();
                                 modelResponse.setContent(cleanContent);
                                 
-                                log.debug("从Ollama响应中提取出工具调用: {}", toolCalls);
+                                log.debug("{}从响应内容中提取出工具调用: {}", getVendorName(), toolCalls);
                             }
                         }
                     }
                 } catch (Exception e) {
-                    log.error("解析Ollama工具调用JSON失败: {}", e.getMessage());
+                    log.error("{}解析工具调用JSON失败: {}", getVendorName(), e.getMessage());
                 }
             }
         }
         
-        // Ollama使用不同的字段提取普通内容
-        if (modelResponse.getContent() == null) {
-            if (choice.containsKey("response")) {
-                // generate接口的响应
-                modelResponse.setContent(choice.getString("response"));
-            } else if (choice.containsKey("message")) {
-                // chat接口的响应
-                JSONObject message = choice.getJSONObject("message");
-                modelResponse.setContent(message.getString("content"));
-            } else if (choice.containsKey("content")) {
-                // 流式响应中的内容
-                modelResponse.setContent(choice.getString("content"));
-            }
+        // 尝试使用父类方法提取标准格式的工具调用
+        if (modelResponse.getToolCalls() == null || modelResponse.getToolCalls().isEmpty()) {
+            super.extractToolCalls(choice, modelResponse);
         }
     }
 
