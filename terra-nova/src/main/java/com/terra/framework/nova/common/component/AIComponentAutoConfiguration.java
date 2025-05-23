@@ -53,8 +53,8 @@ public class AIComponentAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnBean({ToolRegistry.class, FunctionRegistry.class})
     public AIComponentManager aiComponentManager(
-        ToolRegistry toolRegistry,
-        FunctionRegistry functionRegistry) {
+            ToolRegistry toolRegistry,
+            FunctionRegistry functionRegistry) {
         log.info("Creating AIComponentManager");
         return new AIComponentManager(toolRegistry, functionRegistry);
     }
@@ -83,14 +83,14 @@ public class AIComponentAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "terra.nova.component", name = "auto-register", havingValue = "true", matchIfMissing = true)
     public AIComponentScanner aiComponentScanner(
-        AIComponentManager componentManager,
-        AIComponentAdapter componentAdapter,
-        AIComponentProperties properties) {
+            AIComponentManager componentManager,
+            AIComponentAdapter componentAdapter,
+            AIComponentProperties properties) {
         log.info("Creating AIComponentScanner");
         return new AIComponentScanner(
-            componentManager,
-            componentAdapter,
-            properties.getBasePackages()
+                componentManager,
+                componentAdapter,
+                properties.getBasePackages()
         );
     }
 
@@ -125,11 +125,11 @@ public class AIComponentAutoConfiguration {
          * @return 计算结果
          */
         @AIComponent(
-            name = "calculate",
-            description = "计算数学表达式，支持基础运算符：+, -, *, /, % 和括号"
+                name = "calculate",
+                description = "计算数学表达式，支持基础运算符：+, -, *, /, % 和括号"
         )
         public double calculate(
-            @AIParameter(description = "数学表达式，例如 2 * (3 + 4)") String expression
+                @AIParameter(description = "数学表达式，例如 2 * (3 + 4)") String expression
         ) {
             log.info("Calculating expression: {}", expression);
             try {
@@ -160,15 +160,15 @@ public class AIComponentAutoConfiguration {
          * @return 格式化后的日期时间
          */
         @AIComponent(
-            name = "get_current_datetime",
-            description = "获取当前的日期和时间，可以指定格式"
+                name = "get_current_datetime",
+                description = "获取当前的日期和时间，可以指定格式"
         )
         public String getCurrentDateTime(
-            @AIParameter(
-                description = "日期时间格式，例如 yyyy-MM-dd HH:mm:ss",
-                required = false,
-                defaultValue = "yyyy-MM-dd HH:mm:ss"
-            ) String format
+                @AIParameter(
+                        description = "日期时间格式，例如 yyyy-MM-dd HH:mm:ss",
+                        required = false,
+                        defaultValue = "yyyy-MM-dd HH:mm:ss"
+                ) String format
         ) {
             log.info("Getting current date time with format: {}", format);
             try {
@@ -188,12 +188,12 @@ public class AIComponentAutoConfiguration {
          * @return 天数差
          */
         @AIComponent(
-            name = "days_between",
-            description = "计算两个日期之间的天数差"
+                name = "days_between",
+                description = "计算两个日期之间的天数差"
         )
         public long daysBetween(
-            @AIParameter(description = "开始日期，格式为 yyyy-MM-dd") String startDate,
-            @AIParameter(description = "结束日期，格式为 yyyy-MM-dd") String endDate
+                @AIParameter(description = "开始日期，格式为 yyyy-MM-dd") String startDate,
+                @AIParameter(description = "结束日期，格式为 yyyy-MM-dd") String endDate
         ) {
             log.info("Calculating days between: {} and {}", startDate, endDate);
             try {
@@ -215,13 +215,13 @@ public class AIComponentAutoConfiguration {
          * @return 分析结果
          */
         @AIComponent(
-            name = "analyze_keywords",
-            description = "分析文本中指定关键词的出现频率",
-            types = {ComponentType.FUNCTION} // 仅作为函数使用
+                name = "analyze_keywords",
+                description = "分析文本中指定关键词的出现频率",
+                types = {ComponentType.FUNCTION} // 仅作为函数使用
         )
         public String analyzeKeywords(
-            @AIParameter(description = "需要分析的文本内容") String text,
-            @AIParameter(description = "要分析的关键词列表，用逗号分隔") String keywords
+                @AIParameter(description = "需要分析的文本内容") String text,
+                @AIParameter(description = "要分析的关键词列表，用逗号分隔") String keywords
         ) {
             log.info("Analyzing keywords in text of length: {}", text.length());
             StringBuilder result = new StringBuilder();
@@ -252,12 +252,12 @@ public class AIComponentAutoConfiguration {
          * @return 文件内容
          */
         @AIComponent(
-            name = "read_file_content",
-            description = "读取指定文件的内容",
-            types = {ComponentType.TOOL} // 仅作为工具使用
+                name = "read_file_content",
+                description = "读取指定文件的内容",
+                types = {ComponentType.TOOL} // 仅作为工具使用
         )
         public String readFileContent(
-            @AIParameter(description = "文件的路径") String filePath
+                @AIParameter(description = "文件的路径") String filePath
         ) {
             log.info("Reading file content: {}", filePath);
             try {
@@ -276,11 +276,11 @@ public class AIComponentAutoConfiguration {
          * @return 文件列表
          */
         @AIComponent(
-            name = "list_directory",
-            description = "列出指定目录中的文件和子目录"
+                name = "list_directory",
+                description = "列出指定目录中的文件和子目录"
         )
         public List<String> listDirectory(
-            @AIParameter(description = "目录路径") String directoryPath
+                @AIParameter(description = "目录路径") String directoryPath
         ) {
             log.info("Listing directory: {}", directoryPath);
             List<String> result = new ArrayList<>();
@@ -311,12 +311,12 @@ public class AIComponentAutoConfiguration {
          * @return 随机数
          */
         @AIComponent(
-            name = "random_number",
-            description = "生成指定范围内的随机整数"
+                name = "random_number",
+                description = "生成指定范围内的随机整数"
         )
         public int randomNumber(
-            @AIParameter(description = "随机数最小值") int min,
-            @AIParameter(description = "随机数最大值") int max
+                @AIParameter(description = "随机数最小值") int min,
+                @AIParameter(description = "随机数最大值") int max
         ) {
             log.info("Generating random number between {} and {}", min, max);
             if (min >= max) {
