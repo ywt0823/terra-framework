@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Terra RAG 服务接口
- * 
+ *
  * <p>基于 Spring AI 的检索增强生成服务，提供：
  * <ul>
  *   <li>文档存储和检索</li>
@@ -16,7 +16,7 @@ import java.util.Map;
  *   <li>上下文生成</li>
  *   <li>RAG 查询处理</li>
  * </ul>
- * 
+ *
  * @author terra-nova
  * @since 0.0.1
  */
@@ -24,29 +24,29 @@ public interface TerraRAGService {
 
     /**
      * 添加文档到向量存储
-     * 
+     *
      * @param documents 文档列表
      */
     void addDocuments(List<Document> documents);
 
     /**
      * 添加单个文档到向量存储
-     * 
+     *
      * @param document 文档
      */
     void addDocument(Document document);
 
     /**
      * 从文本创建并添加文档
-     * 
-     * @param text 文本内容
+     *
+     * @param text     文本内容
      * @param metadata 元数据
      */
     void addTextDocument(String text, Map<String, Object> metadata);
 
     /**
      * 删除文档
-     * 
+     *
      * @param documentIds 文档ID列表
      */
     void deleteDocuments(List<String> documentIds);
@@ -58,8 +58,8 @@ public interface TerraRAGService {
 
     /**
      * 搜索相似文档
-     * 
-     * @param query 查询文本
+     *
+     * @param query   查询文本
      * @param options 查询选项
      * @return 相似文档列表
      */
@@ -67,7 +67,7 @@ public interface TerraRAGService {
 
     /**
      * 搜索相似文档（使用默认选项）
-     * 
+     *
      * @param query 查询文本
      * @return 相似文档列表
      */
@@ -75,8 +75,8 @@ public interface TerraRAGService {
 
     /**
      * RAG 查询 - 检索相关文档并生成回答
-     * 
-     * @param query 用户查询
+     *
+     * @param query   用户查询
      * @param options 查询选项
      * @return AI 生成的回答
      */
@@ -84,7 +84,7 @@ public interface TerraRAGService {
 
     /**
      * RAG 查询（使用默认选项）
-     * 
+     *
      * @param query 用户查询
      * @return AI 生成的回答
      */
@@ -92,8 +92,8 @@ public interface TerraRAGService {
 
     /**
      * 生成上下文 - 基于查询检索相关文档并构建上下文
-     * 
-     * @param query 查询文本
+     *
+     * @param query   查询文本
      * @param options 查询选项
      * @return 构建的上下文
      */
@@ -101,7 +101,7 @@ public interface TerraRAGService {
 
     /**
      * 获取文档统计信息
-     * 
+     *
      * @return 统计信息
      */
     DocumentStats getDocumentStats();
@@ -203,20 +203,19 @@ public interface TerraRAGService {
 
         /**
          * 转换为 Spring AI SearchRequest
-         * 
+         *
          * @return SearchRequest
          */
         public SearchRequest toSearchRequest() {
-            SearchRequest.Builder builder = SearchRequest.builder()
-                .topK(maxResults)
-                .similarityThreshold(similarityThreshold);
+            SearchRequest builder = SearchRequest
+                .defaults().withTopK(maxResults).withSimilarityThreshold(similarityThreshold);
 
             if (filterExpression != null) {
                 // 根据Spring AI的实际API设置过滤表达式
                 // builder.filterExpression(filterExpression);
             }
 
-            return builder.build();
+            return builder;
         }
     }
 
@@ -262,4 +261,4 @@ public interface TerraRAGService {
             this.additionalStats = additionalStats;
         }
     }
-} 
+}

@@ -9,12 +9,14 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Terra RAG 服务默认实现
- * 
+ *
  * <p>基于 Spring AI 的检索增强生成服务实现，提供：
  * <ul>
  *   <li>文档存储和检索</li>
@@ -22,7 +24,7 @@ import java.util.stream.Collectors;
  *   <li>上下文生成</li>
  *   <li>RAG 查询处理</li>
  * </ul>
- * 
+ *
  * @author terra-nova
  * @since 0.0.1
  */
@@ -34,14 +36,14 @@ public class DefaultTerraRAGService implements TerraRAGService {
     private final VectorStore vectorStore;
     private final TerraNovaProperties properties;
 
-    public DefaultTerraRAGService(TerraChatClient chatClient, 
+    public DefaultTerraRAGService(TerraChatClient chatClient,
                                   VectorStore vectorStore,
                                   TerraNovaProperties properties) {
         this.chatClient = chatClient;
         this.vectorStore = vectorStore;
         this.properties = properties;
-        logger.info("DefaultTerraRAGService initialized with vector store: {}", 
-                   vectorStore.getClass().getSimpleName());
+        logger.info("DefaultTerraRAGService initialized with vector store: {}",
+            vectorStore.getClass().getSimpleName());
     }
 
     @Override
@@ -113,8 +115,8 @@ public class DefaultTerraRAGService implements TerraRAGService {
                 return Collections.emptyList();
             }
 
-            List<Document> results = vectorStore.similaritySearch(query, options.toSearchRequest());
-            
+            List<Document> results = vectorStore.similaritySearch(options.toSearchRequest());
+
             logger.debug("Found {} similar documents for query: {}", results.size(), query);
             return results;
         } catch (Exception e) {
@@ -137,7 +139,7 @@ public class DefaultTerraRAGService implements TerraRAGService {
 
             // 1. 检索相关文档
             List<Document> relevantDocuments = searchSimilarDocuments(query, options);
-            
+
             if (relevantDocuments.isEmpty()) {
                 logger.warn("No relevant documents found for query: {}", query);
                 return "抱歉，我没有找到相关的信息来回答您的问题。";
@@ -157,8 +159,8 @@ public class DefaultTerraRAGService implements TerraRAGService {
                 .call()
                 .content();
 
-            logger.debug("RAG query completed successfully. Query: {}, Response length: {}", 
-                        query, response != null ? response.length() : 0);
+            logger.debug("RAG query completed successfully. Query: {}, Response length: {}",
+                query, response != null ? response.length() : 0);
 
             return response;
 
@@ -182,7 +184,7 @@ public class DefaultTerraRAGService implements TerraRAGService {
     @Override
     public DocumentStats getDocumentStats() {
         DocumentStats stats = new DocumentStats();
-        
+
         try {
             // Spring AI VectorStore 可能没有直接的统计方法
             // 这里需要根据具体实现来获取统计信息
@@ -190,19 +192,19 @@ public class DefaultTerraRAGService implements TerraRAGService {
             stats.setTotalSize(0);
             stats.setDocumentsByType(new HashMap<>());
             stats.setAdditionalStats(new HashMap<>());
-            
+
             logger.debug("Retrieved document stats: {} documents", stats.getTotalDocuments());
         } catch (Exception e) {
             logger.error("Error getting document stats", e);
             // 返回空的统计信息而不是抛出异常
         }
-        
+
         return stats;
     }
 
     /**
      * 构建上下文字符串
-     * 
+     *
      * @param documents 相关文档列表
      * @return 构建的上下文
      */
@@ -212,7 +214,7 @@ public class DefaultTerraRAGService implements TerraRAGService {
         }
 
         StringBuilder contextBuilder = new StringBuilder();
-        
+
         for (int i = 0; i < documents.size(); i++) {
             Document doc = documents.get(i);
             contextBuilder.append("文档 ").append(i + 1).append(":\n");
@@ -224,7 +226,7 @@ public class DefaultTerraRAGService implements TerraRAGService {
 
     /**
      * 构建系统提示
-     * 
+     *
      * @param customSystemPrompt 自定义系统提示
      * @return 系统提示
      */
@@ -235,7 +237,7 @@ public class DefaultTerraRAGService implements TerraRAGService {
 
         return """
             你是一个专业的AI助手，专门根据提供的上下文信息来回答用户的问题。
-            
+
             请遵循以下规则：
             1. 仅基于提供的上下文信息来回答问题
             2. 如果上下文中没有相关信息，请明确说明
@@ -247,21 +249,21 @@ public class DefaultTerraRAGService implements TerraRAGService {
 
     /**
      * 构建用户提示
-     * 
-     * @param query 用户查询
+     *
+     * @param query   用户查询
      * @param context 上下文
      * @return 用户提示
      */
     private String buildUserPrompt(String query, String context) {
         return String.format("""
             基于以下上下文信息，请回答用户的问题：
-            
+
             上下文信息：
             %s
-            
+
             用户问题：%s
-            
+
             请根据上下文信息提供准确、有用的回答。
             """, context, query);
     }
-} 
+}
