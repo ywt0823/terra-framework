@@ -1,0 +1,298 @@
+# Terra-Nova 示例配置文件
+# 复制此文件为 application.yml 并根据需要修改配置
+#
+# 注意：当配置了 terra.nova.models.providers 后，会自动映射到 spring.ai 配置
+# 例如：terra.nova.models.providers.openai.api-key 会自动映射到 spring.ai.openai.api-key
+# 这样你就不需要同时配置两套配置了！
+
+terra:
+  nova:
+    # 启用 Terra-Nova
+    enabled: true
+
+    # Spring AI 集成配置
+    spring-ai:
+      enabled: true
+      auto-register-models: true
+
+    # 模型配置
+    models:
+      default-provider: openai
+      providers:
+        # OpenAI 配置
+        openai:
+          api-key: ${OPENAI_API_KEY:your-openai-api-key}
+          base-url: https://api.openai.com/v1
+          models:
+            - name: gpt-4o
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+            - name: gpt-3.5-turbo
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+            - name: text-embedding-3-small
+              type: EMBEDDING
+              max-tokens: 8191
+
+        # Anthropic 配置
+        anthropic:
+          api-key: ${ANTHROPIC_API_KEY:your-anthropic-api-key}
+          models:
+            - name: claude-3-5-sonnet-20241022
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+            - name: claude-3-haiku-20240307
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+
+        # Ollama 本地模型配置
+        ollama:
+          base-url: http://localhost:11434
+          models:
+            - name: llama2
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+            - name: mistral
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+
+        # Google Gemini 配置
+        gemini:
+          api-key: ${GEMINI_API_KEY:your-gemini-api-key}
+          models:
+            - name: gemini-pro
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+
+        # DeepSeek 配置
+        deepseek:
+          api-key: ${DEEPSEEK_API_KEY:your-deepseek-api-key}
+          base-url: https://api.deepseek.com/v1
+          models:
+            - name: deepseek-chat
+              type: CHAT
+              max-tokens: 4096
+              temperature: 0.7
+
+    # 增强功能配置
+    enhancement:
+      # 智能缓存配置
+      cache:
+        enabled: true
+        ttl: 3600s  # 1小时
+        similarity-threshold: 0.95  # 语义相似度阈值
+        max-size: 1000
+        type: semantic  # semantic, traditional, hybrid
+
+      # 重试机制配置
+      retry:
+        enabled: true
+        max-attempts: 3
+        backoff:
+          initial-interval: 1000ms
+          multiplier: 2.0
+          max-interval: 10000ms
+        retryable-exceptions:
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+
+      # 监控配置
+      monitoring:
+        enabled: true
+        metrics:
+          enabled: true
+          export:
+            prometheus:
+              enabled: true
+              step: 60s
+        tracing:
+          enabled: true
+          sampling-probability: 0.1
+        logging:
+          level: INFO
+          include-request-details: true
+          include-response-details: false  # 避免记录敏感信息
+
+    # RAG 配置
+    rag:
+      enabled: true
+      vector-store:
+        type: redis  # redis, postgresql, chroma, weaviate
+        similarity-threshold: 0.8
+        max-results: 10
+      document:
+        chunk-size: 1000
+        chunk-overlap: 200
+        metadata-extraction: true
+        supported-formats:
+          - pdf
+          - txt
+          - md
+          - docx
+
+    # Agent 配置
+    agent:
+      enabled: true
+      default-type: react  # react, plan-execute, reflexion
+      max-iterations: 10
+      timeout: 30s
+      tools:
+        auto-discovery: true
+        packages:
+          - "com.terra.framework.nova.tools"
+          - "com.example.custom.tools"
+        builtin:
+          calculator: true
+          datetime: true
+          web-search: false
+
+    # 向量存储配置
+    vector-stores:
+      redis:
+        host: localhost
+        port: 6379
+        password: ${REDIS_PASSWORD:}
+        database: 0
+        index-name: terra-vectors
+        dimension: 1536
+        distance-metric: COSINE
+
+      postgresql:
+        url: jdbc:postgresql://localhost:5432/terra
+        username: ${DB_USERNAME:postgres}
+        password: ${DB_PASSWORD:password}
+        table-name: vector_store
+        dimension: 1536
+        distance-metric: COSINE
+
+      chroma:
+        host: localhost
+        port: 8000
+        collection-name: terra-collection
+
+      weaviate:
+        host: localhost
+        port: 8080
+        scheme: http
+        class-name: TerraDocument
+
+    # 可观测性配置
+    observability:
+      metrics:
+        enabled: true
+        tags:
+          application: terra-nova
+          environment: ${ENVIRONMENT:dev}
+          version: ${APPLICATION_VERSION:0.0.1}
+        custom-metrics:
+          - name: terra.ai.requests.total
+            description: Total AI requests
+            type: counter
+          - name: terra.ai.requests.duration
+            description: AI request duration
+            type: timer
+
+      tracing:
+        enabled: true
+        service-name: terra-nova
+        sampling-rate: 0.1
+        exporters:
+          jaeger:
+            enabled: false
+            endpoint: http://localhost:14268/api/traces
+          zipkin:
+            enabled: false
+            endpoint: http://localhost:9411/api/v2/spans
+
+      logging:
+        level: INFO
+        pattern: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+        appenders:
+          console:
+            enabled: true
+          file:
+            enabled: false
+            path: logs/terra-nova.log
+
+    # 安全配置
+    security:
+      enabled: true
+      api-key-encryption: true
+      content-filter:
+        enabled: true
+        blocked-patterns:
+          - "password"
+          - "secret"
+          - "token"
+      rate-limiting:
+        enabled: true
+        requests-per-minute: 100
+        burst-capacity: 20
+
+# Spring Boot 配置
+server:
+  port: 8080
+
+# Spring 配置
+spring:
+  # 数据源配置
+  datasource:
+    url: jdbc:postgresql://localhost:5432/terra
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  # JPA 配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# 日志配置
+logging:
+  level:
+    com.terra.framework.nova: DEBUG
+    org.springframework.ai: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
