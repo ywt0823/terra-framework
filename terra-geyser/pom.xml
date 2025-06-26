@@ -25,13 +25,15 @@
             <artifactId>terra-bedrock</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-        
-        <!-- 添加Caffeine缓存依赖 -->
+
         <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
-            <version>3.1.8</version>
+            <groupId>com.terra.framework</groupId>
+            <artifactId>terra-strata</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
+
+
     </dependencies>
 
 </project>

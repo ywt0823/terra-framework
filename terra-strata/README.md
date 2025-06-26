@@ -1,6 +1,17 @@
-# Terra Strata
+# terra-strata
 
-Terra Strata 是 Terra Framework 的**数据访问层模块**，专注于提供统一、高效的数据访问能力。它封装了对关系型数据库、NoSQL 数据库和其他数据源的访问，简化数据持久化和查询操作。
+The `terra-strata` module is a dedicated data access layer. It provides configurations, helpers, and enhancements for database operations, primarily designed to work with MyBatis-Plus.
+
+## Features
+
+-   **Database Configuration**: Auto-configures data sources (e.g., Druid).
+-   **SQL Monitoring**: Intercepts SQL queries to collect metrics like execution time and frequency.
+-   **Data-Aware Cache Invalidation**: Contains specific logic to automatically invalidate caches when it detects that underlying table data has been modified (via insert, update, delete operations in mappers). This feature is automatically enabled when `terra-geyser` is also on the classpath.
+-   **Hotspot Caching**: Includes an aspect (`SqlAutoCacheAspect`) that monitors SQL execution and can automatically apply caching to "hotspot" queries that are executed frequently.
+
+## Architecture
+
+This module is designed to be independent of any specific caching implementation. All caching logic is provided by the `terra-geyser` module. `terra-strata` provides the *data-aware enhancement* to the caching layer, enabling intelligent, automatic cache management based on data access patterns.
 
 ## 核心功能
 

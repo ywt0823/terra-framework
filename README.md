@@ -1,6 +1,26 @@
 # Terra Framework
 
-Terra Framework 是一个现代化的 Java 企业级应用开发框架，专注于大语言模型(LLM)的集成与应用，提供了一套完整的解决方案。
+Terra Framework is a collection of modules designed to accelerate the development of Spring Boot applications.
+
+## Modules
+
+-   **terra-bedrock**: Core functionalities, base application annotations, and foundational configurations.
+-   **terra-crust**: Web layer enhancements, including request tracing, logging filters, and unified response handling.
+-   **terra-sediment**: Common utilities, exceptions, and data structures.
+-   **terra-geyser**: Provides a powerful, multi-level (local + Redis) caching framework. It can be used as a standalone caching solution. When used with `terra-strata`, it automatically enhances database operations with caching.
+-   **terra-strata**: A dedicated data access layer module, providing helpers and configurations for database operations (e.g., using MyBatis). It is fully independent and does not contain any caching logic itself.
+-   **terra-stream**: Messaging module, currently supporting RabbitMQ.
+-   **terra-nova**: LLM and AI-related functionalities.
+
+## Architecture: Caching Enhancement
+
+The `terra-geyser` and `terra-strata` modules are designed to be decoupled but work together seamlessly.
+
+-   **Standalone `terra-geyser`**: Provides `@AutoCache` annotation and a multi-level caching mechanism.
+-   **Standalone `terra-strata`**: Provides database operation helpers.
+-   **`terra-geyser` + `terra-strata`**: When both modules are on the classpath, `terra-geyser`'s `AutoCacheAspect` automatically provides caching for any method annotated with `@AutoCache`. Furthermore, `terra-strata` provides additional enhancers like `SqlAutoCacheAspect` which can automatically cache frequently accessed SQL queries (hotspot detection) and `CacheInvalidationAspect` which can automatically clear caches when underlying table data changes.
+
+This architecture ensures a clean separation of concerns, where the data access layer is not aware of the caching implementation, and the caching layer can dynamically enhance the data layer if it is present.
 
 ## 核心特性
 

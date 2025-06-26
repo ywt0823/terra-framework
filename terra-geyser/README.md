@@ -1,6 +1,23 @@
-# Terra Geyser
+# terra-geyser
 
-Terra Geyser 是 Terra Framework 的缓存处理模块，专注于提供高性能、灵活且易用的缓存解决方案。它支持多级缓存策略，能够显著提升应用程序的响应速度和吞吐量。
+The `terra-geyser` module provides a powerful and flexible caching framework for the Terra Framework.
+
+## Features
+
+-   **Multi-Level Caching**: Out-of-the-box support for a two-level cache system, using a local in-memory cache (Caffeine) as L1 and a distributed cache (Redis) as L2.
+-   **Extensible Factory Model**: Uses a `CacheFactory` pattern, making it easy to add new cache implementations.
+-   **Annotation-Driven Caching**: Provides an `@AutoCache` annotation that can be placed on any method to automatically enable caching for it.
+-   **Automatic Enhancement**: When used in conjunction with the `terra-strata` module, `terra-geyser` automatically caches database operations, significantly improving performance with minimal configuration.
+
+## Architecture
+
+`terra-geyser` is the core caching module. It contains all the generic components for caching, including:
+-   `CacheFactory` and implementations (e.g., `CaffeineCacheFactory`, `RedisCacheFactory`).
+-   `AutoCacheManager` for managing different cache instances.
+-   `AutoCacheAspect` for applying caching logic via AOP.
+-   Auto-configuration for Redis (`TerraRedisAutoConfiguration`) and the core caching system (`GeyserCacheAutoConfiguration`).
+
+This module is self-contained and can be used independently to provide caching for any part of an application. Its true power is unlocked when combined with other `terra` modules like `terra-strata`.
 
 ## 核心功能
 
