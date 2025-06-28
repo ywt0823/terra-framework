@@ -1,63 +1,88 @@
 package com.terra.framework.crust.trace;
 
-import lombok.Getter;
+import lombok.Data;
+import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 链路追踪上下文持有器，通过ThreadLocal传递跟踪信息
  */
+@Component
+@Data
 public class TraceContextHolder {
 
-    private static final ThreadLocal<TraceContext> CONTEXT_HOLDER = ThreadLocal.withInitial(TraceContext::new);
+    public static final String TRACE_ID_KEY = "X-Trace-Id";
+    public static final String SPAN_ID_KEY = "X-Span-Id";
+    public static final String PARENT_SPAN_ID_KEY = "X-Parent-Span-Id";
 
-    public String getTraceId() {
-        return CONTEXT_HOLDER.get().getTraceId();
+    private final ThreadLocal<String> traceId = new ThreadLocal<>();
+    private final ThreadLocal<String> spanId = new ThreadLocal<>();
+    private final ThreadLocal<String> parentSpanId = new ThreadLocal<>();
+
+    public void setTrace(String traceId, String spanId, String parentSpanId) {
+        setTraceId(traceId);
+        setSpanId(spanId);
+        setParentSpanId(parentSpanId);
     }
 
     public void setTraceId(String traceId) {
-        CONTEXT_HOLDER.get().setTraceId(traceId);
-    }
-
-    public String getSpanId() {
-        return CONTEXT_HOLDER.get().getSpanId();
+        if (StringUtils.hasText(traceId)) {
+            this.traceId.set(traceId);
+            MDC.put(TRACE_ID_KEY, traceId);
+        }
     }
 
     public void setSpanId(String spanId) {
-        CONTEXT_HOLDER.get().setSpanId(spanId);
+        if (StringUtils.hasText(spanId)) {
+            this.spanId.set(spanId);
+            MDC.put(SPAN_ID_KEY, spanId);
+        }
+    }
+    
+    public void setParentSpanId(String parentSpanId) {
+        if (StringUtils.hasText(parentSpanId)) {
+            this.parentSpanId.set(parentSpanId);
+            MDC.put(PARENT_SPAN_ID_KEY, parentSpanId);
+        }
+    }
+
+    public String getTraceId() {
+        return traceId.get();
+    }
+
+    public String getSpanId() {
+        return spanId.get();
     }
 
     public String getParentSpanId() {
-        return CONTEXT_HOLDER.get().getParentSpanId();
+        return parentSpanId.get();
     }
-
-    public void setParentSpanId(String parentSpanId) {
-        CONTEXT_HOLDER.get().setParentSpanId(parentSpanId);
-    }
-
-    public TraceContext getContext() {
-        return CONTEXT_HOLDER.get();
+    
+    public Map<String, String> getTraceHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        if (StringUtils.hasText(getTraceId())) {
+            headers.put(TRACE_ID_KEY, getTraceId());
+        }
+        if (StringUtils.hasText(getSpanId())) {
+            headers.put(SPAN_ID_KEY, getSpanId());
+        }
+        if (StringUtils.hasText(getParentSpanId())) {
+            headers.put(PARENT_SPAN_ID_KEY, getParentSpanId());
+        }
+        return headers;
     }
 
     public void clear() {
-        CONTEXT_HOLDER.remove();
-    }
-
-    @Getter
-    public static class TraceContext {
-        private String traceId;
-        private String spanId;
-        private String parentSpanId;
-        private long startTime = System.currentTimeMillis();
-
-        public void setTraceId(String traceId) {
-            this.traceId = traceId;
-        }
-
-        public void setSpanId(String spanId) {
-            this.spanId = spanId;
-        }
-
-        public void setParentSpanId(String parentSpanId) {
-            this.parentSpanId = parentSpanId;
-        }
+        traceId.remove();
+        spanId.remove();
+        parentSpanId.remove();
+        
+        MDC.remove(TRACE_ID_KEY);
+        MDC.remove(SPAN_ID_KEY);
+        MDC.remove(PARENT_SPAN_ID_KEY);
     }
 } 
