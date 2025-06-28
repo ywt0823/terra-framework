@@ -8,126 +8,130 @@ import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.terra.framework.strata.config.redis.lock.IRedissonLock;
 import com.terra.framework.strata.helper.RedisKeyHelper;
+import com.terra.framework.strata.properties.TerraRedisProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
 import org.redisson.api.RBlockingQueue;
 import org.redisson.api.RDelayedQueue;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.StringUtils;
 
 /**
  * @author ywt
  * @description
  * @date 2021年08月09日 15:41
  */
-@EnableConfigurationProperties({RedisProperties.class})
-@ConditionalOnClass(LettuceConnectionFactory.class)
-@ConditionalOnProperty(prefix = "spring.data.redis.lettuce", name = "pool.enabled", havingValue = "true")
 @Slf4j
+@ConditionalOnProperty(prefix = "terra.redis", name = "enabled", havingValue = "true")
+@EnableConfigurationProperties(TerraRedisProperties.class)
 public class TerraRedisAutoConfiguration {
-
-    @Autowired
-    private RedisProperties redisProperties;
-
     @Bean
+    @ConditionalOnMissingBean
     public RedisKeyHelper redisKeyHelper(ApplicationContext applicationContext) {
         return new RedisKeyHelper(applicationContext.getEnvironment(), applicationContext.getApplicationName());
     }
 
-
-    @Bean("terra-redisTemplate")
-    public StringRedisTemplate valhallaRedisTemplate() {
-        StringRedisTemplate redisTemplate = new StringRedisTemplate();
-        LettuceConnectionFactory redisConnectionFactory = getRedisConnectionFactory();
-        redisConnectionFactory.start();
-        redisTemplate.setConnectionFactory(redisConnectionFactory);
-        //Json转换核心对象
+    private static ObjectMapper createObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
-        //设置属性可见,设置JSON自动转化
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        //开启默认类型
         objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
-        //开启时间转换,不开启报错<Cannot construct instance of `java.time.LocalDateTime`>
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        //开启时间转换,注册JAVA时间转换类
         objectMapper.registerModule(new JavaTimeModule());
-        //设置序列化器
-        Jackson2JsonRedisSerializer<String> jackson2JsonRedisSerializer = getJackson2JsonRedisSerializer(objectMapper);
-        //创建redis中key的序列化器
-        StringRedisSerializer stringRedisSerializer = getStringRedisSerializer();
-        //设置redis中String类型的key的序列化器
-        redisTemplate.setKeySerializer(stringRedisSerializer);
-        //设置redis中Hash类型的key的序列化器
-        redisTemplate.setHashKeySerializer(stringRedisSerializer);
-        //设置redis中String类型value的序列化器
-        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
-        //设置Redis中Hash类型的value的序列化器
-        redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
-        //创建对象后,对其属性做设置
-        redisTemplate.afterPropertiesSet();
-        return redisTemplate;
+        return objectMapper;
     }
 
-    @Bean
-    public RedissonClient redissonClient() {
-        Config config = new Config();
-        config.useSingleServer()
-                .setAddress("redis://" + redisProperties.getHost() + ":" + redisProperties.getPort())
-                .setUsername(redisProperties.getUsername())
-                .setPassword(redisProperties.getPassword())
-                .setConnectionPoolSize(redisProperties.getLettuce().getPool().getMaxIdle())
-                .setConnectionMinimumIdleSize(redisProperties.getLettuce().getPool().getMinIdle())
-                .setTimeout(1000);
-        return Redisson.create(config);
+    @Configuration
+    @ConditionalOnClass(LettuceConnectionFactory.class)
+    protected static class SpringDataRedisConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean(RedisConnectionFactory.class)
+        public LettuceConnectionFactory redisConnectionFactory(TerraRedisProperties properties) {
+            log.info("Creating LettuceConnectionFactory with properties: {}", properties);
+            RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+            redisStandaloneConfiguration.setHostName(properties.getHost());
+            redisStandaloneConfiguration.setPort(properties.getPort());
+            redisStandaloneConfiguration.setDatabase(properties.getDatabase());
+            if (StringUtils.hasText(properties.getUsername())) {
+                redisStandaloneConfiguration.setUsername(properties.getUsername());
+            }
+            if (StringUtils.hasText(properties.getPassword())) {
+                redisStandaloneConfiguration.setPassword(RedisPassword.of(properties.getPassword()));
+            }
+            return new LettuceConnectionFactory(redisStandaloneConfiguration);
+        }
+
+        @Bean("terra-redisTemplate")
+        @ConditionalOnMissingBean(name = "redisTemplate")
+        public StringRedisTemplate terraRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+            StringRedisTemplate redisTemplate = new StringRedisTemplate();
+            redisTemplate.setConnectionFactory(redisConnectionFactory);
+
+            ObjectMapper objectMapper = createObjectMapper();
+            Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
+            StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+
+            redisTemplate.setKeySerializer(stringRedisSerializer);
+            redisTemplate.setHashKeySerializer(stringRedisSerializer);
+            redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
+            redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
+            redisTemplate.afterPropertiesSet();
+
+            return redisTemplate;
+        }
     }
 
-    @Bean
-    public RBlockingQueue<String> blockingQueue(RedissonClient redissonClient) {
-        //队列名称可以自己定义
-        return redissonClient.getBlockingQueue("terra-delayedQueue");
-    }
+    @Configuration
+    @ConditionalOnClass(RedissonClient.class)
+    protected static class RedissonConfiguration {
+        @Bean(destroyMethod = "shutdown")
+        @ConditionalOnMissingBean
+        public RedissonClient redissonClient(TerraRedisProperties properties) {
+            Config config = new Config();
+            TerraRedisProperties.RedissonProperties redissonProperties = properties.getRedisson();
+            String address = "redis://" + properties.getHost() + ":" + properties.getPort();
+            config.useSingleServer()
+                    .setAddress(address)
+                    .setUsername(properties.getUsername())
+                    .setPassword(properties.getPassword())
+                    .setDatabase(properties.getDatabase())
+                    .setConnectionPoolSize(redissonProperties.getConnectionPoolSize())
+                    .setConnectionMinimumIdleSize(redissonProperties.getConnectionMinimumIdleSize())
+                    .setTimeout(redissonProperties.getTimeout());
+            return Redisson.create(config);
+        }
 
-    @Bean
-    public RDelayedQueue<String> delayedQueue(RBlockingQueue<String> blockingQueue,
-                                              RedissonClient redissonClient) {
-        return redissonClient.getDelayedQueue(blockingQueue);
-    }
+        @Bean
+        @ConditionalOnMissingBean
+        public RBlockingQueue<String> blockingQueue(RedissonClient redissonClient) {
+            return redissonClient.getBlockingQueue("terra-delayedQueue");
+        }
 
+        @Bean
+        @ConditionalOnMissingBean
+        public RDelayedQueue<String> delayedQueue(RBlockingQueue<String> blockingQueue, RedissonClient redissonClient) {
+            return redissonClient.getDelayedQueue(blockingQueue);
+        }
 
-    @Bean
-    public IRedissonLock redissonLock(RedissonClient redissonClient) {
-        return new IRedissonLock(redissonClient);
-    }
-
-    private LettuceConnectionFactory getRedisConnectionFactory() {
-        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setPort(redisProperties.getPort());
-        redisStandaloneConfiguration.setDatabase(redisProperties.getDatabase());
-        redisStandaloneConfiguration.setHostName(redisProperties.getHost());
-        redisStandaloneConfiguration.setPassword(redisProperties.getPassword());
-        redisStandaloneConfiguration.setUsername(redisProperties.getUsername());
-        return new LettuceConnectionFactory(redisStandaloneConfiguration);
-    }
-
-    private Jackson2JsonRedisSerializer<String> getJackson2JsonRedisSerializer(ObjectMapper objectMapper) {
-        //设置序列化器
-        return new Jackson2JsonRedisSerializer<>(objectMapper, String.class);
-    }
-
-    private StringRedisSerializer getStringRedisSerializer() {
-        //创建redis中key的序列化器
-        return new StringRedisSerializer();
+        @Bean
+        @ConditionalOnMissingBean
+        public IRedissonLock redissonLock(RedissonClient redissonClient) {
+            return new IRedissonLock(redissonClient);
+        }
     }
 }
