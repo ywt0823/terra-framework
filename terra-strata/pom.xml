@@ -49,14 +49,14 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>6.2.8</version>
+            <version>6.1.8</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
-            <version>3.4.7</version>
+            <version>3.2.6</version>
             <optional>true</optional>
         </dependency>
 
