@@ -2,10 +2,10 @@ package com.terra.framework.nova.config;
 
 import com.terra.framework.nova.properties.TerraAiProperties;
 import com.terra.framework.nova.memory.ConversationMemory;
-import com.terra.framework.nova.service.ConversationOperations;
-import com.terra.framework.nova.service.ConversationTemplate;
-import com.terra.framework.nova.service.RagOperations;
-import com.terra.framework.nova.service.RagTemplate;
+import com.terra.framework.nova.template.ConversationOperations;
+import com.terra.framework.nova.template.ConversationTemplate;
+import com.terra.framework.nova.template.RagOperations;
+import com.terra.framework.nova.template.RagTemplate;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;

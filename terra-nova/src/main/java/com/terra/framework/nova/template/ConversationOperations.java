@@ -1,4 +1,4 @@
-package com.terra.framework.nova.service;
+package com.terra.framework.nova.template;
 
 /**
  * Interface defining the operations for handling stateful conversations with an AI model.
@@ -22,4 +22,4 @@ public interface ConversationOperations {
      * @param sessionId The unique identifier for the conversation session to clear.
      */
     void clearHistory(String sessionId);
-} 
+}

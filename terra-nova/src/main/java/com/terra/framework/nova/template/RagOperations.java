@@ -1,4 +1,4 @@
-package com.terra.framework.nova.service;
+package com.terra.framework.nova.template;
 
 import org.springframework.ai.document.Document;
 import java.util.List;
@@ -26,4 +26,4 @@ public interface RagOperations {
      * @return The AI's answer.
      */
     String ask(String query);
-} 
+}

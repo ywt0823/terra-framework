@@ -1,4 +1,4 @@
-package com.terra.framework.nova.service;
+package com.terra.framework.nova.template;
 
 import com.terra.framework.nova.memory.ConversationMemory;
 import lombok.RequiredArgsConstructor;
@@ -52,4 +52,4 @@ public class ConversationTemplate implements ConversationOperations {
         log.info("Clearing conversation history for session [{}].", sessionId);
         conversationMemory.clear(sessionId);
     }
-} 
+}

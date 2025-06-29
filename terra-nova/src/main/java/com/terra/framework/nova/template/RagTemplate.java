@@ -1,4 +1,4 @@
-package com.terra.framework.nova.service;
+package com.terra.framework.nova.template;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,4 +59,4 @@ public class RagTemplate implements RagOperations {
 
         return this.chatModel.call(prompt).getResult().getOutput().getContent();
     }
-} 
+}
