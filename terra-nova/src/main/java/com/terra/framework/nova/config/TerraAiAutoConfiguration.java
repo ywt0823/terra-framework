@@ -1,14 +1,26 @@
 package com.terra.framework.nova.config;
 
 import com.terra.framework.nova.properties.TerraAiProperties;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import com.terra.framework.nova.memory.ConversationMemory;
+import com.terra.framework.nova.service.ConversationOperations;
+import com.terra.framework.nova.service.ConversationTemplate;
+import com.terra.framework.nova.service.RagOperations;
+import com.terra.framework.nova.service.RagTemplate;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 /**
  * @author AI
  */
-@ConditionalOnProperty(prefix = "terra.ai", name = "enabled", havingValue = "true")
+@AutoConfiguration
+@ConditionalOnClass(TerraAiProperties.class)
 @EnableConfigurationProperties(TerraAiProperties.class)
 @Import({
     DeepSeekAutoConfiguration.class,
@@ -17,4 +29,15 @@ import org.springframework.context.annotation.Import;
 })
 public class TerraAiAutoConfiguration {
 
+    @Bean
+    @ConditionalOnMissingBean(RagOperations.class)
+    public RagOperations ragTemplate(EmbeddingModel embeddingModel, ChatModel chatModel, VectorStore vectorStore) {
+        return new RagTemplate(embeddingModel, chatModel, vectorStore);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ConversationOperations.class)
+    public ConversationOperations conversationTemplate(ChatModel chatModel, ConversationMemory conversationMemory) {
+        return new ConversationTemplate(chatModel, conversationMemory);
+    }
 }

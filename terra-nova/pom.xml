@@ -26,6 +26,8 @@
         </dependency>
 
 
+
+
         <dependency>
             <groupId>group.springframework.ai</groupId>
             <artifactId>spring-ai-core</artifactId>
@@ -65,6 +67,14 @@
             <version>1.1.0</version>
             <optional>true</optional>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>3.2.4</version>
+            <scope>test</scope>
+        </dependency>
+
 
     </dependencies>
 
