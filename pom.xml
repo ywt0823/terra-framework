@@ -16,7 +16,6 @@
         <module>terra-strata</module>
         <module>terra-geyser</module>
         <module>terra-nova</module>
-        <module>terra-dependencies</module>
     </modules>
 
     <properties>
