@@ -15,6 +15,9 @@
         <pdfbox.version>2.0.30</pdfbox.version>
         <poi.version>5.2.5</poi.version>
         <tika.version>2.9.1</tika.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
