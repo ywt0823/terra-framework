@@ -20,6 +20,8 @@ public class ValhallaLoggingProperties {
             "/swagger-resources"
     };
 
+    private int maxPayloadLength = 4096;
+
     private String aspectjExpression;
 
     private Boolean enabled = true;

@@ -11,24 +11,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "terra.cache")
 public class CacheProperties {
-    
-    /**
-     * 缓存实现类型
-     */
-    private CacheFactoryType type = CacheFactoryType.GUAVA;
-    
     /**
      * 是否启用监控
      */
     private boolean monitorEnabled = true;
-    
+
     /**
      * 命中率警告阈值(百分比)
      */
     private double hitRateWarningThreshold = 80.0;
-    
+
     /**
      * 监控日志输出间隔(毫秒)
      */
     private long monitorLogInterval = 300000; // 5分钟
-} 
+}

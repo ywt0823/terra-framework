@@ -1,413 +1,76 @@
 {
-  "groups": [
-    {
-      "name": "terra.framework.ai",
-      "type": "com.terra.framework.nova.llm.properties.AIServiceProperties",
-      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
-      "description": "Terra框架AI服务配置"
-    },
-    {
-      "name": "terra.nova.prompt",
-      "type": "com.terra.framework.nova.prompt.properties.PromptProperties",
-      "sourceType": "com.terra.framework.nova.prompt.properties.PromptProperties",
-      "description": "提示词模板配置"
-    },
-    {
-      "name": "terra.nova.prompt.http",
-      "type": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "description": "HTTP提示词模板配置"
-    },
-    {
-      "name": "terra.nova.rag",
-      "type": "com.terra.framework.nova.rag.properties.RAGProperties",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties",
-      "description": "检索增强生成(RAG)配置"
-    },
-    {
-      "name": "terra.nova.rag.embedding",
-      "type": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "嵌入模型配置"
-    }
-  ],
   "properties": [
     {
-      "name": "terra.framework.ai.enabled",
+      "name": "terra.ai.enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
-      "description": "是否启用AI服务",
-      "defaultValue": true
-    },
-    {
-      "name": "terra.framework.ai.default-model-id",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
-      "description": "默认模型ID",
-      "defaultValue": "openai:gpt-3.5-turbo"
-    },
-    {
-      "name": "terra.framework.ai.models",
-      "type": "java.util.Map<java.lang.String, com.terra.framework.nova.llm.config.AIServiceProperties$ModelProperties>",
-      "sourceType": "com.terra.framework.nova.llm.properties.AIServiceProperties",
-      "description": "模型配置映射"
-    },
-    {
-      "name": "terra.nova.prompt.template-path",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.prompt.properties.PromptProperties",
-      "description": "提示词模板路径",
-      "defaultValue": "classpath:/prompts"
-    },
-    {
-      "name": "terra.nova.prompt.template-extension",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.prompt.properties.PromptProperties",
-      "description": "提示词模板文件扩展名",
-      "defaultValue": ".prompt"
-    },
-    {
-      "name": "terra.nova.prompt.http.enabled",
-      "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "description": "是否启用HTTP提示词模板加载器",
+      "description": "Enable or disable the Terra AI module.",
       "defaultValue": false
     },
     {
-      "name": "terra.nova.prompt.http.base-url",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "description": "HTTP提示词模板服务基础URL",
-      "defaultValue": "http://localhost:8080"
-    },
-    {
-      "name": "terra.nova.prompt.http.template-path",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "description": "HTTP提示词模板路径模式，{id}会被替换为模板ID",
-      "defaultValue": "/templates/{id}"
-    },
-    {
-      "name": "terra.nova.prompt.http.cache-ttl-minutes",
-      "type": "java.lang.Long",
-      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "description": "HTTP提示词模板缓存有效期（分钟）",
-      "defaultValue": 5
-    },
-    {
-      "name": "terra.nova.prompt.http.auth-token",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "description": "HTTP提示词模板服务认证令牌"
-    },
-    {
-      "name": "terra.nova.prompt.http.auth-header-name",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.prompt.properties.HttpPromptProperties",
-      "description": "HTTP提示词模板服务认证头名称",
-      "defaultValue": "Authorization"
-    },
-    {
-      "name": "terra.nova.rag.enabled",
+      "name": "terra.ai.deepseek.enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties",
-      "description": "是否启用RAG功能",
-      "defaultValue": true
-    },
-    {
-      "name": "terra.nova.rag.splitting.chunk-size",
-      "type": "java.lang.Integer",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Splitting",
-      "description": "文档分块大小",
-      "defaultValue": 1000
-    },
-    {
-      "name": "terra.nova.rag.splitting.overlap",
-      "type": "java.lang.Integer",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Splitting",
-      "description": "分块重叠大小",
-      "defaultValue": 200
-    },
-    {
-      "name": "terra.nova.rag.splitting.splitter",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Splitting",
-      "description": "分割器类型",
-      "defaultValue": "character"
-    },
-    {
-      "name": "terra.nova.rag.context.template",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
-      "description": "上下文模板格式",
-      "defaultValue": "根据以下上下文回答问题:\n\n{context}\n\n问题: {question}"
-    },
-    {
-      "name": "terra.nova.rag.context.max-tokens",
-      "type": "java.lang.Integer",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
-      "description": "上下文最大Token数",
-      "defaultValue": 3500
-    },
-    {
-      "name": "terra.nova.rag.context.format-documents",
-      "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
-      "description": "是否格式化文档",
-      "defaultValue": true
-    },
-    {
-      "name": "terra.nova.rag.context.document-template",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Context",
-      "description": "文档格式化模板",
-      "defaultValue": "文档[{index}]: {content}\n来源: {source}"
-    },
-    {
-      "name": "terra.nova.rag.retrieval.top-k",
-      "type": "java.lang.Integer",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
-      "description": "检索返回的最大结果数",
-      "defaultValue": 5
-    },
-    {
-      "name": "terra.nova.rag.retrieval.rerank",
-      "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
-      "description": "是否对检索结果进行重排序",
+      "description": "Enable or disable DeepSeek model integration.",
       "defaultValue": false
     },
     {
-      "name": "terra.nova.rag.retrieval.rerank-model",
+      "name": "terra.ai.deepseek.base-url",
       "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
-      "description": "重排序模型ID",
-      "defaultValue": ""
+      "description": "The base URL for the DeepSeek API.",
+      "defaultValue": "https://api.deepseek.com/v1"
     },
     {
-      "name": "terra.nova.rag.retrieval.minimum-score",
-      "type": "java.lang.Double",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$Retrieval",
-      "description": "检索结果最低相似度阈值",
+      "name": "terra.ai.deepseek.api-key",
+      "type": "java.lang.String",
+      "description": "API key for the DeepSeek service."
+    },
+    {
+      "name": "terra.ai.deepseek.chat.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable the DeepSeek chat model.",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.ai.deepseek.chat.options.model",
+      "type": "java.lang.String",
+      "description": "The model name to use for chat completion.",
+      "defaultValue": "deepseek-chat"
+    },
+    {
+      "name": "terra.ai.deepseek.chat.options.temperature",
+      "type": "java.lang.Float",
+      "description": "Controls randomness. Lower values make the model more deterministic.",
       "defaultValue": 0.7
     },
     {
-      "name": "terra.nova.rag.vector-store.type",
+      "name": "terra.ai.deepseek.embedding.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable the DeepSeek embedding model.",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.ai.deepseek.embedding.options.model",
       "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$VectorStore",
-      "description": "向量存储类型",
+      "description": "The model name to use for embeddings.",
+      "defaultValue": "deepseek-text-embedding-v2"
+    },
+    {
+      "name": "terra.ai.vector-store.type",
+      "type": "java.lang.String",
+      "description": "The type of vector store to use. Supported values: 'in-memory', 'redis'.",
       "defaultValue": "in-memory"
     },
     {
-      "name": "terra.nova.rag.vector-store.url",
+      "name": "terra.ai.memory.type",
       "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$VectorStore",
-      "description": "向量存储连接URL",
-      "defaultValue": "localhost:19530"
+      "description": "The type of conversation memory to use. Supported values: 'in-memory'.",
+      "defaultValue": "in-memory"
     },
     {
-      "name": "terra.nova.rag.vector-store.collection-name",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.RAGProperties$VectorStore",
-      "description": "向量存储集合名称",
-      "defaultValue": "documents"
-    },
-    {
-      "name": "terra.nova.rag.embedding.enabled",
-      "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "是否启用嵌入功能",
-      "defaultValue": true
-    },
-    {
-      "name": "terra.nova.rag.embedding.model-id",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "嵌入模型ID",
-      "defaultValue": "text-embedding"
-    },
-    {
-      "name": "terra.nova.rag.embedding.model-type",
-      "type": "java.lang.String",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "嵌入模型类型",
-      "defaultValue": "deepseek"
-    },
-    {
-      "name": "terra.nova.rag.embedding.dimension",
+      "name": "terra.ai.memory.max-history",
       "type": "java.lang.Integer",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "嵌入向量维度",
-      "defaultValue": 1024
-    },
-    {
-      "name": "terra.nova.rag.embedding.batch-size",
-      "type": "java.lang.Integer",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "嵌入批处理大小",
-      "defaultValue": 20
-    },
-    {
-      "name": "terra.nova.rag.embedding.cache-enabled",
-      "type": "java.lang.Boolean",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "是否启用嵌入缓存",
-      "defaultValue": true
-    },
-    {
-      "name": "terra.nova.rag.embedding.cache-size",
-      "type": "java.lang.Integer",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "嵌入缓存大小",
-      "defaultValue": 1000
-    },
-    {
-      "name": "terra.nova.rag.embedding.cache-ttl-seconds",
-      "type": "java.lang.Long",
-      "sourceType": "com.terra.framework.nova.rag.properties.EmbeddingProperties",
-      "description": "嵌入缓存过期时间（秒）",
-      "defaultValue": 3600
-    },
-    {
-      "name": "terra.nova.rag.rerank",
-      "type": "com.terra.framework.nova.rag.properties.RerankProperties",
-      "description": "RAG重排序配置"
-    },
-    {
-      "name": "terra.nova.rag.rerank.enabled",
-      "type": "java.lang.Boolean",
-      "description": "是否启用重排序",
-      "defaultValue": false
-    },
-    {
-      "name": "terra.nova.rag.rerank.type",
-      "type": "java.lang.String",
-      "description": "重排序器类型：cross-encoder, llm",
-      "defaultValue": "cross-encoder"
-    },
-    {
-      "name": "terra.nova.rag.rerank.model-id",
-      "type": "java.lang.String",
-      "description": "重排序使用的模型ID",
-      "defaultValue": ""
-    },
-    {
-      "name": "terra.nova.rag.rerank.threshold",
-      "type": "java.lang.Double",
-      "description": "重排序最低分数阈值",
-      "defaultValue": 0.0
-    },
-    {
-      "name": "terra.nova.rag.rerank.max-documents",
-      "type": "java.lang.Integer",
-      "description": "最大重排序文档数量",
-      "defaultValue": 50
+      "description": "The maximum number of recent conversation exchanges to keep.",
+      "defaultValue": 10
     }
   ],
-  "hints": [
-    {
-      "name": "terra.framework.ai.models.keys",
-      "values": [
-        {
-          "value": "openai:gpt-3.5-turbo",
-          "description": "OpenAI GPT-3.5 Turbo模型"
-        },
-        {
-          "value": "openai:gpt-4",
-          "description": "OpenAI GPT-4模型"
-        },
-        {
-          "value": "claude:claude-3-opus",
-          "description": "Claude 3 Opus模型"
-        },
-        {
-          "value": "claude:claude-3-sonnet",
-          "description": "Claude 3 Sonnet模型"
-        },
-        {
-          "value": "wenxin:ernie-bot-4",
-          "description": "文心一言ERNIE Bot 4模型"
-        },
-        {
-          "value": "tongyi:qwen-max",
-          "description": "通义千问Qwen-Max模型"
-        },
-        {
-          "value": "deepseek:deepseek-chat",
-          "description": "DeepSeek Chat模型"
-        }
-      ]
-    },
-    {
-      "name": "terra.nova.rag.splitting.splitter",
-      "values": [
-        {
-          "value": "character",
-          "description": "字符分割器"
-        },
-        {
-          "value": "token",
-          "description": "Token分割器"
-        },
-        {
-          "value": "sentence",
-          "description": "句子分割器"
-        },
-        {
-          "value": "paragraph",
-          "description": "段落分割器"
-        }
-      ]
-    },
-    {
-      "name": "terra.nova.rag.vector-store.type",
-      "values": [
-        {
-          "value": "in-memory",
-          "description": "内存向量存储"
-        },
-        {
-          "value": "milvus",
-          "description": "Milvus向量数据库"
-        },
-        {
-          "value": "qdrant",
-          "description": "Qdrant向量数据库"
-        },
-        {
-          "value": "weaviate",
-          "description": "Weaviate向量数据库"
-        },
-        {
-          "value": "pinecone",
-          "description": "Pinecone向量数据库"
-        }
-      ]
-    },
-    {
-      "name": "terra.nova.rag.embedding.model-type",
-      "values": [
-        {
-          "value": "openai",
-          "description": "OpenAI嵌入模型"
-        },
-        {
-          "value": "deepseek",
-          "description": "DeepSeek嵌入模型"
-        },
-        {
-          "value": "wenxin",
-          "description": "百度文心嵌入模型"
-        },
-        {
-          "value": "tongyi",
-          "description": "阿里通义嵌入模型"
-        },
-        {
-          "value": "sentence-transformers",
-          "description": "本地Sentence Transformers模型"
-        }
-      ]
-    }
-  ]
+  "hints": []
 }

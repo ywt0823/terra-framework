@@ -1,3 +1,2 @@
-com.terra.framework.strata.config.mysql.TerraDruidAutoConfiguration
+com.terra.framework.strata.config.mysql.TerraMysqlAutoConfiguration
 com.terra.framework.strata.config.redis.TerraRedisAutoConfiguration
-com.terra.framework.strata.config.mysql.SqlAutoCacheAutoConfiguration

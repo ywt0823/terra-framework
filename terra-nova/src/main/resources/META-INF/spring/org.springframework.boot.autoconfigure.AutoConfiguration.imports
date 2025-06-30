@@ -1,10 +1,1 @@
-com.terra.framework.nova.conversation.config.ConversationAutoConfiguration
-com.terra.framework.nova.function.config.AIFunctionAutoConfiguration
-com.terra.framework.nova.llm.config.AIServiceAutoConfiguration
-com.terra.framework.nova.prompt.config.PromptAutoConfiguration
-com.terra.framework.nova.prompt.config.CachingPromptAutoConfiguration
-com.terra.framework.nova.prompt.config.HttpPromptAutoconfiguration
-com.terra.framework.nova.rag.config.RAGAutoConfiguration
-com.terra.framework.nova.rag.config.RerankAutoConfiguration
-com.terra.framework.nova.common.component.AIComponentAutoConfiguration
-com.terra.framework.nova.agent.config.AgentAutoConfiguration
+com.terra.framework.nova.config.TerraAiAutoConfiguration

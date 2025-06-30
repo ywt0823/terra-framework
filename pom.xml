@@ -8,6 +8,7 @@
     <artifactId>terra-framework</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
+
     <modules>
         <module>terra-sediment</module>
         <module>terra-bedrock</module>
@@ -15,29 +16,9 @@
         <module>terra-spring-boot-starter</module>
         <module>terra-strata</module>
         <module>terra-geyser</module>
-        <module>terra-stream</module>
         <module>terra-nova</module>
-        <module>terra-dependencies</module>
+        <module>terra-spring-boot-projects</module>
     </modules>
 
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-
-    <distributionManagement>
-        <repository>
-            <id>rdc-releases</id>
-            <name>valhalla Repository</name>
-            <url>https://packages.aliyun.com/maven/repository/2189819-release-woV6oD/</url>
-        </repository>
-        <snapshotRepository>
-            <id>rdc-snapshots</id>
-            <name>snapshots Repository</name>
-            <url>https://packages.aliyun.com/maven/repository/2189819-snapshot-rvt3Qt</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>

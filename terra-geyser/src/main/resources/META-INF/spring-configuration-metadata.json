@@ -1,0 +1,33 @@
+{
+  "groups": [
+    {
+      "name": "terra.cache",
+      "type": "com.terra.framework.geyser.config.CacheProperties",
+      "sourceType": "com.terra.framework.geyser.config.CacheProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "terra.cache.monitor-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable cache monitoring.",
+      "sourceType": "com.terra.framework.geyser.config.CacheProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "terra.cache.hit-rate-warning-threshold",
+      "type": "java.lang.Double",
+      "description": "Hit rate warning threshold (percentage).",
+      "sourceType": "com.terra.framework.geyser.config.CacheProperties",
+      "defaultValue": 80.0
+    },
+    {
+      "name": "terra.cache.monitor-log-interval",
+      "type": "java.lang.Long",
+      "description": "Monitor log output interval (milliseconds).",
+      "sourceType": "com.terra.framework.geyser.config.CacheProperties",
+      "defaultValue": 300000
+    }
+  ],
+  "hints": []
+} 
