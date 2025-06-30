@@ -60,14 +60,14 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
-            <version>3.2.6</version>
+            <version>3.3.0</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
-            <version>3.30.0</version>
+            <version>3.33.0</version>
             <optional>true</optional>
         </dependency>
 

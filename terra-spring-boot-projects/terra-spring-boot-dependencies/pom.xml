@@ -2,331 +2,332 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.terra.framework</groupId>
-    <artifactId>terra-spring-boot-dependencies</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
+	<groupId>com.terra.framework</groupId>
+	<artifactId>terra-spring-boot-dependencies</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-    <name>Terra Spring Boot Dependencies</name>
-    <description>Bill of Materials (BOM) for Terra Framework</description>
+	<name>Terra Spring Boot Dependencies</name>
+	<description>Bill of Materials (BOM) for Terra Framework</description>
 
-    <properties>
-        <!-- Terra Framework Version -->
-        <terra.version>0.0.1-SNAPSHOT</terra.version>
+	<properties>
+		<!-- Terra Framework Version -->
+		<terra.version>0.0.1-SNAPSHOT</terra.version>
 
-        <!-- Spring Ecosystem -->
-        <spring-boot.version>3.2.6</spring-boot.version>
-        <spring.version>6.1.8</spring.version>
-        <spring-ai.version>1.1.0</spring-ai.version>
-        <spring-data-redis.version>3.2.6</spring-data-redis.version>
-        
-        <!-- Data & Persistence -->
-        <mybatis-plus.version>3.5.5</mybatis-plus.version>
-        <mybatis-spring.version>3.0.4</mybatis-spring.version>
-        <mysql-connector.version>8.0.30</mysql-connector.version>
-        <druid.version>1.2.24</druid.version>
-        <redisson.version>3.33.0</redisson.version>
+		<!-- Spring Ecosystem -->
+		<spring-boot.version>3.3.0</spring-boot.version>
+		<spring.version>6.1.8</spring.version>
+		<spring-ai.version>1.1.0</spring-ai.version>
+		<spring-data-redis.version>3.3.0</spring-data-redis.version>
 
-        <!-- JSON & Data Formats -->
-        <jackson.version>2.15.4</jackson.version> <!-- Consolidating to a newer version compatible with Spring Boot 3.2.x -->
-        <fastjson.version>1.2.83</fastjson.version>
-        <easyexcel.version>3.1.3</easyexcel.version>
+		<!-- Data & Persistence -->
+		<mybatis-plus.version>3.5.5</mybatis-plus.version>
+		<mybatis-spring.version>3.0.4</mybatis-spring.version>
+		<mysql-connector.version>8.0.30</mysql-connector.version>
+		<druid.version>1.2.24</druid.version>
+		<redisson.version>3.33.0</redisson.version>
 
-        <!-- Document Handling -->
-        <jsoup.version>1.17.2</jsoup.version>
-        <pdfbox.version>2.0.30</pdfbox.version>
-        <poi.version>5.2.5</poi.version>
-        <tika.version>2.9.1</tika.version>
+		<!-- JSON & Data Formats -->
+		<jackson.version>2.17.1
+		</jackson.version> <!-- Consolidating to a newer version compatible with Spring Boot 3.2.x -->
+		<fastjson.version>1.2.83</fastjson.version>
+		<easyexcel.version>3.1.3</easyexcel.version>
 
-        <!-- Logging -->
-        <slf4j.version>2.0.13</slf4j.version>
-        <logback.version>1.4.14</logback.version> <!-- spring boot 3.2.x uses 1.4.x -->
+		<!-- Document Handling -->
+		<jsoup.version>1.17.2</jsoup.version>
+		<pdfbox.version>2.0.30</pdfbox.version>
+		<poi.version>5.2.5</poi.version>
+		<tika.version>2.9.1</tika.version>
 
-        <!-- Web Servlet -->
-        <jakarta-servlet.version>6.0.0</jakarta-servlet.version>
-        <javax-annotation.version>1.3.2</javax-annotation.version>
-        
-        <!-- Utils -->
-        <commons-lang3.version>3.12.0</commons-lang3.version>
-        <commons-collections4.version>4.4</commons-collections4.version>
-        <commons-compress.version>1.21</commons-compress.version>
-        <commons-math3.version>3.6.1</commons-math3.version>
-        <commons-io.version>2.11.0</commons-io.version>
-        <commons-pool2.version>2.11.1</commons-pool2.version>
-        <commons-configuration2.version>2.8.0</commons-configuration2.version>
-        <commons-email.version>1.5</commons-email.version>
-        <commons-imaging.version>1.0-alpha2</commons-imaging.version>
-        <guava.version>31.1-jre</guava.version>
-        <lombok.version>1.18.32</lombok.version> <!-- Align with Spring Boot 3.2.x -->
-        <httpclient5.version>5.4.1</httpclient5.version>
-        <jpinyin.version>1.1.8</jpinyin.version>
-    </properties>
+		<!-- Logging -->
+		<slf4j.version>2.0.13</slf4j.version>
+		<logback.version>1.5.6</logback.version> <!-- spring boot 3.2.x uses 1.4.x -->
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Terra Framework Modules -->
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-bedrock</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-crust</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-geyser</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-nova</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-sediment</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-strata</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-             <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-bedrock-spring-boot-starter</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-crust-spring-boot-starter</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-geyser-spring-boot-starter</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-nova-spring-boot-starter</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-strata-spring-boot-starter</artifactId>
-                <version>${terra.version}</version>
-            </dependency>
+		<!-- Web Servlet -->
+		<jakarta-servlet.version>6.0.0</jakarta-servlet.version>
+		<javax-annotation.version>1.3.2</javax-annotation.version>
 
-            <!-- Spring AI -->
-            <dependency>
-                <groupId>group.springframework.ai</groupId>
-                <artifactId>spring-ai-core</artifactId>
-                <version>${spring-ai.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>group.springframework.ai</groupId>
-                <artifactId>spring-ai-openai</artifactId>
-                <version>${spring-ai.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>group.springframework.ai</groupId>
-                <artifactId>spring-ai-ollama</artifactId>
-                <version>${spring-ai.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>group.springframework.ai</groupId>
-                <artifactId>spring-ai-redis-store</artifactId>
-                <version>${spring-ai.version}</version>
-            </dependency>
-            
-            <!-- Data & Persistence -->
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>druid</artifactId>
-                <version>${druid.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis-spring</artifactId>
-                <version>${mybatis-spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql-connector.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.redisson</groupId>
-                <artifactId>redisson</artifactId>
-                <version>${redisson.version}</version>
-            </dependency>
-            
-            <!-- JSON & Data Formats -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.datatype</groupId>
-                <artifactId>jackson-datatype-jsr310</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.datatype</groupId>
-                <artifactId>jackson-datatype-jdk8</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>${fastjson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>easyexcel</artifactId>
-                <version>${easyexcel.version}</version>
-            </dependency>
+		<!-- Utils -->
+		<commons-lang3.version>3.12.0</commons-lang3.version>
+		<commons-collections4.version>4.4</commons-collections4.version>
+		<commons-compress.version>1.21</commons-compress.version>
+		<commons-math3.version>3.6.1</commons-math3.version>
+		<commons-io.version>2.11.0</commons-io.version>
+		<commons-pool2.version>2.11.1</commons-pool2.version>
+		<commons-configuration2.version>2.8.0</commons-configuration2.version>
+		<commons-email.version>1.5</commons-email.version>
+		<commons-imaging.version>1.0-alpha2</commons-imaging.version>
+		<guava.version>31.1-jre</guava.version>
+		<lombok.version>1.18.32</lombok.version> <!-- Align with Spring Boot 3.2.x -->
+		<httpclient5.version>5.4.1</httpclient5.version>
+		<jpinyin.version>1.1.8</jpinyin.version>
+	</properties>
 
-            <!-- Document Handling -->
-            <dependency>
-                <groupId>org.jsoup</groupId>
-                <artifactId>jsoup</artifactId>
-                <version>${jsoup.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.pdfbox</groupId>
-                <artifactId>pdfbox</artifactId>
-                <version>${pdfbox.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.poi</groupId>
-                <artifactId>poi</artifactId>
-                <version>${poi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.poi</groupId>
+	<dependencyManagement>
+		<dependencies>
+			<!-- Terra Framework Modules -->
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-bedrock</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-crust</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-geyser</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-nova</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-sediment</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-strata</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-bedrock-spring-boot-starter</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-crust-spring-boot-starter</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-geyser-spring-boot-starter</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-nova-spring-boot-starter</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.terra.framework</groupId>
+				<artifactId>terra-strata-spring-boot-starter</artifactId>
+				<version>${terra.version}</version>
+			</dependency>
 
-                <artifactId>poi-ooxml</artifactId>
-                <version>${poi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.tika</groupId>
-                <artifactId>tika-core</artifactId>
-                <version>${tika.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.tika</groupId>
-                <artifactId>tika-parsers-standard-package</artifactId>
-                <version>${tika.version}</version>
-            </dependency>
+			<!-- Spring AI -->
+			<dependency>
+				<groupId>group.springframework.ai</groupId>
+				<artifactId>spring-ai-core</artifactId>
+				<version>${spring-ai.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>group.springframework.ai</groupId>
+				<artifactId>spring-ai-openai</artifactId>
+				<version>${spring-ai.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>group.springframework.ai</groupId>
+				<artifactId>spring-ai-ollama</artifactId>
+				<version>${spring-ai.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>group.springframework.ai</groupId>
+				<artifactId>spring-ai-redis-store</artifactId>
+				<version>${spring-ai.version}</version>
+			</dependency>
 
-            <!-- Logging -->
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-core</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-            
-            <!-- Web Servlet -->
-            <dependency>
-                <groupId>jakarta.servlet</groupId>
-                <artifactId>jakarta.servlet-api</artifactId>
-                <version>${jakarta-servlet.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.annotation</groupId>
-                <artifactId>javax.annotation-api</artifactId>
-                <version>${javax-annotation.version}</version>
-            </dependency>
-            
-            <!-- Utils -->
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>${commons-collections4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-compress</artifactId>
-                <version>${commons-compress.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-math3</artifactId>
-                <version>${commons-math3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${commons-io.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-pool2</artifactId>
-                <version>${commons-pool2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-configuration2</artifactId>
-                <version>${commons-configuration2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-email</artifactId>
-                <version>${commons-email.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-imaging</artifactId>
-                <version>${commons-imaging.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents.client5</groupId>
-                <artifactId>httpclient5</artifactId>
-                <version>${httpclient5.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.stuxuhai</groupId>
-                <artifactId>jpinyin</artifactId>
-                <version>${jpinyin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-</project> 
+			<!-- Data & Persistence -->
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>druid</artifactId>
+				<version>${druid.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.baomidou</groupId>
+				<artifactId>mybatis-plus</artifactId>
+				<version>${mybatis-plus.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mybatis</groupId>
+				<artifactId>mybatis-spring</artifactId>
+				<version>${mybatis-spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>${mysql-connector.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.redisson</groupId>
+				<artifactId>redisson</artifactId>
+				<version>${redisson.version}</version>
+			</dependency>
+
+			<!-- JSON & Data Formats -->
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jsr310</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jdk8</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>${fastjson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>easyexcel</artifactId>
+				<version>${easyexcel.version}</version>
+			</dependency>
+
+			<!-- Document Handling -->
+			<dependency>
+				<groupId>org.jsoup</groupId>
+				<artifactId>jsoup</artifactId>
+				<version>${jsoup.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.pdfbox</groupId>
+				<artifactId>pdfbox</artifactId>
+				<version>${pdfbox.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi</artifactId>
+				<version>${poi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+
+				<artifactId>poi-ooxml</artifactId>
+				<version>${poi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tika</groupId>
+				<artifactId>tika-core</artifactId>
+				<version>${tika.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tika</groupId>
+				<artifactId>tika-parsers-standard-package</artifactId>
+				<version>${tika.version}</version>
+			</dependency>
+
+			<!-- Logging -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>${logback.version}</version>
+			</dependency>
+
+			<!-- Web Servlet -->
+			<dependency>
+				<groupId>jakarta.servlet</groupId>
+				<artifactId>jakarta.servlet-api</artifactId>
+				<version>${jakarta-servlet.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.annotation</groupId>
+				<artifactId>javax.annotation-api</artifactId>
+				<version>${javax-annotation.version}</version>
+			</dependency>
+
+			<!-- Utils -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons-lang3.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>${commons-collections4.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-math3</artifactId>
+				<version>${commons-math3.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons-io.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-pool2</artifactId>
+				<version>${commons-pool2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-configuration2</artifactId>
+				<version>${commons-configuration2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-email</artifactId>
+				<version>${commons-email.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-imaging</artifactId>
+				<version>${commons-imaging.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents.client5</groupId>
+				<artifactId>httpclient5</artifactId>
+				<version>${httpclient5.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.stuxuhai</groupId>
+				<artifactId>jpinyin</artifactId>
+				<version>${jpinyin.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>
