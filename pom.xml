@@ -6,7 +6,7 @@
 
     <groupId>com.terra.framework</groupId>
     <artifactId>terra-framework</artifactId>
-    <version>1.0.0</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -17,6 +17,7 @@
         <module>terra-strata</module>
         <module>terra-geyser</module>
         <module>terra-nova</module>
+        <module>terra-spring-boot-projects</module>
     </modules>
 
     <properties>
