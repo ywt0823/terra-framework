@@ -67,3 +67,4 @@ public class RedisConversationMemory implements ConversationMemory {
         redissonClient.getList(getSessionKey(sessionId)).delete();
     }
 }
+ 
