@@ -20,19 +20,21 @@ import java.util.concurrent.TimeUnit;
 public final class RedissonCacheFactory implements CacheFactory {
 
     private final RedissonClient redissonClient;
+    private final CacheProperties cacheProperties;
     private final ConcurrentMap<String, CacheOperation<?, ?>> cacheMap = new ConcurrentHashMap<>();
 
-    public RedissonCacheFactory(RedissonClient redissonClient) {
+    public RedissonCacheFactory(RedissonClient redissonClient, CacheProperties cacheProperties) {
         this.redissonClient = redissonClient;
+        this.cacheProperties = cacheProperties;
     }
 
     @Override
-    public <K, V> CacheOperation<K, V> createAccessCache(String name, int maxSize, long expireAfterAccess, TimeUnit timeUnit, CacheProperties cacheProperties) {
+    public <K, V> CacheOperation<K, V> createAccessCache(String name, int maxSize, long expireAfterAccess, TimeUnit timeUnit) {
         return createCache(name, maxSize, expireAfterAccess, 0, timeUnit, true, cacheProperties);
     }
 
     @Override
-    public <K, V> CacheOperation<K, V> createWriteCache(String name, int maxSize, long expireAfterWrite, TimeUnit timeUnit, CacheProperties cacheProperties) {
+    public <K, V> CacheOperation<K, V> createWriteCache(String name, int maxSize, long expireAfterWrite, TimeUnit timeUnit) {
         return createCache(name, maxSize, 0, expireAfterWrite, timeUnit, false, cacheProperties);
     }
 
