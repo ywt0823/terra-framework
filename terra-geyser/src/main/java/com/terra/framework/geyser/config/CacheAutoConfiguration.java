@@ -2,11 +2,8 @@ package com.terra.framework.geyser.config;
 
 import com.terra.framework.geyser.factory.CacheFactory;
 import com.terra.framework.geyser.factory.DefaultCacheFactory;
-import com.terra.framework.geyser.factory.RedissonCacheFactory;
 import com.terra.framework.geyser.monitor.CacheMonitorService;
 import com.terra.framework.geyser.util.CacheUtils;
-import org.redisson.api.RedissonClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,12 +16,6 @@ import org.springframework.context.annotation.Bean;
 @EnableConfigurationProperties(CacheProperties.class)
 public class CacheAutoConfiguration {
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnClass(RedissonClient.class)
-    public CacheFactory RedissonCacheFactory(RedissonClient redissonClient, CacheProperties cacheProperties) {
-        return new RedissonCacheFactory(redissonClient, cacheProperties);
-    }
 
     @Bean
     @ConditionalOnMissingBean

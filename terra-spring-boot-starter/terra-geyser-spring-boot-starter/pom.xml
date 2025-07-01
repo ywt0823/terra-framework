@@ -25,10 +25,5 @@
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-bedrock-spring-boot-starter</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-boot-starter</artifactId>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 </project>
