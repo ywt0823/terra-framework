@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.terra.framework.autoconfigure.strata.config.redis.lock.IRedissonLock;
-import com.terra.framework.autoconfigure.strata.properties.TerraRedisProperties;
 import com.terra.framework.strata.helper.RedisKeyHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
@@ -18,7 +17,8 @@ import org.redisson.config.Config;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,9 +37,15 @@ import org.springframework.util.StringUtils;
  * @date 2021年08月09日 15:41
  */
 @Slf4j
-@ConditionalOnProperty(prefix = "terra.redis", name = "enabled", havingValue = "true")
-@EnableConfigurationProperties(TerraRedisProperties.class)
+@ConditionalOnProperty(prefix = "spring.data.redis.lettuce", name = "pool.enabled", havingValue = "true")
 public class TerraRedisAutoConfiguration {
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.data.redis")
+    public RedisProperties dataSource() {
+        return new RedisProperties();
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public RedisKeyHelper redisKeyHelper(ApplicationContext applicationContext) {
@@ -61,7 +67,7 @@ public class TerraRedisAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(RedisConnectionFactory.class)
-        public LettuceConnectionFactory redisConnectionFactory(TerraRedisProperties properties) {
+        public LettuceConnectionFactory redisConnectionFactory(RedisProperties properties) {
             log.info("Creating LettuceConnectionFactory with properties: {}", properties);
             RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
             redisStandaloneConfiguration.setHostName(properties.getHost());
@@ -101,18 +107,14 @@ public class TerraRedisAutoConfiguration {
     protected static class RedissonConfiguration {
         @Bean(destroyMethod = "shutdown")
         @ConditionalOnMissingBean
-        public RedissonClient redissonClient(TerraRedisProperties properties) {
+        public RedissonClient redissonClient(RedisProperties properties) {
             Config config = new Config();
-            TerraRedisProperties.RedissonProperties redissonProperties = properties.getRedisson();
             String address = "redis://" + properties.getHost() + ":" + properties.getPort();
             config.useSingleServer()
                 .setAddress(address)
                 .setUsername(properties.getUsername())
                 .setPassword(properties.getPassword())
-                .setDatabase(properties.getDatabase())
-                .setConnectionPoolSize(redissonProperties.getConnectionPoolSize())
-                .setConnectionMinimumIdleSize(redissonProperties.getConnectionMinimumIdleSize())
-                .setTimeout(redissonProperties.getTimeout());
+                .setDatabase(properties.getDatabase());
             return Redisson.create(config);
         }
 

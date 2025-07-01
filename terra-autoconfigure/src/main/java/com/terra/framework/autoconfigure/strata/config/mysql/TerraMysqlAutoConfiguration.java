@@ -5,13 +5,13 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.google.common.collect.Lists;
-import com.terra.framework.autoconfigure.strata.properties.TerraMysqlProperties;
 import com.terra.framework.strata.exception.ValhallaDataVersionException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,42 +28,14 @@ import static com.baomidou.mybatisplus.annotation.DbType.MYSQL;
  */
 @ConditionalOnProperty(prefix = "spring.datasource.druid", name = "url")
 @ConditionalOnClass({DruidDataSource.class, JdbcTemplate.class})
-@EnableConfigurationProperties({TerraMysqlProperties.class, DataSourceProperties.class})
+@EnableConfigurationProperties({DataSourceProperties.class})
 public class TerraMysqlAutoConfiguration {
-    private final TerraMysqlProperties properties;
-    private final DataSourceProperties dataSourceProperties;
 
-    public TerraMysqlAutoConfiguration(TerraMysqlProperties properties, DataSourceProperties dataSourceProperties) {
-        this.properties = properties;
-        this.dataSourceProperties = dataSourceProperties;
-    }
 
     @Bean("terra-datasource")
-    @ConditionalOnMissingBean(DataSource.class)
+    @ConfigurationProperties(prefix = "spring.datasource.druid")
     public DataSource dataSource() {
-        DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setUrl(dataSourceProperties.getUrl());
-        dataSource.setUsername(dataSourceProperties.getUsername());
-        dataSource.setPassword(dataSourceProperties.getPassword());
-        if (dataSourceProperties.getDriverClassName() != null) {
-            dataSource.setDriverClassName(dataSourceProperties.getDriverClassName());
-        }
-
-        TerraMysqlProperties.DruidProperties druid = properties.getDruid();
-        dataSource.setInitialSize(druid.getInitialSize());
-        dataSource.setMinIdle(druid.getMinIdle());
-        dataSource.setMaxActive(druid.getMaxActive());
-        dataSource.setMaxWait(druid.getMaxWait());
-        dataSource.setTimeBetweenEvictionRunsMillis(druid.getTimeBetweenEvictionRunsMillis());
-        dataSource.setMinEvictableIdleTimeMillis(druid.getMinEvictableIdleTimeMillis());
-        dataSource.setValidationQuery(druid.getValidationQuery());
-        dataSource.setTestWhileIdle(druid.isTestWhileIdle());
-        dataSource.setTestOnBorrow(druid.isTestOnBorrow());
-        dataSource.setTestOnReturn(druid.isTestOnReturn());
-        dataSource.setPoolPreparedStatements(druid.isPoolPreparedStatements());
-        dataSource.setMaxPoolPreparedStatementPerConnectionSize(druid.getMaxPoolPreparedStatementPerConnectionSize());
-
-        return dataSource;
+        return new DruidDataSource();
     }
 
     @Bean("terra-transactionManager")
