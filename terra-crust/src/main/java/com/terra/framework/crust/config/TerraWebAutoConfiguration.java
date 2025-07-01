@@ -4,7 +4,6 @@ import com.terra.framework.bedrock.config.log.LogAutoConfiguration;
 import com.terra.framework.common.log.LogPattern;
 import com.terra.framework.crust.customizer.HeaderCustomizer;
 import com.terra.framework.crust.filter.TerraLoggingFilter;
-import com.terra.framework.crust.filter.TerraTraceFilter;
 import com.terra.framework.crust.interceptor.RequestHandlerInterceptor;
 import com.terra.framework.crust.interceptor.TraceIdRequestInterceptor;
 import com.terra.framework.crust.interceptor.TraceIdRestTemplateCustomizer;
@@ -12,7 +11,6 @@ import com.terra.framework.crust.properties.TerraCorsProperties;
 import com.terra.framework.crust.properties.ValhallaLoggingProperties;
 import com.terra.framework.crust.properties.ValhallaWebContextExcludeProperties;
 import com.terra.framework.crust.trace.TraceContextHolder;
-import com.terra.framework.crust.trace.TraceIdGenerator;
 import jakarta.servlet.Servlet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
@@ -42,7 +40,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
 @RequiredArgsConstructor
 @ConditionalOnWebApplication(type = SERVLET)
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class, WebMvcConfigurer.class})
-@AutoConfigureAfter({LogAutoConfiguration.class, JacksonAutoConfiguration.class})
+@AutoConfigureAfter({LogAutoConfiguration.class, JacksonAutoConfiguration.class, TerraTraceAutoConfiguration.class})
 @EnableConfigurationProperties({ValhallaLoggingProperties.class, ValhallaWebContextExcludeProperties.class, TerraCorsProperties.class})
 public class TerraWebAutoConfiguration implements WebMvcConfigurer {
 
@@ -88,12 +86,6 @@ public class TerraWebAutoConfiguration implements WebMvcConfigurer {
     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     public TerraLoggingFilter terraLoggingFilter(ValhallaLoggingProperties valhallaLoggingProperties, LogPattern logPattern) {
         return new TerraLoggingFilter(valhallaLoggingProperties, logPattern);
-    }
-
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
-    public TerraTraceFilter terraTraceFilter(TraceIdGenerator traceIdGenerator, TraceContextHolder contextHolder) {
-        return new TerraTraceFilter(traceIdGenerator, contextHolder);
     }
 
     /**

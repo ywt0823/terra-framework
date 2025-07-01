@@ -18,130 +18,78 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
 
 /**
+ * JSON与对象互转帮助类.
  * <p>
- * JSON与对象互转帮助类
+ * 这是一个纯粹的工具类，不依赖于Spring框架.
+ * 它需要通过外部调用 {@link #init(ObjectMapper)} 方法来初始化内部的ObjectMapper实例.
+ * 在Spring环境中，这个初始化过程应该由一个Spring-aware的模块（如terra-bedrock）来完成.
  * </p>
  *
- * @param objectMapper -- GETTER --
- *                     获取内部使用的ObjectMapper
  * @author Terra Framework Team
  * @since 2025-06-01
  */
 @Slf4j
-public record JsonUtils(ObjectMapper objectMapper) {
+public final class JsonUtils {
 
-    /**
-     * 默认ObjectMapper实例
-     */
-    private static ObjectMapper DEFAULT_MAPPER;
+    private static ObjectMapper objectMapper;
 
-    /**
-     * 自定义ObjectMapper缓存
-     * key: 配置标识，value: 对应的ObjectMapper实例
-     */
-    private static final Map<String, ObjectMapper> MAPPER_CACHE = new ConcurrentHashMap<>();
-
-    /**
-     * 单例实例
-     */
-    private static JsonUtils INSTANCE;
-
-    /**
-     * 为支持Spring自动注入提供的构造方法
-     *
-     * @param objectMapper 通过Spring注入的ObjectMapper
-     */
-    public JsonUtils(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-        DEFAULT_MAPPER = objectMapper;
-        INSTANCE = this;
+    private JsonUtils() {
+        // 私有构造函数，防止实例化
     }
 
     /**
-     * 获取JsonUtils实例（兼容旧代码）
+     * 初始化工具类，注入ObjectMapper实例.
+     * 此方法应该在应用程序启动时被调用一次.
+     *
+     * @param objectMapper an object mapper
      */
-    public static JsonUtils getInstance() {
-        if (INSTANCE == null) {
-            synchronized (JsonUtils.class) {
-                if (INSTANCE == null) {
-                    DEFAULT_MAPPER = createDefaultMapper();
-                    INSTANCE = new JsonUtils(DEFAULT_MAPPER);
-                }
-            }
+    public static void init(ObjectMapper objectMapper) {
+        if (JsonUtils.objectMapper == null) {
+            JsonUtils.objectMapper = objectMapper;
+            log.info("JsonUtils initialized with custom ObjectMapper.");
         }
-        return INSTANCE;
+    }
+
+    private static void ensureInitialized() {
+        Objects.requireNonNull(objectMapper, "JsonUtils has not been initialized. " +
+                "Please call JsonUtils.init(objectMapper) at application startup.");
     }
 
     /**
-     * 创建默认配置的ObjectMapper
-     */
-    public static ObjectMapper createDefaultMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-
-        // 序列化配置
-        mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-
-        // 反序列化配置
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        // 添加Java8序列化支持和新版时间对象序列化支持
-        mapper.registerModule(new Jdk8Module());
-        mapper.registerModule(new JavaTimeModule());
-
-        return mapper;
-    }
-
-    /**
-     * 获取配置了特定序列化包含策略的ObjectMapper
+     * 获取内部使用的ObjectMapper实例（主要用于框架内部需要传递mapper的场景）.
      *
-     * @param inclusion 序列化包含策略
-     * @return ObjectMapper实例
+     * @return {@link ObjectMapper} a {@link com.fasterxml.jackson.databind.ObjectMapper} object
      */
-    public static ObjectMapper getMapperWithInclusion(JsonInclude.Include inclusion) {
-        String key = "inclusion:" + inclusion.name();
-        return MAPPER_CACHE.computeIfAbsent(key, k -> {
-            ObjectMapper mapper = createDefaultMapper();
-            mapper.setSerializationInclusion(inclusion);
-            return mapper;
-        });
+    public static ObjectMapper getObjectMapper() {
+        ensureInitialized();
+        return objectMapper;
     }
 
     /**
-     * 获取忽略未知属性的ObjectMapper
+     * 创建空的JsonNode对象.
      *
-     * @param ignoreUnknown 是否忽略未知属性
-     * @return ObjectMapper实例
-     */
-    public static ObjectMapper getMapperWithIgnoreUnknown(boolean ignoreUnknown) {
-        String key = "ignoreUnknown:" + ignoreUnknown;
-        return MAPPER_CACHE.computeIfAbsent(key, k -> {
-            ObjectMapper mapper = createDefaultMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, !ignoreUnknown);
-            return mapper;
-        });
-    }
-
-    /**
-     * 创建空的JsonNode对象
+     * @return a {@link com.fasterxml.jackson.databind.node.ObjectNode} object
      */
     public static ObjectNode createObjectNode() {
-        return DEFAULT_MAPPER.createObjectNode();
+        ensureInitialized();
+        return objectMapper.createObjectNode();
     }
 
     /**
-     * 创建空的JsonNode数组
+     * 创建空的JsonNode数组.
+     *
+     * @return a {@link com.fasterxml.jackson.databind.node.ArrayNode} object
      */
     public static ArrayNode createArrayNode() {
-        return DEFAULT_MAPPER.createArrayNode();
+        ensureInitialized();
+        return objectMapper.createArrayNode();
     }
 
     /**
-     * json字符串转为对象
+     * json字符串转为对象.
      *
      * @param json  json
      * @param clazz T类的class文件
@@ -149,11 +97,12 @@ public record JsonUtils(ObjectMapper objectMapper) {
      * @return 返回T的实例
      */
     public static <T> T jsonCovertToObject(String json, Class<T> clazz) {
+        ensureInitialized();
         if (json == null || clazz == null) {
             return null;
         }
         try {
-            return DEFAULT_MAPPER.readValue(json, clazz);
+            return objectMapper.readValue(json, clazz);
         } catch (IOException e) {
             log.error("json转换失败: {}, 原因: {}", json, e.getMessage());
         }
@@ -161,7 +110,7 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * json字符串转为对象
+     * json字符串转为对象.
      *
      * @param json json
      * @param type 对象在Jackson中的类型
@@ -169,11 +118,12 @@ public record JsonUtils(ObjectMapper objectMapper) {
      * @return 返回T的实例
      */
     public static <T> T jsonCovertToObject(String json, TypeReference<T> type) {
+        ensureInitialized();
         if (json == null || type == null) {
             return null;
         }
         try {
-            return DEFAULT_MAPPER.readValue(json, type);
+            return objectMapper.readValue(json, type);
         } catch (IOException e) {
             log.error("json转换失败: {}, 原因: {}", json, e.getMessage());
         }
@@ -181,7 +131,7 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 将流中的数据转为java对象
+     * 将流中的数据转为java对象.
      *
      * @param inputStream 输入流
      * @param clazz       类的class
@@ -189,11 +139,12 @@ public record JsonUtils(ObjectMapper objectMapper) {
      * @return 返回对象 如果参数任意一个为 null则返回null
      */
     public static <T> T covertStreamToObject(InputStream inputStream, Class<T> clazz) {
+        ensureInitialized();
         if (inputStream == null || clazz == null) {
             return null;
         }
         try {
-            return DEFAULT_MAPPER.readValue(inputStream, clazz);
+            return objectMapper.readValue(inputStream, clazz);
         } catch (IOException e) {
             log.error("json转换失败, 原因: {}", e.getMessage());
         }
@@ -201,7 +152,7 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * json字符串转为复杂类型List
+     * json字符串转为复杂类型List.
      *
      * @param json            json
      * @param collectionClazz 集合的class
@@ -210,12 +161,13 @@ public record JsonUtils(ObjectMapper objectMapper) {
      * @return 返回T的实例
      */
     public static <T> T jsonCovertToObject(String json, Class<?> collectionClazz, Class<?>... elementsClazz) {
+        ensureInitialized();
         if (json == null || collectionClazz == null || elementsClazz == null || elementsClazz.length == 0) {
             return null;
         }
         try {
-            JavaType javaType = DEFAULT_MAPPER.getTypeFactory().constructParametricType(collectionClazz, elementsClazz);
-            return DEFAULT_MAPPER.readValue(json, javaType);
+            JavaType javaType = objectMapper.getTypeFactory().constructParametricType(collectionClazz, elementsClazz);
+            return objectMapper.readValue(json, javaType);
         } catch (IOException e) {
             log.error("json转换失败: {}, 原因: {}", json, e.getMessage());
         }
@@ -223,17 +175,18 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 对象转为json字符串
+     * 对象转为json字符串.
      *
      * @param o 将要转化的对象
      * @return 返回json字符串
      */
     public static String objectCovertToJson(Object o) {
+        ensureInitialized();
         if (o == null) {
             return null;
         }
         try {
-            return o instanceof String ? (String) o : DEFAULT_MAPPER.writeValueAsString(o);
+            return o instanceof String ? (String) o : objectMapper.writeValueAsString(o);
         } catch (JsonProcessingException e) {
             log.error("json转换失败, 原因: {}", e.getMessage());
         }
@@ -241,19 +194,20 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 对象转为格式化的json字符串（用于调试）
+     * 对象转为格式化的json字符串（用于调试）.
      *
      * @param o 将要转化的对象
      * @return 返回格式化的json字符串
      */
     public static String objectCovertToPrettyJson(Object o) {
+        ensureInitialized();
         if (o == null) {
             return null;
         }
         try {
             return o instanceof String
-                ? (String) o
-                : DEFAULT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(o);
+                    ? (String) o
+                    : objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(o);
         } catch (JsonProcessingException e) {
             log.error("json转换失败, 原因: {}", e.getMessage());
         }
@@ -261,7 +215,7 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 将对象转为另一个对象
+     * 将对象转为另一个对象.
      * 切记,两个对象结构要一致
      * 多用于Object转为具体的对象
      *
@@ -277,13 +231,14 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 将对象转为Map
+     * 将对象转为Map.
      *
      * @param o 将要转化的对象
      * @return 返回Map对象
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> objectToMap(Object o) {
+        ensureInitialized();
         if (o == null) {
             return null;
         }
@@ -295,7 +250,7 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 将Map转为指定类型的对象
+     * 将Map转为指定类型的对象.
      *
      * @param map   Map对象
      * @param clazz 目标类型
@@ -310,7 +265,7 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 合并两个JSON对象
+     * 合并两个JSON对象.
      *
      * @param source 源JSON对象
      * @param target 目标JSON对象，合并后的结果会更新到这个对象
@@ -329,21 +284,21 @@ public record JsonUtils(ObjectMapper objectMapper) {
     }
 
     /**
-     * 检查字符串是否为有效的JSON
+     * 检查字符串是否为有效的JSON.
      *
      * @param json 要检查的JSON字符串
      * @return 是否为有效的JSON
      */
     public static boolean isValidJson(String json) {
+        ensureInitialized();
         if (json == null || json.isEmpty()) {
             return false;
         }
         try {
-            DEFAULT_MAPPER.readTree(json);
+            objectMapper.readTree(json);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
-
 }

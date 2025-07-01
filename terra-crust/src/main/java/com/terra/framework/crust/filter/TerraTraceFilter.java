@@ -1,7 +1,7 @@
 package com.terra.framework.crust.filter;
 
+import com.terra.framework.bedrock.trace.TraceIdGenerator;
 import com.terra.framework.crust.trace.TraceContextHolder;
-import com.terra.framework.crust.trace.TraceIdGenerator;
 import com.terra.framework.crust.web.WebUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * AriesTraceFilter
+ * TerraTraceFilter
  *
  * @author zues
  * @version 1.0
@@ -50,7 +50,7 @@ public class TerraTraceFilter extends OncePerRequestFilter {
         try {
             String traceId = extractTraceId(request);
             String parentSpanId = request.getHeader(TraceContextHolder.PARENT_SPAN_ID_KEY);
-            String spanId = traceIdGenerator.generateSpanId();
+            String spanId = traceIdGenerator.generate();
 
             contextHolder.setTrace(traceId, spanId, parentSpanId);
 
@@ -67,7 +67,7 @@ public class TerraTraceFilter extends OncePerRequestFilter {
     private String extractTraceId(HttpServletRequest request) {
         String traceId = request.getHeader(TraceContextHolder.TRACE_ID_KEY);
         if (!StringUtils.hasText(traceId)) {
-            traceId = traceIdGenerator.generateTraceId();
+            traceId = traceIdGenerator.generate();
             logger.debug("Generated new traceId: {}", traceId);
         }
         return traceId;

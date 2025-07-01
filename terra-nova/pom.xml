@@ -12,7 +12,6 @@
     <description>LLM Pipeline and Prompt Engineering Framework</description>
 
 
-
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -29,7 +28,12 @@
             <version>${project.version}</version>
         </dependency>
 
-
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>3.33.0</version>
+            <optional>true</optional>
+        </dependency>
 
 
         <dependency>

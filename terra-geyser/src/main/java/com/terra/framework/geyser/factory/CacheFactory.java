@@ -1,5 +1,6 @@
 package com.terra.framework.geyser.factory;
 
+import com.terra.framework.geyser.config.CacheProperties;
 import com.terra.framework.geyser.options.CacheOperation;
 
 import java.util.concurrent.TimeUnit;
@@ -19,9 +20,10 @@ public interface CacheFactory {
      * @param maxSize 最大容量
      * @param expireAfterAccess 访问后过期时间
      * @param timeUnit 时间单位
+     * @param cacheProperties 缓存的全局配置属性
      * @return 缓存操作对象
      */
-    <K, V> CacheOperation<K, V> createAccessCache(String name, int maxSize, long expireAfterAccess, TimeUnit timeUnit);
+    <K, V> CacheOperation<K, V> createAccessCache(String name, int maxSize, long expireAfterAccess, TimeUnit timeUnit, CacheProperties cacheProperties);
     
     /**
      * 创建一个缓存
@@ -30,9 +32,10 @@ public interface CacheFactory {
      * @param maxSize 最大容量
      * @param expireAfterWrite 写入后过期时间
      * @param timeUnit 时间单位
+     * @param cacheProperties 缓存的全局配置属性
      * @return 缓存操作对象
      */
-    <K, V> CacheOperation<K, V> createWriteCache(String name, int maxSize, long expireAfterWrite, TimeUnit timeUnit);
+    <K, V> CacheOperation<K, V> createWriteCache(String name, int maxSize, long expireAfterWrite, TimeUnit timeUnit, CacheProperties cacheProperties);
     
     /**
      * 获取一个已创建的缓存
