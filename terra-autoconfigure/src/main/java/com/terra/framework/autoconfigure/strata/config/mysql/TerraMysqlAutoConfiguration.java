@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,25 +26,27 @@ import static com.baomidou.mybatisplus.annotation.DbType.MYSQL;
  * @description MySql auto configuration
  * @date 2022年12月24日 22:05
  */
-@ConditionalOnProperty(prefix = "terra.mysql", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "spring.datasource.druid", name = "url")
 @ConditionalOnClass({DruidDataSource.class, JdbcTemplate.class})
-@EnableConfigurationProperties(TerraMysqlProperties.class)
+@EnableConfigurationProperties({TerraMysqlProperties.class, DataSourceProperties.class})
 public class TerraMysqlAutoConfiguration {
     private final TerraMysqlProperties properties;
+    private final DataSourceProperties dataSourceProperties;
 
-    public TerraMysqlAutoConfiguration(TerraMysqlProperties properties) {
+    public TerraMysqlAutoConfiguration(TerraMysqlProperties properties, DataSourceProperties dataSourceProperties) {
         this.properties = properties;
+        this.dataSourceProperties = dataSourceProperties;
     }
 
     @Bean("terra-datasource")
     @ConditionalOnMissingBean(DataSource.class)
     public DataSource dataSource() {
         DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setUrl(properties.getUrl());
-        dataSource.setUsername(properties.getUsername());
-        dataSource.setPassword(properties.getPassword());
-        if (properties.getDriverClassName() != null) {
-            dataSource.setDriverClassName(properties.getDriverClassName());
+        dataSource.setUrl(dataSourceProperties.getUrl());
+        dataSource.setUsername(dataSourceProperties.getUsername());
+        dataSource.setPassword(dataSourceProperties.getPassword());
+        if (dataSourceProperties.getDriverClassName() != null) {
+            dataSource.setDriverClassName(dataSourceProperties.getDriverClassName());
         }
 
         TerraMysqlProperties.DruidProperties druid = properties.getDruid();

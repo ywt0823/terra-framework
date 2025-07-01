@@ -17,25 +17,6 @@ public class TerraMysqlProperties {
      */
     private boolean enabled = false;
 
-    /**
-     * JDBC URL of the database.
-     */
-    private String url;
-
-    /**
-     * Login user of the database.
-     */
-    private String username;
-
-    /**
-     * Login password of the database.
-     */
-    private String password;
-
-    /**
-     * Fully qualified name of the JDBC driver. Auto-detected based on the URL by default.
-     */
-    private String driverClassName;
 
     /**
      * Druid specific properties.
@@ -57,4 +38,4 @@ public class TerraMysqlProperties {
         private boolean poolPreparedStatements = true;
         private int maxPoolPreparedStatementPerConnectionSize = 20;
     }
-} 
+}
