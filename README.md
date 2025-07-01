@@ -127,4 +127,30 @@ Contributions are welcome! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md
 
 ## License
 
-This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for details. 
+This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for details.
+
+## Framework Enhancement Summary (Recent Improvements)
+
+This section summarizes the key architectural and functional enhancements recently applied to the framework, significantly improving its robustness, flexibility, and production-readiness.
+
+### 1. Decoupling and Dependency Injection (`terra-sediment` & `terra-bedrock`)
+- **`JsonUtils` Refactoring**: `JsonUtils` in the `terra-sediment` module has been refactored into a pure utility class, removing its dependency on the Spring framework. It is now initialized via a static `init(ObjectMapper)` method.
+- **Safe Initialization**: In `terra-bedrock`, a dedicated `JsonAutoConfiguration` now safely injects the Spring-managed `ObjectMapper` into `JsonUtils` at startup, ensuring decoupling while maintaining convenience.
+- **`ILock` Enhancement**: Introduced `NoOpLock`, a no-operation implementation of the `ILock` interface, which serves as a default for environments without a distributed lock, preventing NullPointerExceptions and improving the out-of-the-box experience.
+
+### 2. Pluggable Distributed Tracing (`terra-bedrock` & `terra-crust`)
+- **TraceId Generation Abstraction**: Introduced a `TraceIdGenerator` interface in `terra-bedrock`, decoupling the trace ID generation logic from its implementation.
+- **Default and Extensible Implementation**: Provided `UUIDTraceIdGenerator` as the default implementation. Using Spring's `@ConditionalOnMissingBean`, users can now easily provide their own `TraceIdGenerator` bean (e.g., for SkyWalking) to override the default behavior.
+- **Dependency Injection**: Refactored `TerraTraceFilter` and `TraceHelper` to receive the `TraceIdGenerator` via dependency injection, eliminating hard-coded dependencies.
+
+### 3. Advanced Cache Protection (`terra-geyser`)
+- **Cache Security Shield**: Enhanced the caching mechanism with a "security shield" to actively prevent cache breakdown and penetration.
+- **Configurable Protection**: Added `breakdownProtection` and `penetrationProtection` flags in `CacheProperties` to enable/disable these features.
+- **Implementation Details**:
+    - **Breakdown Protection**: When enabled, the `RedissonCacheOperation` uses a distributed lock (`RLock`) to ensure that only one thread queries the database when a cache miss occurs.
+    - **Penetration Protection**: Created a serializable `CacheNull` object. If a database query returns `null`, `CacheNull.INSTANCE` is stored in the cache to prevent subsequent requests for the same non-existent data from hitting the database.
+
+### 4. Production-Ready AI Conversation Memory (`terra-nova`)
+- **Persistent Conversation History**: Addressed the limitation of the default `InMemoryConversationMemory` by creating `RedisConversationMemory`. This new implementation uses Redis (`RList`) to persist conversation history, ensuring that chat sessions are not lost upon application restart.
+- **Seamless Integration & Type Safety**: The implementation was carefully aligned with the latest `Spring AI 1.1.0 GA` standards, letting `Redisson` handle `Message` object serialization directly for improved type safety and code simplicity.
+- **Switchable Implementations**: `ConversationMemoryAutoConfiguration` was refactored to be more intelligent. It now uses the `terra.ai.memory.type` property (`in-memory` or `redis`) to conditionally load the appropriate `ConversationMemory` bean, offering flexible configuration for different deployment environments. 

@@ -1,12 +1,13 @@
 package com.terra.framework.crust.config;
 
 import com.terra.framework.bedrock.config.log.LogAutoConfiguration;
+import com.terra.framework.bedrock.trace.TraceIdGenerator;
+import com.terra.framework.bedrock.trace.UUIDTraceIdGenerator;
 import com.terra.framework.common.log.LogPattern;
 import com.terra.framework.crust.filter.TerraTraceFilter;
 import com.terra.framework.crust.properties.TerraTraceProperties;
 import com.terra.framework.crust.trace.TraceContextHolder;
 import com.terra.framework.crust.trace.TraceDataCollector;
-import com.terra.framework.crust.trace.TraceIdGenerator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,6 +16,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import com.terra.framework.bedrock.trace.TraceHelper;
 
 @Configuration
 @EnableConfigurationProperties(TerraTraceProperties.class)
@@ -24,7 +26,7 @@ public class TerraTraceAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public TraceIdGenerator traceIdGenerator() {
-        return new TraceIdGenerator();
+        return new UUIDTraceIdGenerator();
     }
 
     @Bean
@@ -33,6 +35,14 @@ public class TerraTraceAutoConfiguration {
         return new TraceContextHolder();
     }
 
+    /**
+     * 用于初始化TraceHelper的专用Bean.
+     * 它依赖于TraceIdGenerator Bean，确保在执行初始化时，TraceIdGenerator已经准备就绪.
+     */
+    @Bean
+    public TraceHelperInitializer traceHelperInitializer(TraceIdGenerator traceIdGenerator) {
+        return new TraceHelperInitializer(traceIdGenerator);
+    }
 
     @Bean
     @ConditionalOnProperty(prefix = "terra.trace", name = "collector.enabled", havingValue = "true", matchIfMissing = true)
@@ -56,5 +66,14 @@ public class TerraTraceAutoConfiguration {
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
 
         return registration;
+    }
+
+    /**
+     * 初始化TraceHelper的内部类
+     */
+    private static class TraceHelperInitializer {
+        public TraceHelperInitializer(TraceIdGenerator traceIdGenerator) {
+            TraceHelper.init(traceIdGenerator);
+        }
     }
 }

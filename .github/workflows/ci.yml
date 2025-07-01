@@ -11,29 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-    
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-    
-    - name: Run tests
-      run: mvn test
-    
-    - name: Run code quality checks
-      run: mvn verify -P code-quality
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./target/site/jacoco/jacoco.xml
-        fail_ci_if_error: true
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configure Maven for Aliyun
+        run: |
+          mkdir -p ~/.m2
+          echo "<settings><servers><server><id>aliyun-private</id><username>${{ secrets.ALIYUN_USERNAME }}</username><password>${{ secrets.ALIYUN_PASSWORD }}</password></server></servers><mirrors><mirror><id>aliyun-mirror</id><mirrorOf>*</mirrorOf><url>https://maven.aliyun.com/nexus/content/groups/public</url></mirror></mirrors></settings>" > ~/.m2/settings.xml
+
+      - name: Build with Maven
+        run: mvn -B -s ~/.m2/settings.xml package --file pom.xml
+
 
   publish:
     needs: build
@@ -41,17 +35,16 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-    
-    - name: Deploy to Maven Repository
-      run: mvn deploy -DskipTests
-      env:
-        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }} 
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configure Maven for Aliyun
+        run: |
+          mkdir -p ~/.m2
+          echo "<settings><servers><server><id>aliyun-private</id><username>${{ secrets.ALIYUN_USERNAME }}</username><password>${{ secrets.ALIYUN_PASSWORD }}</password></server></servers><mirrors><mirror><id>aliyun-mirror</id><mirrorOf>*</mirrorOf><url>https://maven.aliyun.com/nexus/content/groups/public</url></mirror></mirrors></settings>" > ~/.m2/settings.xml

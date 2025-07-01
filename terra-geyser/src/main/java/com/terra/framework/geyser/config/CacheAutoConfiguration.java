@@ -22,8 +22,8 @@ public class CacheAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(RedissonClient.class)
-    public CacheFactory RedissonCacheFactory(RedissonClient redissonClient) {
-        return new RedissonCacheFactory(redissonClient);
+    public CacheFactory RedissonCacheFactory(RedissonClient redissonClient, CacheProperties cacheProperties) {
+        return new RedissonCacheFactory(redissonClient, cacheProperties);
     }
 
     @Bean

@@ -1,5 +1,6 @@
 package com.terra.framework.geyser.util;
 
+import com.terra.framework.geyser.config.CacheProperties;
 import com.terra.framework.geyser.factory.CacheFactory;
 import com.terra.framework.geyser.options.CacheOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -43,21 +44,21 @@ public class CacheUtils {
     public <K, V> CacheOperation<K, V> getCache(String name) {
         return cacheFactory.getCache(name);
     }
-    
+
     /**
      * 获取所有缓存的统计信息
      */
     public Map<String, String> getAllCacheStats() {
         Map<String, String> statsMap = new HashMap<>();
-        
+
         // 遍历缓存工厂中注册的所有缓存，收集统计信息
         for (Map.Entry<String, CacheOperation<?, ?>> entry : cacheRegistry.entrySet()) {
             statsMap.put(entry.getKey(), entry.getValue().getStats());
         }
-        
+
         return statsMap;
     }
-    
+
     /**
      * 清除指定缓存的所有数据
      */
@@ -68,7 +69,7 @@ public class CacheUtils {
             log.info("已清空缓存: {}", cacheName);
         }
     }
-    
+
     /**
      * 清除所有缓存
      */
@@ -78,7 +79,7 @@ public class CacheUtils {
         }
         log.info("已清空所有缓存");
     }
-    
+
     /**
      * 注册缓存到注册表
      */
@@ -87,3 +88,4 @@ public class CacheUtils {
         cacheRegistry.put(name, cache);
     }
 }
+
