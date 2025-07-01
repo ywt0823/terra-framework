@@ -7,6 +7,7 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.util.Assert;
 
 @EnableConfigurationProperties(TerraAiProperties.class)
 @ConditionalOnProperty(prefix = "terra.ai.deepseek", name = "enabled", havingValue = "true")
+@ConditionalOnClass(TerraAiProperties.class)
 public class DeepSeekAutoConfiguration {
 
     private final TerraAiProperties properties;
@@ -24,6 +26,7 @@ public class DeepSeekAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(ChatModel.class)
     @ConditionalOnProperty(prefix = "terra.ai.deepseek.chat", name = "enabled", havingValue = "true", matchIfMissing = true)
     public ChatModel deepSeekChatModel() {
         TerraAiProperties.DeepSeekProperties deepSeek = properties.getDeepseek();
@@ -35,6 +38,7 @@ public class DeepSeekAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(EmbeddingModel.class)
     @ConditionalOnProperty(prefix = "terra.ai.deepseek.embedding", name = "enabled", havingValue = "true", matchIfMissing = true)
     public EmbeddingModel deepSeekEmbeddingModel() {
         TerraAiProperties.DeepSeekProperties deepSeek = properties.getDeepseek();

@@ -9,7 +9,6 @@ import com.terra.framework.nova.template.RagTemplate;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -19,8 +18,7 @@ import org.springframework.context.annotation.Import;
 /**
  * @author AI
  */
-@AutoConfiguration
-@ConditionalOnClass(TerraAiProperties.class)
+@ConditionalOnClass({TerraAiProperties.class, RagOperations.class, ConversationOperations.class})
 @EnableConfigurationProperties(TerraAiProperties.class)
 @Import({
     DeepSeekAutoConfiguration.class,

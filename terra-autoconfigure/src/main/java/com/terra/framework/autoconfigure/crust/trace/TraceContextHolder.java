@@ -2,7 +2,6 @@ package com.terra.framework.autoconfigure.crust.trace;
 
 import lombok.Data;
 import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
@@ -11,7 +10,6 @@ import java.util.Map;
 /**
  * 链路追踪上下文持有器，通过ThreadLocal传递跟踪信息
  */
-@Component
 @Data
 public class TraceContextHolder {
 

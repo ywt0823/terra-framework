@@ -1,10 +1,11 @@
 package com.terra.framework.autoconfigure.geyser.config;
 
+import com.terra.framework.autoconfigure.geyser.monitor.CacheMonitorService;
 import com.terra.framework.autoconfigure.geyser.properties.CacheProperties;
 import com.terra.framework.geyser.factory.CacheFactory;
 import com.terra.framework.geyser.factory.DefaultCacheFactory;
-import com.terra.framework.autoconfigure.geyser.monitor.CacheMonitorService;
 import com.terra.framework.geyser.util.CacheUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,8 @@ import org.springframework.context.annotation.Bean;
  *
  * @author terra
  */
-@EnableConfigurationProperties(CacheProperties.class)
+@ConditionalOnClass({CacheProperties.class, CacheFactory.class, CacheUtils.class})
+@EnableConfigurationProperties({CacheProperties.class})
 public class CacheAutoConfiguration {
 
 

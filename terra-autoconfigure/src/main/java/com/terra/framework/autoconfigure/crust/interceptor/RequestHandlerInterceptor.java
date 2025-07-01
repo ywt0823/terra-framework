@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.util.LambdaSafe;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -21,7 +20,6 @@ import static com.terra.framework.crust.web.WebUtil.getPathWithinApplication;
  * @description
  * @date 2022年12月25日 20:53
  */
-@Configuration
 @Slf4j
 public class RequestHandlerInterceptor implements HandlerInterceptor {
 

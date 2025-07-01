@@ -10,7 +10,7 @@ import com.terra.framework.autoconfigure.bedrock.config.log.LogAutoConfiguration
 import com.terra.framework.autoconfigure.bedrock.properties.json.JsonProperties;
 import com.terra.framework.common.util.common.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,7 +28,7 @@ import java.text.SimpleDateFormat;
 @ConditionalOnClass(JsonUtils.class)
 @ConditionalOnProperty(prefix = "terra.json", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(JsonProperties.class)
-@AutoConfiguration(after = LogAutoConfiguration.class)
+@AutoConfigureAfter(LogAutoConfiguration.class)
 public class JsonAutoConfiguration {
 
     /**

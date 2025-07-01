@@ -3,6 +3,7 @@ package com.terra.framework.autoconfigure.nova.properties;
 import lombok.Data;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -12,6 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(prefix = "terra.ai")
+@ConditionalOnClass({OpenAiChatOptions.class, OpenAiEmbeddingOptions.class})
 public class TerraAiProperties {
 
     /**
@@ -36,19 +38,19 @@ public class TerraAiProperties {
     public static class ChatProperties {
         private boolean enabled = true;
         private OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .withModel("deepseek-chat")
-                .withTemperature(0.7f)
-                .build();
+            .withModel("deepseek-chat")
+            .withTemperature(0.7f)
+            .build();
     }
 
     @Data
     public static class EmbeddingProperties {
         private boolean enabled = true;
         private OpenAiEmbeddingOptions options = OpenAiEmbeddingOptions.builder()
-                .withModel("deepseek-text-embedding-v2")
-                .build();
+            .withModel("deepseek-text-embedding-v2")
+            .build();
     }
-    
+
     @Data
     public static class VectorStoreProperties {
         /**
@@ -57,7 +59,7 @@ public class TerraAiProperties {
          */
         private String type = "in-memory";
     }
-    
+
     @Data
     public static class MemoryProperties {
         /**

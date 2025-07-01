@@ -42,26 +42,31 @@
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-crust</artifactId>
             <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-geyser</artifactId>
             <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-nova</artifactId>
             <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-strata</artifactId>
             <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.terra.framework</groupId>
             <artifactId>terra-sediment</artifactId>
             <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
 
 

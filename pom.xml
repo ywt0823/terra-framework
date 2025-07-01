@@ -19,6 +19,11 @@
         <module>terra-spring-boot-projects</module>
         <module>terra-autoconfigure</module>
         <module>terra-spring-boot-starter</module>
+        <module>terra-bedrock-spring-boot-starter</module>
+        <module>terra-strata-spring-boot-starter</module>
+        <module>terra-geyser-spring-boot-starter</module>
+        <module>terra-nova-spring-boot-starter</module>
+        <module>terra-crust-spring-boot-starter</module>
     </modules>
 
     <properties>

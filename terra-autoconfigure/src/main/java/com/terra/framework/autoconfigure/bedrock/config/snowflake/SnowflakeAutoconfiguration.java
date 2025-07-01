@@ -4,7 +4,7 @@ import com.terra.framework.autoconfigure.bedrock.config.log.LogAutoConfiguration
 import com.terra.framework.autoconfigure.bedrock.properties.snowflake.SnowflakeProperties;
 import com.terra.framework.common.log.LogPattern;
 import com.terra.framework.common.util.sequence.SnowflakeUtils;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Bean;
  * @date 2023/9/2 14:50
  **/
 @EnableConfigurationProperties(SnowflakeProperties.class)
-@AutoConfiguration(after = LogAutoConfiguration.class)
+@AutoConfigureAfter(LogAutoConfiguration.class)
 public class SnowflakeAutoconfiguration {
 
     @Bean

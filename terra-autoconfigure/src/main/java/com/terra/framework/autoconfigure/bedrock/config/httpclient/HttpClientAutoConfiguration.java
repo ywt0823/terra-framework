@@ -9,7 +9,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,39 +25,39 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnClass(HttpClientUtils.class)
 @ConditionalOnProperty(prefix = "terra.httpclient", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(HttpclientConnectProperties.class)
-@AutoConfiguration(after = LogAutoConfiguration.class)
+@AutoConfigureAfter(LogAutoConfiguration.class)
 public class HttpClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
     public HttpClientConfig httpClientConfig(HttpclientConnectProperties properties) {
         return HttpClientConfig.builder()
-                .connectTimeout(properties.getConnectTimeout())
-                .readTimeout(properties.getSocketTimeout())
-                .maxTotalConnections(properties.getRequestMaxNum())
-                .maxConnectionsPerRoute(properties.getMaxPerRoute())
-                .retryEnabled(properties.getRetryEnabled())
-                .maxRetryCount(properties.getMaxRetryCount())
-                .validateSSLCertificate(properties.getValidateSslCertificate())
-                .closeResponseAfterExecution(true)
-                .threadPoolSize(properties.getThreadPoolSize())
-                .build();
+            .connectTimeout(properties.getConnectTimeout())
+            .readTimeout(properties.getSocketTimeout())
+            .maxTotalConnections(properties.getRequestMaxNum())
+            .maxConnectionsPerRoute(properties.getMaxPerRoute())
+            .retryEnabled(properties.getRetryEnabled())
+            .maxRetryCount(properties.getMaxRetryCount())
+            .validateSSLCertificate(properties.getValidateSslCertificate())
+            .closeResponseAfterExecution(true)
+            .threadPoolSize(properties.getThreadPoolSize())
+            .build();
     }
 
     @Bean
     @ConditionalOnMissingBean
     public CloseableHttpClient closeableHttpClient(HttpClientConfig httpClientConfig) {
         PoolingHttpClientConnectionManager connectionManager =
-                HttpClientUtils.createConnectionManager(httpClientConfig);
+            HttpClientUtils.createConnectionManager(httpClientConfig);
 
         HttpClientBuilder httpClientBuilder = HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .setConnectionManagerShared(false)
-                .setDefaultRequestConfig(HttpClientUtils.createRequestConfig(httpClientConfig));
+            .setConnectionManager(connectionManager)
+            .setConnectionManagerShared(false)
+            .setDefaultRequestConfig(HttpClientUtils.createRequestConfig(httpClientConfig));
 
         if (httpClientConfig.isRetryEnabled()) {
             httpClientBuilder.setRetryStrategy(
-                    HttpClientUtils.createRetryStrategy(httpClientConfig.getMaxRetryCount()));
+                HttpClientUtils.createRetryStrategy(httpClientConfig.getMaxRetryCount()));
         }
 
         return httpClientBuilder.build();
@@ -66,8 +66,8 @@ public class HttpClientAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public HttpClientUtils httpClientUtils(CloseableHttpClient closeableHttpClient,
-                                          HttpClientConfig httpClientConfig,
-                                          LogPattern logPattern) {
+                                           HttpClientConfig httpClientConfig,
+                                           LogPattern logPattern) {
         HttpClientUtils httpClientUtils = new HttpClientUtils(closeableHttpClient, httpClientConfig);
         logPattern.formalize("自动装配 terra-http-client 成功");
         return httpClientUtils;

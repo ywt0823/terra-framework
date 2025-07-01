@@ -38,17 +38,20 @@ public class TerraTraceAutoConfiguration {
      * 它依赖于TraceIdGenerator Bean，确保在执行初始化时，TraceIdGenerator已经准备就绪.
      */
     @Bean
+    @ConditionalOnMissingBean
     public TraceHelperInitializer traceHelperInitializer(TraceIdGenerator traceIdGenerator) {
         return new TraceHelperInitializer(traceIdGenerator);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "terra.trace", name = "collector.enabled", havingValue = "true", matchIfMissing = true)
     public TraceDataCollector traceDataCollector(LogPattern logPattern, TerraTraceProperties traceProperties) {
         return new TraceDataCollector(logPattern, traceProperties);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public FilterRegistrationBean<TerraTraceFilter> traceFilterRegistration(
         TraceIdGenerator traceIdGenerator,
         TraceContextHolder contextHolder,

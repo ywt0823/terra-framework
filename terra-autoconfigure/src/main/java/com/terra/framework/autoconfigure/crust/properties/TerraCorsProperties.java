@@ -1,5 +1,6 @@
 package com.terra.framework.autoconfigure.crust.properties;
 
+import com.google.common.collect.Lists;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -29,7 +30,7 @@ public class TerraCorsProperties {
     /**
      * List of allowed HTTP methods.
      */
-    private List<String> allowedMethods = List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH");
+    private List<String> allowedMethods = Lists.newArrayList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH");
 
     /**
      * List of allowed headers. Default is ["*"].
@@ -45,9 +46,9 @@ public class TerraCorsProperties {
      * The value of the 'max-age' header in the pre-flight response in seconds.
      */
     private long maxAge = 3600L;
-    
+
     /**
      * The path pattern to which this CORS configuration applies.
      */
     private String mapping = "/**";
-} 
+}

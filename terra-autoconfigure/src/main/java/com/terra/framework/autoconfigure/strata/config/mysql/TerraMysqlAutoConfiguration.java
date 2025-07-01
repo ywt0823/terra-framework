@@ -1,13 +1,12 @@
 package com.terra.framework.autoconfigure.strata.config.mysql;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.google.common.collect.Lists;
-import com.terra.framework.strata.exception.ValhallaDataVersionException;
 import com.terra.framework.autoconfigure.strata.properties.TerraMysqlProperties;
+import com.terra.framework.strata.exception.ValhallaDataVersionException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
