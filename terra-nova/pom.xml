@@ -28,13 +28,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson</artifactId>
-            <version>3.33.0</version>
-            <optional>true</optional>
-        </dependency>
-
 
         <dependency>
             <groupId>group.springframework.ai</groupId>
