@@ -10,15 +10,21 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>terra-sediment</module>
         <module>terra-bedrock</module>
         <module>terra-crust</module>
-        <module>terra-spring-boot-starter</module>
-        <module>terra-strata</module>
         <module>terra-geyser</module>
         <module>terra-nova</module>
+        <module>terra-strata</module>
+        <module>terra-sediment</module>
         <module>terra-spring-boot-projects</module>
+        <module>terra-autoconfigure</module>
+        <module>terra-spring-boot-starter</module>
     </modules>
 
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.boot.version>3.3.0</spring.boot.version>
+    </properties>
 
 </project>
