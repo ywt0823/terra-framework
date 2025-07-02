@@ -1,9 +1,7 @@
 package com.terra.framework.autoconfigure.nova.properties;
 
 import lombok.Data;
-import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.OpenAiEmbeddingOptions;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.ai.model.SpringAIModels;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -12,66 +10,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author AI
  */
 @Data
-@ConfigurationProperties(prefix = "terra.ai")
-@ConditionalOnClass({OpenAiChatOptions.class, OpenAiEmbeddingOptions.class})
+@ConfigurationProperties(prefix = "spring.ai.model")
 public class TerraAiProperties {
 
-    /**
-     * Enable AI features. Defaults to false.
-     */
-    private boolean enabled = true;
+    private SpringAIModels modelType;
 
-    private String model = "deepseek-reasoner";
 
-    private TerraAiConnectionProperties deepseek = new TerraAiConnectionProperties();
-    private VectorStoreProperties vectorStore = new VectorStoreProperties();
-    private MemoryProperties memory = new MemoryProperties();
-
-    @Data
-    public static class TerraAiConnectionProperties {
-        private boolean enabled = true;
-        private String baseUrl = "https://api.deepseek.com/v1";
-        private String apiKey;
-        private TerraAiChatProperties chat = new TerraAiChatProperties();
-        private TerraAiEmbeddingProperties embedding = new TerraAiEmbeddingProperties();
-    }
-
-    @Data
-    public static class TerraAiChatProperties {
-        private boolean enabled = true;
-        private OpenAiChatOptions options = OpenAiChatOptions.builder()
-            .withModel("deepseek-chat")
-            .withTemperature(0.7f)
-            .build();
-    }
-
-    @Data
-    public static class TerraAiEmbeddingProperties {
-        private boolean enabled = true;
-        private OpenAiEmbeddingOptions options = OpenAiEmbeddingOptions.builder()
-            .withModel("deepseek-text-embedding-v2")
-            .build();
-    }
-
-    @Data
-    public static class VectorStoreProperties {
-        /**
-         * The type of vector store to use.
-         * Supported values: 'in-memory', 'redis'.
-         */
-        private String type = "in-memory";
-    }
-
-    @Data
-    public static class MemoryProperties {
-        /**
-         * The type of conversation memory to use.
-         * Supported values: 'in-memory'.
-         */
-        private String type = "in-memory";
-        /**
-         * The maximum number of recent conversation exchanges to keep.
-         */
-        private int maxHistory = 10;
-    }
 }

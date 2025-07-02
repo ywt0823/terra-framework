@@ -39,11 +39,6 @@
       "name": "terra.cache",
       "type": "com.terra.framework.autoconfigure.geyser.properties.CacheProperties",
       "sourceType": "com.terra.framework.autoconfigure.geyser.properties.CacheProperties"
-    },
-    {
-      "name": "terra.ai",
-      "type": "com.terra.framework.autoconfigure.nova.properties.TerraAiProperties",
-      "sourceType": "com.terra.framework.autoconfigure.nova.properties.TerraAiProperties"
     }
   ],
   "properties": [
@@ -274,69 +269,6 @@
       "type": "java.lang.Long",
       "description": "监控日志输出间隔(毫秒)",
       "defaultValue": 300000
-    },
-    {
-      "name": "terra.ai.enabled",
-      "type": "java.lang.Boolean",
-      "description": "Enable AI features. Defaults to false.",
-      "defaultValue": false
-    },
-    {
-      "name": "terra.ai.deepseek.enabled",
-      "type": "java.lang.Boolean",
-      "defaultValue": false
-    },
-    {
-      "name": "terra.ai.deepseek.base-url",
-      "type": "java.lang.String",
-      "defaultValue": "https://api.deepseek.com/v1"
-    },
-    {
-      "name": "terra.ai.deepseek.api-key",
-      "type": "java.lang.String"
-    },
-    {
-      "name": "terra.ai.deepseek.chat.enabled",
-      "type": "java.lang.Boolean",
-      "defaultValue": true
-    },
-    {
-      "name": "terra.ai.deepseek.chat.options.model",
-      "type": "java.lang.String",
-      "defaultValue": "deepseek-chat"
-    },
-    {
-      "name": "terra.ai.deepseek.chat.options.temperature",
-      "type": "java.lang.Float",
-      "defaultValue": 0.7
-    },
-    {
-      "name": "terra.ai.deepseek.embedding.enabled",
-      "type": "java.lang.Boolean",
-      "defaultValue": true
-    },
-    {
-      "name": "terra.ai.deepseek.embedding.options.model",
-      "type": "java.lang.String",
-      "defaultValue": "deepseek-text-embedding-v2"
-    },
-    {
-      "name": "terra.ai.vector-store.type",
-      "type": "java.lang.String",
-      "description": "The type of vector store to use. Supported values: 'in-memory', 'redis'.",
-      "defaultValue": "in-memory"
-    },
-    {
-      "name": "terra.ai.memory.type",
-      "type": "java.lang.String",
-      "description": "The type of conversation memory to use. Supported values: 'in-memory'.",
-      "defaultValue": "in-memory"
-    },
-    {
-      "name": "terra.ai.memory.max-history",
-      "type": "java.lang.Integer",
-      "description": "The maximum number of recent conversation exchanges to keep.",
-      "defaultValue": 10
     }
   ]
 }

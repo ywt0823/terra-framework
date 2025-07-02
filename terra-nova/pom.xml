@@ -28,12 +28,6 @@
             <version>${project.version}</version>
         </dependency>
 
-
-        <dependency>
-            <groupId>group.springframework.ai</groupId>
-            <artifactId>spring-ai-core</artifactId>
-            <version>1.1.0</version>
-        </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
@@ -44,17 +38,32 @@
             <artifactId>jakarta.servlet-api</artifactId>
             <version>6.0.0</version>
         </dependency>
+
         <dependency>
-            <groupId>group.springframework.ai</groupId>
+            <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-openai</artifactId>
-            <version>1.1.0</version>
+            <version>1.0.0</version>
+            <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-vector-store</artifactId>
+            <version>1.0.0</version>
+            <optional>true</optional>
+        </dependency>
 
         <dependency>
-            <groupId>group.springframework.ai</groupId>
-            <artifactId>spring-ai-redis-store</artifactId>
-            <version>1.1.0</version>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp</artifactId>
+            <version>1.0.0</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-deepseek</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
     </dependencies>
