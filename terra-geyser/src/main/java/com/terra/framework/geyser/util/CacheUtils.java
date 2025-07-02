@@ -1,5 +1,6 @@
 package com.terra.framework.geyser.util;
 
+import com.terra.framework.geyser.config.CacheProperties;
 import com.terra.framework.geyser.factory.CacheFactory;
 import com.terra.framework.geyser.options.CacheOperation;
 import lombok.extern.slf4j.Slf4j;
