@@ -206,7 +206,7 @@ public final class JsonUtils {
         }
         try {
             return o instanceof String
-                    ? (String) o
+                ? (String) o
                     : objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(o);
         } catch (JsonProcessingException e) {
             log.error("json转换失败, 原因: {}", e.getMessage());

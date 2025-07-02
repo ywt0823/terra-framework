@@ -2,20 +2,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+
     <groupId>com.terra.framework</groupId>
     <artifactId>terra-spring-boot-starter</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <name>terra-spring-boot-starter</name>
-
-    <modules>
-        <module>terra-bedrock-spring-boot-starter</module>
-        <module>terra-crust-spring-boot-starter</module>
-        <module>terra-strata-spring-boot-starter</module>
-        <module>terra-geyser-spring-boot-starter</module>
-        <module>terra-nova-spring-boot-starter</module>
-    </modules>
 
 
     <properties>
@@ -29,36 +22,20 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.terra.framework</groupId>
+            <artifactId>terra-autoconfigure</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+
+    </dependencies>
+
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-bedrock</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-crust</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-geyser</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-strata</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.terra.framework</groupId>
-                <artifactId>terra-bedrock-spring-boot-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-
-            <!--外部依赖-->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-web</artifactId>
@@ -93,6 +70,21 @@
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>3.33.0</version>
+            </dependency>
+            <dependency>
+                <groupId>group.springframework.ai</groupId>
+                <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+                <version>1.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>group.springframework.ai</groupId>
+                <artifactId>spring-ai-redis-store-spring-boot-starter</artifactId>
+                <version>1.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>group.springframework.ai</groupId>
+                <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
+                <version>1.1.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

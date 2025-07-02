@@ -14,7 +14,7 @@
 
 	<modules>
 		<module>terra-spring-boot-dependencies</module>
-		<module>terra-boot-parent-starter</module>
+		<module>terra-boot-starter-parent</module>
 	</modules>
 
 

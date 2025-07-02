@@ -1,2 +1,0 @@
-com.terra.framework.strata.config.mysql.TerraMysqlAutoConfiguration
-com.terra.framework.strata.config.redis.TerraRedisAutoConfiguration

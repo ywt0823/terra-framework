@@ -1,13 +1,8 @@
 package com.terra.framework.nova.memory;
 
-import com.terra.framework.nova.properties.TerraAiProperties;
 import org.springframework.ai.chat.messages.Message;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryConversationMemory implements ConversationMemory {
@@ -16,8 +11,8 @@ public class InMemoryConversationMemory implements ConversationMemory {
     private final Map<String, LinkedList<Message>> messageHistory = new ConcurrentHashMap<>();
     private final int maxHistory;
 
-    public InMemoryConversationMemory(TerraAiProperties.MemoryProperties memoryProperties) {
-        this.maxHistory = memoryProperties.getMaxHistory();
+    public InMemoryConversationMemory(Integer maxHistory) {
+        this.maxHistory = maxHistory;
     }
 
     @Override
@@ -55,4 +50,4 @@ public class InMemoryConversationMemory implements ConversationMemory {
     public void clear(String sessionId) {
         this.messageHistory.remove(sessionId);
     }
-} 
+}

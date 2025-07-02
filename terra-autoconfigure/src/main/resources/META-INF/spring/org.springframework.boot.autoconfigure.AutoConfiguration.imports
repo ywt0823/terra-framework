@@ -1,0 +1,10 @@
+com.terra.framework.autoconfigure.bedrock.config.httpclient.HttpClientAutoConfiguration
+com.terra.framework.autoconfigure.bedrock.config.json.JsonAutoConfiguration
+com.terra.framework.autoconfigure.bedrock.config.log.LogAutoConfiguration
+com.terra.framework.autoconfigure.bedrock.config.snowflake.SnowflakeAutoconfiguration
+com.terra.framework.autoconfigure.crust.config.TerraWebAutoConfiguration
+com.terra.framework.autoconfigure.geyser.config.CacheAutoConfiguration
+com.terra.framework.autoconfigure.nova.config.TerraAiAutoConfiguration
+com.terra.framework.autoconfigure.nova.config.TerraModelAutoConfiguration
+com.terra.framework.autoconfigure.strata.config.mysql.TerraMysqlAutoConfiguration
+com.terra.framework.autoconfigure.strata.config.redis.TerraRedisAutoConfiguration

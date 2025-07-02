@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.terra.framework</groupId>
+	<artifactId>terra-nova-spring-boot-starter</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>terra-nova-spring-boot-starter</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<spring.ai.version>1.1.0</spring.ai.version>
+		<maven.compiler.source>17</maven.compiler.source>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.terra.framework</groupId>
+			<artifactId>terra-nova</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.terra.framework</groupId>
+			<artifactId>terra-bedrock-spring-boot-starter</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>group.springframework.ai</groupId>
+			<artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+			<version>${spring.ai.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>group.springframework.ai</groupId>
+			<artifactId>spring-ai-redis-store-spring-boot-starter</artifactId>
+			<version>${spring.ai.version}</version>
+		</dependency>
+	</dependencies>
+</project>
