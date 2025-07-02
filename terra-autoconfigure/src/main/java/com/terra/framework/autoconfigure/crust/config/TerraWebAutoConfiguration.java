@@ -86,6 +86,11 @@ public class TerraWebAutoConfiguration {
     }
 
     @Bean
+    public TraceContextHolder traceContextHolder() {
+        return new TraceContextHolder();
+    }
+
+    @Bean
     public TraceIdRequestInterceptor traceIdRequestInterceptor(TraceContextHolder traceContextHolder) {
         return new TraceIdRequestInterceptor(traceContextHolder);
     }

@@ -19,23 +19,25 @@ public class TerraAiProperties {
     /**
      * Enable AI features. Defaults to false.
      */
-    private boolean enabled = false;
+    private boolean enabled = true;
 
-    private DeepSeekProperties deepseek = new DeepSeekProperties();
+    private String model = "deepseek-reasoner";
+
+    private TerraAiConnectionProperties deepseek = new TerraAiConnectionProperties();
     private VectorStoreProperties vectorStore = new VectorStoreProperties();
     private MemoryProperties memory = new MemoryProperties();
 
     @Data
-    public static class DeepSeekProperties {
-        private boolean enabled = false;
+    public static class TerraAiConnectionProperties {
+        private boolean enabled = true;
         private String baseUrl = "https://api.deepseek.com/v1";
         private String apiKey;
-        private ChatProperties chat = new ChatProperties();
-        private EmbeddingProperties embedding = new EmbeddingProperties();
+        private TerraAiChatProperties chat = new TerraAiChatProperties();
+        private TerraAiEmbeddingProperties embedding = new TerraAiEmbeddingProperties();
     }
 
     @Data
-    public static class ChatProperties {
+    public static class TerraAiChatProperties {
         private boolean enabled = true;
         private OpenAiChatOptions options = OpenAiChatOptions.builder()
             .withModel("deepseek-chat")
@@ -44,7 +46,7 @@ public class TerraAiProperties {
     }
 
     @Data
-    public static class EmbeddingProperties {
+    public static class TerraAiEmbeddingProperties {
         private boolean enabled = true;
         private OpenAiEmbeddingOptions options = OpenAiEmbeddingOptions.builder()
             .withModel("deepseek-text-embedding-v2")

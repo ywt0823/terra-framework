@@ -9,16 +9,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @EnableConfigurationProperties(TerraAiProperties.class)
 @ConditionalOnProperty(prefix = "terra.ai.memory", name = "type", havingValue = "in-memory", matchIfMissing = true)
-@AutoConfigureAfter(DeepSeekAutoConfiguration.class)
+@AutoConfigureAfter(TerraModelAutoConfiguration.class)
 @ConditionalOnClass(ConversationMemory.class)
-public class ConversationMemoryAutoConfiguration {
+public class TerraConversationMemoryAutoConfiguration {
 
 
     @Bean
     @ConditionalOnMissingBean
+    @Primary
     public ConversationMemory inMemoryConversationMemory(TerraAiProperties properties) {
         return new InMemoryConversationMemory(properties.getMemory().getMaxHistory());
     }

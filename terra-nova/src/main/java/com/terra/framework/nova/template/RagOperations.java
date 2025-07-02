@@ -1,6 +1,7 @@
 package com.terra.framework.nova.template;
 
 import org.springframework.ai.document.Document;
+
 import java.util.List;
 
 /**
@@ -17,13 +18,5 @@ public interface RagOperations {
      */
     void add(List<Document> documents);
 
-    /**
-     * Asks a question to the AI model using the RAG pattern.
-     * The method will first find relevant documents from the vector store
-     * and use them as context to answer the question.
-     *
-     * @param query The user's question.
-     * @return The AI's answer.
-     */
-    String ask(String query);
+
 }
