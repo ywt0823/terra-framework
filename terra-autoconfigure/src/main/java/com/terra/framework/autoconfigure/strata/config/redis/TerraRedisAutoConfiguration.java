@@ -18,7 +18,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,11 +39,6 @@ import org.springframework.util.StringUtils;
 @ConditionalOnProperty(prefix = "spring.data.redis.lettuce", name = "pool.enabled", havingValue = "true")
 public class TerraRedisAutoConfiguration {
 
-    @Bean
-    @ConfigurationProperties(prefix = "spring.data.redis")
-    public RedisProperties dataSource() {
-        return new RedisProperties();
-    }
 
     @Bean
     @ConditionalOnMissingBean
