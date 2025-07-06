@@ -55,7 +55,7 @@ public class LogPattern {
     public String formalize(String msg, String... arguments) {
         try {
             if (arguments == null || arguments.length == 0) {
-                if (msg == null || "".equals(msg)) {
+                if (msg == null || msg.isEmpty()) {
                     return format(msg, false);
                 } else {
                     return String.format(format(msg, false), msg);
@@ -69,7 +69,7 @@ public class LogPattern {
                         sbuf.append(",");
                     }
                 }
-                return String.format(format(msg, true), msg, sbuf.toString());
+                return String.format(format(msg, true), msg, sbuf);
             }
         } catch (Exception e) {
             e.printStackTrace();

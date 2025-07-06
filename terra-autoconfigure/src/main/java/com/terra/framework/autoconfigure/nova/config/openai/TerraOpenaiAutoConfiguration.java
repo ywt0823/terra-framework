@@ -6,6 +6,7 @@ import com.terra.framework.nova.client.openai.OpenAiChatClient;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiChatProperties;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiConnectionProperties;
+import org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
@@ -31,7 +32,7 @@ import static org.springframework.ai.model.SpringAIModels.OPENAI;
  */
 @EnableConfigurationProperties(TerraAiProperties.class)
 @ConditionalOnClass({OpenAiConnectionProperties.class, OpenAiChatProperties.class})
-@AutoConfigureAfter({OpenAiChatAutoConfiguration.class})
+@AutoConfigureAfter({OpenAiChatAutoConfiguration.class, OpenAiEmbeddingAutoConfiguration.class})
 @ConditionalOnModelEnabled(OPENAI)
 public class TerraOpenaiAutoConfiguration {
 

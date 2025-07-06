@@ -79,7 +79,7 @@ public final class WebUtil {
 
     /// ///////////////////////////cookie相关////////////////////////////////////////////////////////////////////////////
     public static Cookie getCookie(HttpServletRequest request, String cookieName) {
-        Cookie cookies[] = request.getCookies();
+        Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(cookieName)) {
@@ -92,7 +92,7 @@ public final class WebUtil {
 
     public static String getCookieValue(HttpServletRequest request, String cookieName) {
         Cookie cookie = getCookie(request, cookieName);
-        return cookie != null && !"null".equals(cookie.getValue().toLowerCase()) ? cookie.getValue() : null;
+        return cookie != null && !"null".equalsIgnoreCase(cookie.getValue()) ? cookie.getValue() : null;
     }
 
     public static void setCookie(HttpServletResponse response, String name, String value, long expire) {
@@ -143,7 +143,7 @@ public final class WebUtil {
 
     public static boolean isAjaxRequest(HttpServletRequest request) {
         String requestedWith = request.getHeader("X-Requested-With");
-        return requestedWith != null ? "XMLHttpRequest".equals(requestedWith) : false;
+        return requestedWith != null && "XMLHttpRequest".equals(requestedWith);
     }
 
     public static String getUrl(HttpServletRequest request) {
@@ -259,18 +259,10 @@ public final class WebUtil {
                 String key = equalIndex == -1 ? pair : pair.substring(0, equalIndex);
                 String value = equalIndex == -1 ? null : pair.substring(equalIndex + 1);
 
-                try {
-                    key = URLDecoder.decode(key, "UTF-8");
-                } catch (UnsupportedEncodingException ex) {
-                    // UTF-8 is missing? Allow the key to remain encoded (no reasonable alternative).
-                }
+                key = URLDecoder.decode(key, StandardCharsets.UTF_8);
 
                 if (value != null) {
-                    try {
-                        value = URLDecoder.decode(value, "UTF-8");
-                    } catch (UnsupportedEncodingException ex) {
-                        // UTF-8 is missing? Allow the value to remain encoded (no reasonable alternative).
-                    }
+                    value = URLDecoder.decode(value, StandardCharsets.UTF_8);
                 }
 
                 if (!parameters.containsKey(key)) {

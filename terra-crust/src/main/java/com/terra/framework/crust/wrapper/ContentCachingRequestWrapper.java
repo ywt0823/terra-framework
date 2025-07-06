@@ -60,7 +60,7 @@ public class ContentCachingRequestWrapper extends HttpServletRequestWrapper {
     }
 
     private class ContentCachingInputStream extends ServletInputStream {
-        private ByteArrayInputStream bis;
+        private final ByteArrayInputStream bis;
 
         public ContentCachingInputStream(byte[] payload) throws IOException {
             bis = new ByteArrayInputStream(payload);

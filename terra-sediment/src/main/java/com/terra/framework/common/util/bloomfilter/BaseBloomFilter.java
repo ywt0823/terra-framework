@@ -15,11 +15,11 @@ import javax.annotation.Nullable;
  **/
 public abstract class BaseBloomFilter<T> {
 
-    private int numHashFunctions;
+    private final int numHashFunctions;
 
-    private int bitSize;
+    private final int bitSize;
 
-    private Funnel<T> funnel;
+    private final Funnel<T> funnel;
 
     private static final int NUM_BITS = (int) 1e4;
     private static final double RATE = 0.03;//不存在误判为存在的概率

@@ -39,20 +39,19 @@ public final class IpUtil {
     }
 
     public static String ipToString(long ip) {
-        StringBuffer sb = new StringBuffer("");
-        sb.append(String.valueOf((ip >>> 24)));
-        sb.append(".");
-        sb.append(String.valueOf((ip & 0x00FFFFFF) >>> 16));
-        sb.append(".");
-        sb.append(String.valueOf((ip & 0x0000FFFF) >>> 8));
-        sb.append(".");
-        sb.append(String.valueOf((ip & 0x000000FF)));
-        return sb.toString();
+        String sb = (ip >>> 24) +
+            "." +
+            ((ip & 0x00FFFFFF) >>> 16) +
+            "." +
+            ((ip & 0x0000FFFF) >>> 8) +
+            "." +
+            (ip & 0x000000FF);
+        return sb;
     }
 
     public static String getLocalHostAddress() {
         try {
-            String ip = InetAddress.getLocalHost().getHostAddress().toString();
+            String ip = InetAddress.getLocalHost().getHostAddress();
             if(logger.isDebugEnabled()) {
                 logger.debug("ip of local host:{}", ip);
             }

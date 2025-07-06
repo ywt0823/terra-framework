@@ -25,7 +25,7 @@ public abstract class SysEnv {
      * 本地环境：local，开发环境 dev
      */
     public enum NAMESPACE {
-        local, dev;
+        local, dev
     }
 
     public static String APPLICATION_ENV_DEFAULT_KEY = "APPLICATION_ENV";

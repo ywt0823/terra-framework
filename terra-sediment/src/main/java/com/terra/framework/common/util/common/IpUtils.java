@@ -18,16 +18,16 @@ public class IpUtils {
         Enumeration<NetworkInterface> networkInterfaceLists = null;
         try {
             // 获取网络接口
-            networkInterfaceLists = (Enumeration<NetworkInterface>) NetworkInterface.getNetworkInterfaces();
+            networkInterfaceLists = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e) {
             e.printStackTrace();
         }
         while (networkInterfaceLists.hasMoreElements()) {
-            NetworkInterface networkInterface = (NetworkInterface) networkInterfaceLists.nextElement();
+            NetworkInterface networkInterface = networkInterfaceLists.nextElement();
             Enumeration<InetAddress> ips = networkInterface.getInetAddresses();
             // 遍历所有ip，获取本地地址中不是回环地址的ipv4地址
             while (ips.hasMoreElements()) {
-                inetAddress = (InetAddress) ips.nextElement();
+                inetAddress = ips.nextElement();
                 if (inetAddress instanceof Inet4Address && inetAddress.isSiteLocalAddress()
                         && !inetAddress.isLoopbackAddress()) {
                     isFind = true;
