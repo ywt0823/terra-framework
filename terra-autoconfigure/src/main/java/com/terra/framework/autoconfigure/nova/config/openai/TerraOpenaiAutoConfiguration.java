@@ -29,7 +29,6 @@ import static org.springframework.ai.model.SpringAIModels.OPENAI;
  * @version 1.0.0
  * @since 1.0.0
  */
-@ConditionalOnProperty(prefix = "spring.ai.model", name = "modelType", havingValue = OPENAI)
 @EnableConfigurationProperties(TerraAiProperties.class)
 @ConditionalOnClass({OpenAiConnectionProperties.class, OpenAiChatProperties.class})
 @AutoConfigureAfter({OpenAiChatAutoConfiguration.class})
