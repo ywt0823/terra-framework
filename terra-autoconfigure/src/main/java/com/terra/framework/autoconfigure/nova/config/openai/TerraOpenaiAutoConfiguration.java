@@ -1,21 +1,17 @@
 package com.terra.framework.autoconfigure.nova.config.openai;
 
+import com.terra.framework.autoconfigure.nova.annoation.ConditionalOnModelEnabled;
 import com.terra.framework.autoconfigure.nova.properties.TerraAiProperties;
-import com.terra.framework.nova.template.ConversationTemplate;
-import com.terra.framework.nova.template.RagOperations;
-import com.terra.framework.nova.template.RagTemplate;
-import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
-import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import com.terra.framework.nova.client.openai.OpenAiChatClient;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiChatProperties;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiConnectionProperties;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -24,33 +20,48 @@ import redis.clients.jedis.JedisPooled;
 
 import static org.springframework.ai.model.SpringAIModels.OPENAI;
 
+/**
+ * Terra OpenAI 自动配置类。
+ * <p>
+ * 提供 OpenAI 模型相关的 Bean 配置，包括 OpenAiChatClient、RedisVectorStore 等。
+ *
+ * @author <a href="mailto:love.yu@terra.com">Yu</a>
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 @ConditionalOnProperty(prefix = "spring.ai.model", name = "modelType", havingValue = OPENAI)
 @EnableConfigurationProperties(TerraAiProperties.class)
 @ConditionalOnClass({OpenAiConnectionProperties.class, OpenAiChatProperties.class})
 @AutoConfigureAfter({OpenAiChatAutoConfiguration.class})
+@ConditionalOnModelEnabled(OPENAI)
 public class TerraOpenaiAutoConfiguration {
 
-
+    /**
+     * 创建 OpenAiChatClient Bean。
+     * <p>
+     * 当 OpenAiChatModel Bean 存在时，自动创建 OpenAiChatClient 实例。
+     *
+     * @param openAiChatModel OpenAI 聊天模型实例
+     * @return OpenAiChatClient 实例
+     */
     @Bean
-    @ConditionalOnMissingBean(RagOperations.class)
-    public RagTemplate ragTemplate(OpenAiChatModel chatModel,
-                                   VectorStore vectorStore) {
-        return new RagTemplate(chatModel, vectorStore);
+    @ConditionalOnBean(OpenAiChatModel.class)
+    public OpenAiChatClient openAiChatClient(OpenAiChatModel openAiChatModel) {
+        return new OpenAiChatClient(openAiChatModel);
     }
 
-    @Bean
-    @ConditionalOnMissingBean(ConversationTemplate.class)
-    public ConversationTemplate conversationTemplate(OpenAiChatModel chatModel) {
-        return new ConversationTemplate(chatModel,
-            MessageWindowChatMemory.builder()
-                .chatMemoryRepository(new InMemoryChatMemoryRepository())
-                .maxMessages(20)
-                .build());
-    }
-
-
+    /**
+     * 创建 RedisVectorStore Bean。
+     * <p>
+     * 当 Redis 相关类和 OpenAiEmbeddingModel 可用时，自动创建 RedisVectorStore 实例。
+     *
+     * @param embeddingModel  OpenAI 嵌入模型实例
+     * @param redisProperties Redis 配置属性
+     * @return RedisVectorStore 实例
+     */
     @Bean
     @ConditionalOnClass({RedisProperties.class, RedisVectorStore.class})
+    @ConditionalOnBean(OpenAiEmbeddingModel.class)
     public RedisVectorStore redisVectorStore(OpenAiEmbeddingModel embeddingModel, RedisProperties redisProperties) {
         return RedisVectorStore.builder(new JedisPooled("redis://" + redisProperties.getHost() + ":" + redisProperties.getPort()), embeddingModel)
             .vectorAlgorithm(RedisVectorStore.Algorithm.HSNW)
@@ -64,6 +75,4 @@ public class TerraOpenaiAutoConfiguration {
             .initializeSchema(false)
             .build();
     }
-
-
 }
