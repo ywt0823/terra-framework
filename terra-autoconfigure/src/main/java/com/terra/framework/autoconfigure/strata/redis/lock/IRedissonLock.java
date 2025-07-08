@@ -1,4 +1,4 @@
-package com.terra.framework.autoconfigure.strata.config.redis.lock;
+package com.terra.framework.autoconfigure.strata.redis.lock;
 
 import com.terra.framework.common.lock.AbstractLock;
 import lombok.AllArgsConstructor;

@@ -154,3 +154,60 @@ This section summarizes the key architectural and functional enhancements recent
 - **Persistent Conversation History**: Addressed the limitation of the default `InMemoryConversationMemory` by creating `RedisConversationMemory`. This new implementation uses Redis (`RList`) to persist conversation history, ensuring that chat sessions are not lost upon application restart.
 - **Seamless Integration & Type Safety**: The implementation was carefully aligned with the latest `Spring AI 1.1.0 GA` standards, letting `Redisson` handle `Message` object serialization directly for improved type safety and code simplicity.
 - **Switchable Implementations**: `ConversationMemoryAutoConfiguration` was refactored to be more intelligent. It now uses the `terra.ai.memory.type` property (`in-memory` or `redis`) to conditionally load the appropriate `ConversationMemory` bean, offering flexible configuration for different deployment environments. 
+
+### 5. Dynamic Multi-Datasource Support (`terra-strata`)
+The framework now offers powerful, automated support for multiple datasources without requiring any special configuration flags to enable it. It intelligently detects your datasource configurations and wires everything up automatically.
+
+#### a. Configuration
+Simply define your datasources under the `spring.datasource` prefix in your `application.yml`. The framework will automatically identify and register them. Use the `primary` key to designate a default datasource.
+
+**Example `application.yml`:**
+```yaml
+spring:
+  datasource:
+    # Designate the primary datasource. This is optional if you only have one.
+    primary: mysql_db
+
+    # First datasource
+    mysql_db:
+      url: jdbc:mysql://localhost:3306/db_one
+      username: user1
+      password: password1
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      mybatis: # Mybatis-Plus specific configurations
+        mapper-locations: classpath:mapper/mysql/*.xml
+
+    # Second datasource
+    postgres_db:
+      url: jdbc:postgresql://localhost:5432/db_two
+      username: user2
+      password: password2
+      driver-class-name: org.postgresql.Driver
+      mybatis:
+        mapper-locations: classpath:mapper/postgres/*.xml
+```
+
+#### b. Usage
+Use the `@TerraMapper` annotation on your Mybatis mapper interfaces to bind them to a specific datasource.
+
+- **`UserMapper.java` (connects to `mysql_db`)**
+```java
+import com.terra.framework.strata.annoation.TerraMapper;
+
+@TerraMapper(datasourceName = "mysql_db")
+public interface UserMapper {
+    // ... methods
+}
+```
+
+- **`ProductMapper.java` (connects to `postgres_db`)**
+```java
+import com.terra.framework.strata.annoation.TerraMapper;
+
+@TerraMapper(datasourceName = "postgres_db")
+public interface ProductMapper {
+    // ... methods
+}
+```
+
+Now you can inject and use these mappers in your services, and they will automatically connect to the correct database. 

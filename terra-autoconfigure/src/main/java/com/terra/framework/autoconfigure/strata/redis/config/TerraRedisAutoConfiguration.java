@@ -1,4 +1,4 @@
-package com.terra.framework.autoconfigure.strata.config.redis;
+package com.terra.framework.autoconfigure.strata.redis.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.terra.framework.autoconfigure.strata.config.redis.lock.IRedissonLock;
+import com.terra.framework.autoconfigure.strata.redis.lock.IRedissonLock;
 import com.terra.framework.strata.helper.RedisKeyHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;

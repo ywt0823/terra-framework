@@ -15,8 +15,11 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.util.StringUtils;
 
+import javax.sql.DataSource;
 import java.util.Objects;
 import java.util.Set;
 
@@ -25,7 +28,7 @@ public class DynamicDataSourceRegistrar implements ImportBeanDefinitionRegistrar
     private Environment environment;
     private Binder binder;
     private static final String DATASOURCE_PREFIX = "spring.datasource";
-    private static final String MYBATIS_PLUS_PREFIX_FORMAT = "spring.datasource.%s.mybatis-plus";
+    private static final String MYBATIS_PLUS_PREFIX_FORMAT = "spring.datasource.%s.mybatis";
 
     @Override
     public void setEnvironment(Environment environment) {
@@ -42,7 +45,6 @@ public class DynamicDataSourceRegistrar implements ImportBeanDefinitionRegistrar
         }
         String primaryDataSourceName = environment.getProperty(DATASOURCE_PREFIX + ".primary", dataSourceNames.iterator().next());
 
-
         for (String dataSourceName : dataSourceNames) {
             boolean isPrimary = Objects.equals(dataSourceName, primaryDataSourceName);
 
@@ -51,63 +53,54 @@ public class DynamicDataSourceRegistrar implements ImportBeanDefinitionRegistrar
             dsDefinition.setPrimary(isPrimary);
             registry.registerBeanDefinition(dataSourceName + "DataSource", dsDefinition);
 
-            // 2. Register MybatisPlusProperties
-            BeanDefinition mybatisPlusPropertiesDefinition = buildMybatisPlusPropertiesDefinition(dataSourceName);
-            mybatisPlusPropertiesDefinition.setPrimary(isPrimary);
-            registry.registerBeanDefinition(dataSourceName + "MybatisPlusProperties", mybatisPlusPropertiesDefinition);
-
-            // 3. Register MybatisSqlSessionFactoryBean (The Factory)
+            // 2. Register SqlSessionFactory (via FactoryBean)
+            // We register the FactoryBean itself, and Spring will handle creating the product (SqlSessionFactory)
+            // by calling getObject(). The bean is named '...SqlSessionFactory' so that the SqlSessionTemplate can resolve it.
             BeanDefinition ssfBeanDefinition = createSqlSessionFactoryBeanDefinition(dataSourceName);
             ssfBeanDefinition.setPrimary(isPrimary);
-            registry.registerBeanDefinition(dataSourceName + "SqlSessionFactoryBean", ssfBeanDefinition);
+            registry.registerBeanDefinition(dataSourceName + "SqlSessionFactory", ssfBeanDefinition);
 
-            // 4. Register SqlSessionFactory (The Product)
-            BeanDefinition ssfDefinition = buildSqlSessionFactoryDefinition(dataSourceName);
-            ssfDefinition.setPrimary(isPrimary);
-            registry.registerBeanDefinition(dataSourceName + "SqlSessionFactory", ssfDefinition);
-
-            // 5. Register SqlSessionTemplate
+            // 3. Register SqlSessionTemplate
             BeanDefinition sstDefinition = buildSqlSessionTemplateDefinition(dataSourceName);
             sstDefinition.setPrimary(isPrimary);
             registry.registerBeanDefinition(dataSourceName + "SqlSessionTemplate", sstDefinition);
 
-            // 6. Register TransactionManager
+            // 4. Register TransactionManager
             BeanDefinition tmDefinition = buildTransactionManagerDefinition(dataSourceName);
             tmDefinition.setPrimary(isPrimary);
             registry.registerBeanDefinition(dataSourceName + "TransactionManager", tmDefinition);
+
+            // 5. Register JdbcTemplate
+            BeanDefinition jdbcTemplateDefinition = buildJdbcTemplateDefinition(dataSourceName);
+            jdbcTemplateDefinition.setPrimary(isPrimary);
+            registry.registerBeanDefinition(dataSourceName + "JdbcTemplate", jdbcTemplateDefinition);
         }
     }
 
     private BeanDefinition buildDataSourceDefinition(String dataSourceName) {
         DataSourceProperties dsProperties = binder.bind(DATASOURCE_PREFIX + "." + dataSourceName, DataSourceProperties.class).get();
-        return BeanDefinitionBuilder.genericBeanDefinition(dsProperties.getType())
-                .addPropertyValue("driverClassName", dsProperties.getDriverClassName())
-                .addPropertyValue("url", dsProperties.getUrl())
-                .addPropertyValue("username", dsProperties.getUsername())
-                .addPropertyValue("password", dsProperties.getPassword())
-                .getBeanDefinition();
-    }
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(dsProperties.getType());
+        builder.addPropertyValue("driverClassName", dsProperties.getDriverClassName());
+        builder.addPropertyValue("jdbcUrl", dsProperties.getUrl()); // For HikariCP and others
+        builder.addPropertyValue("username", dsProperties.getUsername());
+        builder.addPropertyValue("password", dsProperties.getPassword());
 
-    private BeanDefinition buildMybatisPlusPropertiesDefinition(String dataSourceName) {
-        String prefix = String.format(MYBATIS_PLUS_PREFIX_FORMAT, dataSourceName);
-        MybatisPlusProperties properties = binder.bind(prefix, Bindable.of(MybatisPlusProperties.class)).orElseGet(MybatisPlusProperties::new);
-        if (properties.getConfiguration() == null) {
-            properties.setConfiguration(new MybatisPlusProperties.CoreConfiguration());
-        }
-        return BeanDefinitionBuilder.genericBeanDefinition(MybatisPlusProperties.class, () -> properties)
-                .getBeanDefinition();
-    }
+        // Bind Hikari-specific properties
+        String hikariPrefix = String.format("%s.%s.hikari", DATASOURCE_PREFIX, dataSourceName);
+        binder.bind(hikariPrefix, Bindable.ofInstance(builder.getBeanDefinition()));
 
+        return builder.getBeanDefinition();
+    }
+    
     private BeanDefinition createSqlSessionFactoryBeanDefinition(String dataSourceName) {
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MybatisSqlSessionFactoryBean.class);
         builder.addPropertyReference("dataSource", dataSourceName + "DataSource");
 
-        // Bind MybatisPlusProperties for this datasource
         String mybatisPlusPrefix = String.format(MYBATIS_PLUS_PREFIX_FORMAT, dataSourceName);
         MybatisPlusProperties mybatisPlusProperties = binder.bind(mybatisPlusPrefix, Bindable.of(MybatisPlusProperties.class)).orElseGet(MybatisPlusProperties::new);
 
         if (mybatisPlusProperties.getMapperLocations() != null && mybatisPlusProperties.getMapperLocations().length > 0) {
-             builder.addPropertyValue("mapperLocations", mybatisPlusProperties.getMapperLocations());
+            builder.addPropertyValue("mapperLocations", mybatisPlusProperties.getMapperLocations());
         }
         if (mybatisPlusProperties.getConfiguration() != null) {
             builder.addPropertyValue("configuration", mybatisPlusProperties.getConfiguration());
@@ -117,16 +110,15 @@ public class DynamicDataSourceRegistrar implements ImportBeanDefinitionRegistrar
         return builder.getBeanDefinition();
     }
 
-    private BeanDefinition buildSqlSessionFactoryDefinition(String dataSourceName) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SqlSessionFactory.class);
-        builder.getRawBeanDefinition().setFactoryBeanName(dataSourceName + "SqlSessionFactoryBean");
-        builder.getRawBeanDefinition().setFactoryMethodName("getObject");
-        return builder.getBeanDefinition();
-    }
-
     private BeanDefinition buildSqlSessionTemplateDefinition(String dataSourceName) {
         return BeanDefinitionBuilder.genericBeanDefinition(SqlSessionTemplate.class)
                 .addConstructorArgReference(dataSourceName + "SqlSessionFactory")
+                .getBeanDefinition();
+    }
+
+    private BeanDefinition buildJdbcTemplateDefinition(String dataSourceName) {
+        return BeanDefinitionBuilder.genericBeanDefinition(JdbcTemplate.class)
+                .addConstructorArgReference(dataSourceName + "DataSource")
                 .getBeanDefinition();
     }
 
@@ -135,5 +127,4 @@ public class DynamicDataSourceRegistrar implements ImportBeanDefinitionRegistrar
                 .addConstructorArgReference(dataSourceName + "DataSource")
                 .getBeanDefinition();
     }
-
 }

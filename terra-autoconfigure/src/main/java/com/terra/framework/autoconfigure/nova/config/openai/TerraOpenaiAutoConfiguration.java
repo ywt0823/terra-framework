@@ -8,16 +8,11 @@ import org.springframework.ai.model.openai.autoconfigure.OpenAiChatProperties;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiConnectionProperties;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration;
 import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.openai.OpenAiEmbeddingModel;
-import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import redis.clients.jedis.JedisPooled;
 
 import static org.springframework.ai.model.SpringAIModels.OPENAI;
 
@@ -50,29 +45,4 @@ public class TerraOpenaiAutoConfiguration {
         return new OpenAiChatClient(openAiChatModel);
     }
 
-    /**
-     * 创建 RedisVectorStore Bean。
-     * <p>
-     * 当 Redis 相关类和 OpenAiEmbeddingModel 可用时，自动创建 RedisVectorStore 实例。
-     *
-     * @param embeddingModel  OpenAI 嵌入模型实例
-     * @param redisProperties Redis 配置属性
-     * @return RedisVectorStore 实例
-     */
-    @Bean
-    @ConditionalOnClass({RedisProperties.class, RedisVectorStore.class})
-    @ConditionalOnBean(OpenAiEmbeddingModel.class)
-    public RedisVectorStore redisVectorStore(OpenAiEmbeddingModel embeddingModel, RedisProperties redisProperties) {
-        return RedisVectorStore.builder(new JedisPooled("redis://" + redisProperties.getHost() + ":" + redisProperties.getPort()), embeddingModel)
-            .vectorAlgorithm(RedisVectorStore.Algorithm.HSNW)
-            .contentFieldName("terra-content")
-            .embeddingFieldName("terra-embedding")
-            .indexName("terra-index")
-            .prefix("terra")
-            .metadataFields(RedisVectorStore.MetadataField.text("terra-text"),
-                RedisVectorStore.MetadataField.numeric("terra-number"),
-                RedisVectorStore.MetadataField.tag("terra-tag"))
-            .initializeSchema(false)
-            .build();
-    }
 }

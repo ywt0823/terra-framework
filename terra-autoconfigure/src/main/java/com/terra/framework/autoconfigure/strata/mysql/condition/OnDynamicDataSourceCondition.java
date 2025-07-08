@@ -9,7 +9,6 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 import java.util.Set;
 
-
 public class OnDynamicDataSourceCondition extends SpringBootCondition {
 
     @Override

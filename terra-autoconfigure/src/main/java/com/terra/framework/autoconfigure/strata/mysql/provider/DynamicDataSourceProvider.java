@@ -37,6 +37,8 @@ public class DynamicDataSourceProvider {
     }
 
     private boolean isDataSourceName(String name) {
+        // A simple heuristic to identify a datasource sub-property block.
+        // It must contain a 'url' or 'jdbc-url' property.
         String urlProperty = String.format("%s.%s.url", DATASOURCE_PREFIX, name);
         String jdbcUrlProperty = String.format("%s.%s.jdbc-url", DATASOURCE_PREFIX, name);
         return environment.containsProperty(urlProperty) || environment.containsProperty(jdbcUrlProperty);
