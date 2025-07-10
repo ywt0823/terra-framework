@@ -38,9 +38,9 @@ public class TerraMapperScannerConfigurer implements BeanDefinitionRegistryPostP
         };
 
         scanner.addIncludeFilter(new AnnotationTypeFilter(TerraMapper.class));
-        
+
         List<String> basePackages = AutoConfigurationPackages.get(applicationContext.getAutowireCapableBeanFactory());
-        
+
         for (String basePackage : basePackages) {
             for (BeanDefinition beanDefinition : scanner.findCandidateComponents(basePackage)) {
                 if (beanDefinition instanceof AnnotatedBeanDefinition) {
@@ -53,8 +53,8 @@ public class TerraMapperScannerConfigurer implements BeanDefinitionRegistryPostP
                             BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MapperFactoryBean.class);
                             builder.addPropertyValue("mapperInterface", beanDefinition.getBeanClassName());
                             builder.addPropertyReference("sqlSessionTemplate", datasourceName + "SqlSessionTemplate");
-                            builder.setLazyInit(true);
-                            
+                            builder.setLazyInit(false);
+
                             registry.registerBeanDefinition(beanDefinition.getBeanClassName(), builder.getBeanDefinition());
                         }
                     }

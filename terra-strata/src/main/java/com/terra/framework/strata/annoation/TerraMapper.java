@@ -1,7 +1,5 @@
 package com.terra.framework.strata.annoation;
 
-import org.apache.ibatis.annotations.Mapper;
-
 import java.lang.annotation.*;
 
 /**
@@ -13,7 +11,6 @@ import java.lang.annotation.*;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
-@Mapper
 public @interface TerraMapper {
 
     String datasourceName() default "mysql";

@@ -6,11 +6,9 @@ import com.terra.framework.autoconfigure.strata.mysql.scanner.TerraMapperScanner
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 
-@Configuration(proxyBeanMethods = false)
 @Conditional(OnDynamicDataSourceCondition.class)
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import({DynamicDataSourceRegistrar.class, TerraMapperScannerConfigurer.class})

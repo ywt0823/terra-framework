@@ -3,7 +3,6 @@ package com.terra.framework.autoconfigure.strata.mysql.registrar;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusProperties;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.terra.framework.autoconfigure.strata.mysql.provider.DynamicDataSourceProvider;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -17,9 +16,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.util.StringUtils;
 
-import javax.sql.DataSource;
 import java.util.Objects;
 import java.util.Set;
 
@@ -91,7 +88,7 @@ public class DynamicDataSourceRegistrar implements ImportBeanDefinitionRegistrar
 
         return builder.getBeanDefinition();
     }
-    
+
     private BeanDefinition createSqlSessionFactoryBeanDefinition(String dataSourceName) {
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MybatisSqlSessionFactoryBean.class);
         builder.addPropertyReference("dataSource", dataSourceName + "DataSource");
@@ -112,19 +109,19 @@ public class DynamicDataSourceRegistrar implements ImportBeanDefinitionRegistrar
 
     private BeanDefinition buildSqlSessionTemplateDefinition(String dataSourceName) {
         return BeanDefinitionBuilder.genericBeanDefinition(SqlSessionTemplate.class)
-                .addConstructorArgReference(dataSourceName + "SqlSessionFactory")
-                .getBeanDefinition();
+            .addConstructorArgReference(dataSourceName + "SqlSessionFactory")
+            .getBeanDefinition();
     }
 
     private BeanDefinition buildJdbcTemplateDefinition(String dataSourceName) {
         return BeanDefinitionBuilder.genericBeanDefinition(JdbcTemplate.class)
-                .addConstructorArgReference(dataSourceName + "DataSource")
-                .getBeanDefinition();
+            .addConstructorArgReference(dataSourceName + "DataSource")
+            .getBeanDefinition();
     }
 
     private BeanDefinition buildTransactionManagerDefinition(String dataSourceName) {
         return BeanDefinitionBuilder.genericBeanDefinition(DataSourceTransactionManager.class)
-                .addConstructorArgReference(dataSourceName + "DataSource")
-                .getBeanDefinition();
+            .addConstructorArgReference(dataSourceName + "DataSource")
+            .getBeanDefinition();
     }
 }
