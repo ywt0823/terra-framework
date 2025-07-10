@@ -55,7 +55,12 @@ public class TerraMapperScannerConfigurer implements BeanDefinitionRegistryPostP
                             builder.addPropertyReference("sqlSessionTemplate", datasourceName + "SqlSessionTemplate");
                             builder.setLazyInit(false);
 
-                            registry.registerBeanDefinition(beanDefinition.getBeanClassName(), builder.getBeanDefinition());
+                            // 获取简单类名并转换为首字母小写的Bean名称
+                            String className = beanDefinition.getBeanClassName();
+                            String simpleName = className.substring(className.lastIndexOf('.') + 1);
+                            String beanName = Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
+                            
+                            registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
                         }
                     }
                 }
