@@ -192,7 +192,7 @@ Use the `@TerraMapper` annotation on your Mybatis mapper interfaces to bind them
 
 - **`UserMapper.java` (connects to `mysql_db`)**
 ```java
-import com.terra.framework.strata.annoation.TerraMapper;
+import com.terra.framework.strata.annoation.TerraDatasource;
 
 @TerraMapper(datasourceName = "mysql_db")
 public interface UserMapper {
@@ -202,7 +202,7 @@ public interface UserMapper {
 
 - **`ProductMapper.java` (connects to `postgres_db`)**
 ```java
-import com.terra.framework.strata.annoation.TerraMapper;
+import com.terra.framework.strata.annoation.TerraDatasource;
 
 @TerraMapper(datasourceName = "postgres_db")
 public interface ProductMapper {

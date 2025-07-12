@@ -192,7 +192,7 @@ spring:
 
 - **`UserMapper.java` (连接到 `mysql_db`)**
 ```java
-import com.terra.framework.strata.annoation.TerraMapper;
+import com.terra.framework.strata.annoation.TerraDatasource;
 
 @TerraMapper(datasourceName = "mysql_db")
 public interface UserMapper {
@@ -202,7 +202,7 @@ public interface UserMapper {
 
 - **`ProductMapper.java` (连接到 `postgres_db`)**
 ```java
-import com.terra.framework.strata.annoation.TerraMapper;
+import com.terra.framework.strata.annoation.TerraDatasource;
 
 @TerraMapper(datasourceName = "postgres_db")
 public interface ProductMapper {
