@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://terra.framework.com/schema/prompt"
+           xmlns:tns="http://terra.framework.com/schema/prompt"
+           elementFormDefault="qualified">
+
+    <!-- 根元素定义 -->
+    <xs:element name="prompts">
+        <xs:annotation>
+            <xs:documentation>
+                Terra Framework Prompt Mapper根元素
+                用于定义一组相关的prompt模板
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="prompt" type="tns:promptType" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="namespace" type="xs:string" use="required">
+                <xs:annotation>
+                    <xs:documentation>命名空间，通常对应Java接口的全限定名</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="model" type="xs:string" use="optional">
+                <xs:annotation>
+                    <xs:documentation>全局默认模型，可以是Bean名称或类名</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="temperature" type="tns:temperatureType" use="optional">
+                <xs:annotation>
+                    <xs:documentation>全局默认温度值，范围0.0-2.0</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="max-tokens" type="xs:positiveInteger" use="optional">
+                <xs:annotation>
+                    <xs:documentation>全局默认最大令牌数</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="top-p" type="tns:topPType" use="optional">
+                <xs:annotation>
+                    <xs:documentation>全局默认top-p值，范围0.0-1.0</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- prompt元素类型定义 -->
+    <xs:complexType name="promptType" mixed="true">
+        <xs:annotation>
+            <xs:documentation>
+                单个prompt模板定义
+                支持${parameter}占位符语法
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="id" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>prompt的唯一标识符，对应Java方法名</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="model" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>指定模型，覆盖全局配置</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="temperature" type="tns:temperatureType" use="optional">
+            <xs:annotation>
+                <xs:documentation>温度值，覆盖全局配置，范围0.0-2.0</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="max-tokens" type="xs:positiveInteger" use="optional">
+            <xs:annotation>
+                <xs:documentation>最大令牌数，覆盖全局配置</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="top-p" type="tns:topPType" use="optional">
+            <xs:annotation>
+                <xs:documentation>top-p值，覆盖全局配置，范围0.0-1.0</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- 温度值类型定义 -->
+    <xs:simpleType name="temperatureType">
+        <xs:annotation>
+            <xs:documentation>温度值类型，用于控制输出的随机性</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0.0"/>
+            <xs:maxInclusive value="2.0"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- top-p值类型定义 -->
+    <xs:simpleType name="topPType">
+        <xs:annotation>
+            <xs:documentation>top-p值类型，用于控制输出的多样性</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0.0"/>
+            <xs:maxInclusive value="1.0"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema> 

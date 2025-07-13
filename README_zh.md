@@ -210,4 +210,152 @@ public interface ProductMapper {
 }
 ```
 
-现在，您可以直接在您的服务中注入并使用这些 mapper，它们将自动连接到正确的数据库。 
+现在，您可以直接在您的服务中注入并使用这些 mapper，它们将自动连接到正确的数据库。
+
+### 6. Prompt Mapper 功能 (`terra-nova`)
+框架现在提供了一个强大的 Prompt 工程化方案，借鉴了 MyBatis 的成功模式，将大模型的 Prompt 模板从业务代码中解耦出来。
+
+#### a. 核心特性
+- **声明式 Prompt 管理**: 通过注解和 XML 文件定义 Prompt 模板，无需在代码中硬编码
+- **参数化支持**: 支持动态参数绑定，类似于 MyBatis 的 `@Param` 注解
+- **自动代理生成**: 框架自动为 `@PromptMapper` 接口生成代理实现
+- **零配置启动**: 无需任何 `@Enable` 注解，开箱即用
+
+#### b. 如何使用
+
+**1. 定义 Prompt 接口**
+```java
+import com.terra.framework.nova.prompt.annotation.Param;
+import com.terra.framework.nova.prompt.annotation.PromptMapper;
+
+@PromptMapper
+public interface SummaryPrompt {
+    String summary(@Param("content") String content, @Param("length") int length);
+}
+```
+
+**2. 创建 XML 模板文件**
+在 `src/main/resources/prompts/` 目录下创建对应的 XML 文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<prompts namespace="com.example.prompt.SummaryPrompt" 
+         model="deepSeekChatClient" 
+         temperature="0.7" 
+         max-tokens="2000">
+    
+    <!-- 使用全局配置的prompt -->
+    <prompt id="summary">
+        请为以下文章生成一段不超过${length}字的摘要：
+        
+        ${content}
+        
+        要求：
+        1. 保持原文的核心观点
+        2. 语言简洁明了
+        3. 字数控制在${length}字以内
+    </prompt>
+    
+    <!-- 覆盖全局配置的prompt -->
+    <prompt id="translate" 
+            model="openAiChatClient" 
+            temperature="0.3">
+        请将以下内容翻译成${target_language}：
+        
+        ${text}
+        
+        要求准确、流畅、符合目标语言的表达习惯。
+    </prompt>
+    
+</prompts>
+```
+
+**3. 在服务中使用**
+```java
+@Service
+public class ArticleService {
+    
+    @Autowired
+    private SummaryPrompt summaryPrompt;
+    
+    public String generateSummary(String article) {
+        return summaryPrompt.summary(article, 200);
+    }
+}
+```
+
+#### c. 配置选项
+可以通过 `application.properties` 自定义 Prompt 模板的扫描路径：
+
+```properties
+# 自定义 Prompt 模板扫描路径
+terra.nova.prompt.mapper-locations=prompts/,custom-prompts/
+```
+
+#### d. 增强配置功能
+框架支持在 XML 中配置模型和参数，提供了极大的灵活性：
+
+**全局配置**：在 `<prompts>` 根元素上设置默认配置
+```xml
+<prompts namespace="com.example.prompt.SummaryPrompt" 
+         model="deepSeekChatClient" 
+         temperature="0.7" 
+         max-tokens="2000">
+```
+
+**Prompt级别配置**：在具体的 `<prompt>` 元素上覆盖全局配置
+```xml
+<prompt id="translate" 
+        model="openAiChatClient" 
+        temperature="0.3">
+```
+
+**支持的配置参数**：
+- `model`: 指定使用的模型Bean名称或类名
+- `temperature`: 控制输出随机性（0.0-1.0）
+- `max-tokens`: 限制生成的最大token数
+- `top-p`: 核采样参数
+
+**配置优先级**：Prompt级别配置 > 全局配置 > 系统默认值
+
+这个功能极大地提升了 Prompt 的可维护性和复用性，使得大模型应用的开发更加规范和高效。
+
+#### e. XML Schema 支持
+框架提供了完整的 DTD 和 XSD 文件支持，类似于 MyBatis 的做法，为 XML 编写提供智能提示和验证。
+
+**使用 DTD（推荐简单场景）**：
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE prompts SYSTEM "classpath:dtd/terra-prompt-1.0.dtd">
+<prompts namespace="com.example.prompt.SimplePrompt"
+         model="deepSeekChatModel"
+         temperature="0.7">
+    <!-- prompts 内容 -->
+</prompts>
+```
+
+**使用 XSD（推荐复杂场景）**：
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<prompts xmlns="http://terra.framework.com/schema/prompt"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://terra.framework.com/schema/prompt classpath:xsd/terra-prompt-1.0.xsd"
+         namespace="com.example.prompt.SummaryPrompt"
+         model="deepSeekChatModel"
+         temperature="0.7">
+    <!-- prompts 内容 -->
+</prompts>
+```
+
+**Schema 文件位置**：
+- DTD: `terra-nova/src/main/resources/dtd/terra-prompt-1.0.dtd`
+- XSD: `terra-nova/src/main/resources/xsd/terra-prompt-1.0.xsd`
+- Catalog: `terra-nova/src/main/resources/META-INF/catalog.xml`
+
+**IDE 支持特性**：
+- **属性自动完成**：输入属性名时提供智能提示
+- **值类型验证**：检查温度值范围(0.0-2.0)、top-p值范围(0.0-1.0)等
+- **文档说明**：鼠标悬停显示属性说明
+- **结构验证**：实时检查XML结构是否正确
+
+详细的 Schema 使用说明请参考：`terra-nova/src/main/resources/schema/README.md` 

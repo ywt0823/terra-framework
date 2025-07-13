@@ -1,0 +1,28 @@
+<!--
+    Terra Framework Prompt Mapper DTD
+    Version: 1.0
+    
+    This DTD defines the structure for Terra Prompt XML files.
+    It provides XML validation and IDE support for prompt templates.
+    
+    Usage in XML files:
+    <!DOCTYPE prompts SYSTEM "classpath:dtd/terra-prompt-1.0.dtd">
+-->
+
+<!ELEMENT prompts (prompt+)>
+<!ATTLIST prompts
+    namespace CDATA #REQUIRED
+    model CDATA #IMPLIED
+    temperature CDATA #IMPLIED
+    max-tokens CDATA #IMPLIED
+    top-p CDATA #IMPLIED
+>
+
+<!ELEMENT prompt (#PCDATA)>
+<!ATTLIST prompt
+    id CDATA #REQUIRED
+    model CDATA #IMPLIED
+    temperature CDATA #IMPLIED
+    max-tokens CDATA #IMPLIED
+    top-p CDATA #IMPLIED
+> 

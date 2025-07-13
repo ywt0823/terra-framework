@@ -19,7 +19,7 @@ import static org.springframework.ai.model.SpringAIModels.OPENAI;
 /**
  * Terra OpenAI 自动配置类。
  * <p>
- * 提供 OpenAI 模型相关的 Bean 配置，包括 OpenAiChatClient、RedisVectorStore 等。
+ * 提供 OpenAI 模型相关的 Bean 配置，包括 OpenAiChatClient 等。
  *
  * @author <a href="mailto:love.yu@terra.com">Yu</a>
  * @version 1.0.0
@@ -44,5 +44,6 @@ public class TerraOpenaiAutoConfiguration {
     public OpenAiChatClient openAiChatClient(OpenAiChatModel openAiChatModel) {
         return new OpenAiChatClient(openAiChatModel);
     }
+
 
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    
+    <!-- DTD 映射 -->
+    <system systemId="classpath:dtd/terra-prompt-1.0.dtd"
+            uri="dtd/terra-prompt-1.0.dtd"/>
+    
+    <!-- XSD 映射 -->
+    <uri name="http://terra.framework.com/schema/prompt"
+         uri="xsd/terra-prompt-1.0.xsd"/>
+    
+    <!-- 本地schema位置映射 -->
+    <rewriteURI uriStartString="classpath:xsd/"
+                rewritePrefix="xsd/"/>
+                
+    <rewriteURI uriStartString="classpath:dtd/"
+                rewritePrefix="dtd/"/>
+                
+</catalog> 
