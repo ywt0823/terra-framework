@@ -1,5 +1,7 @@
 package com.terra.framework.autoconfigure.nova.config.prompt;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -7,6 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author DeavyJones
  */
+@Setter
+@Getter
 @ConfigurationProperties(prefix = "terra.nova.prompt")
 public class TerraPromptProperties {
 
@@ -16,11 +20,4 @@ public class TerraPromptProperties {
      */
     private String[] mapperLocations = {"prompts/"};
 
-    public String[] getMapperLocations() {
-        return mapperLocations;
-    }
-
-    public void setMapperLocations(String[] mapperLocations) {
-        this.mapperLocations = mapperLocations;
-    }
-} 
+}

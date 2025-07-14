@@ -1,4 +1,4 @@
-package com.terra.framework.nova.prompt.registrar;
+package com.terra.framework.autoconfigure.nova.registrar;
 
 import com.terra.framework.nova.prompt.annotation.PromptMapper;
 import com.terra.framework.nova.prompt.factory.PromptMapperFactoryBean;
@@ -61,4 +61,4 @@ public class ClassPathPromptMapperScanner extends ClassPathBeanDefinitionScanner
         // We only care about interfaces
         return beanDefinition.getMetadata().isInterface();
     }
-} 
+}

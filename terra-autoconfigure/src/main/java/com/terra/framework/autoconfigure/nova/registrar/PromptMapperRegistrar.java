@@ -1,8 +1,16 @@
-package com.terra.framework.nova.prompt.registrar;
+package com.terra.framework.autoconfigure.nova.registrar;
 
+import lombok.Setter;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,13 +24,19 @@ import java.util.List;
  *
  * @author DeavyJones
  */
-public class PromptMapperRegistrar implements ImportBeanDefinitionRegistrar {
+@Setter
+public class PromptMapperRegistrar implements BeanFactoryAware, EnvironmentAware, ImportBeanDefinitionRegistrar {
+
+
+    private BeanFactory beanFactory;
+    private Environment environment;
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+
         // Get the base packages to scan from the importing class
         List<String> basePackages = getBasePackages(importingClassMetadata);
-        
+
         if (basePackages.isEmpty()) {
             return;
         }
@@ -34,17 +48,17 @@ public class PromptMapperRegistrar implements ImportBeanDefinitionRegistrar {
 
     private List<String> getBasePackages(AnnotationMetadata importingClassMetadata) {
         List<String> basePackages = new ArrayList<>();
-        
+
         // 使用导入类的包作为基础包
-        String importingClassName = importingClassMetadata.getClassName();
-        String basePackage = getPackageName(importingClassName);
-        basePackages.add(basePackage);
-        
+        List<String> packages = AutoConfigurationPackages.get(this.beanFactory);
+        basePackages.add(StringUtils.collectionToCommaDelimitedString(packages));
+
         return basePackages;
     }
 
-    private String getPackageName(String className) {
-        int lastDotIndex = className.lastIndexOf('.');
-        return (lastDotIndex != -1) ? className.substring(0, lastDotIndex) : "";
+
+    private String getBeanNameForType(Class<?> type, ListableBeanFactory factory) {
+        String[] beanNames = factory.getBeanNamesForType(type);
+        return beanNames.length > 0 ? beanNames[0] : null;
     }
-} 
+}
