@@ -3,11 +3,13 @@ package com.terra.framework.nova.prompt.template;
 import com.terra.framework.nova.prompt.parser.PromptXmlParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PromptTemplateRegistry {
 
+    private static final ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
+
     private static final Logger log = LoggerFactory.getLogger(PromptTemplateRegistry.class);
 
     private final Map<String, PromptTemplate> knownTemplates = new ConcurrentHashMap<>();
@@ -31,18 +35,15 @@ public class PromptTemplateRegistry {
      * @param mapperLocations A String array of resource locations (e.g., "prompts/").
      */
     public void loadTemplates(String[] mapperLocations) {
-        if (mapperLocations == null || mapperLocations.length == 0) {
+        if (mapperLocations == null) {
             return;
         }
 
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         for (String mapperLocation : mapperLocations) {
             try {
-                // 简化实现，直接扫描指定目录下的XML文件
-                Enumeration<URL> resources = classLoader.getResources(mapperLocation);
-                while (resources.hasMoreElements()) {
-                    URL resource = resources.nextElement();
-                    loadFromUrl(resource);
+                Resource[] resolverResources = resourceResolver.getResources(mapperLocation);
+                for (Resource resolverResource : resolverResources) {
+                    loadFromUrl(resolverResource.getURL());
                 }
             } catch (IOException e) {
                 log.warn("Could not resolve prompt mapper resource: {}", mapperLocation, e);
@@ -82,4 +83,4 @@ public class PromptTemplateRegistry {
         }
         knownTemplates.put(fqId, template);
     }
-} 
+}

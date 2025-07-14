@@ -18,6 +18,6 @@ public class TerraPromptProperties {
      * Locations to scan for prompt mapper XML files.
      * Defaults to scanning "prompts/" directory in the classpath.
      */
-    private String[] mapperLocations = {"prompts/"};
+    private String[] mapperLocations = {"classpath*:/prompts/**/*.xml"};
 
 }
