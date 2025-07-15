@@ -8,6 +8,6 @@ com.terra.framework.autoconfigure.nova.config.deepseek.TerraDeepSeekAutoConfigur
 com.terra.framework.autoconfigure.nova.config.openai.TerraOpenaiAutoConfiguration
 com.terra.framework.autoconfigure.nova.config.dynamic.TerraNovaDynamicClientAutoConfiguration
 com.terra.framework.autoconfigure.nova.config.dynamic.TerraNovaDynamicModelAutoConfiguration
-com.terra.framework.autoconfigure.nova.config.prompt.TerraPromptAutoConfiguration
+com.terra.framework.autoconfigure.nova.config.prompt.TerraPromptScanAutoConfiguration
 com.terra.framework.autoconfigure.strata.redis.config.TerraRedisAutoConfiguration
 com.terra.framework.autoconfigure.strata.mysql.config.TerraDynamicMybatisAutoConfiguration
