@@ -1,6 +1,5 @@
-package com.terra.framework.autoconfigure.nova.config.prompt;
+package com.terra.framework.autoconfigure.nova.properties;
 
-import com.terra.framework.nova.prompt.config.PromptConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
