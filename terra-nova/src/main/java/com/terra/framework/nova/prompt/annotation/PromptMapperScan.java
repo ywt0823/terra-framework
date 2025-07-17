@@ -133,11 +133,11 @@ public @interface PromptMapperScan {
     /**
      * 指定要扫描的注解类型。
      * <p>
-     * 默认扫描 {@link Annotation} 注解，可以通过此属性扩展到其他注解类型。
+     * 默认扫描 {@link PromptMapper} 注解，可以通过此属性扩展到其他注解类型。
      *
      * @return 注解类型
      */
-    Class<? extends Annotation> annotationClass() default Annotation.class;
+    Class<? extends Annotation> annotationClass() default PromptMapper.class;
 
     /**
      * 排除的类型。
