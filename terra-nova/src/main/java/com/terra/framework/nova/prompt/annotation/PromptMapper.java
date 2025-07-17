@@ -16,5 +16,6 @@ import java.lang.annotation.*;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
+@Repository
 public @interface PromptMapper {
 }
