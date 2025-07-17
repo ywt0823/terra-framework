@@ -90,10 +90,10 @@ public class EnhancedPromptMapperFactoryBean<T> implements FactoryBean<T>, Appli
     public T getObject() throws Exception {
         // 解析 ChatModel
         ChatModel chatModel = resolveChatModel();
-        
+
         // 获取 PromptTemplateRegistry
         PromptTemplateRegistry registry = getPromptTemplateRegistry();
-        
+
         // 创建增强的代理
         EnhancedPromptMapperProxy proxy = new EnhancedPromptMapperProxy(
             applicationContext,
@@ -102,17 +102,17 @@ public class EnhancedPromptMapperFactoryBean<T> implements FactoryBean<T>, Appli
             chatModel,
             scanConfiguration
         );
-        
+
         // 创建代理实例
         T proxyInstance = (T) Proxy.newProxyInstance(
             mapperInterface.getClassLoader(),
             new Class[]{mapperInterface},
             proxy
         );
-        
-        logger.debug("Created PromptMapper proxy for interface: {} with configuration: {}", 
+
+        logger.debug("Created PromptMapper proxy for interface: {} with configuration: {}",
             mapperInterface.getName(), scanConfiguration.getConfigId());
-        
+
         return proxyInstance;
     }
 
@@ -143,7 +143,7 @@ public class EnhancedPromptMapperFactoryBean<T> implements FactoryBean<T>, Appli
                 throw new IllegalStateException("ChatModel bean not found: " + scanConfiguration.getChatModelBeanName(), e);
             }
         }
-        
+
         // 2. 使用指定的 Bean 类型
         if (scanConfiguration.getChatModelClass() != ChatModel.class) {
             try {
@@ -154,7 +154,7 @@ public class EnhancedPromptMapperFactoryBean<T> implements FactoryBean<T>, Appli
                 throw new IllegalStateException("ChatModel bean not found for class: " + scanConfiguration.getChatModelClass().getName(), e);
             }
         }
-        
+
         // 3. 使用默认的 ChatModel
         try {
             ChatModel chatModel = beanFactory.getBean(ChatModel.class);
@@ -182,15 +182,6 @@ public class EnhancedPromptMapperFactoryBean<T> implements FactoryBean<T>, Appli
     }
 
     /**
-     * 获取 PromptMapper 接口类型
-     *
-     * @return 接口类型
-     */
-    public Class<T> getMapperInterface() {
-        return mapperInterface;
-    }
-
-    /**
      * 获取扫描配置
      *
      * @return 扫描配置
@@ -198,4 +189,4 @@ public class EnhancedPromptMapperFactoryBean<T> implements FactoryBean<T>, Appli
     public PromptMapperScanConfiguration getScanConfiguration() {
         return scanConfiguration;
     }
-} 
+}

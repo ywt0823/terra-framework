@@ -1,4 +1,4 @@
-package com.terra.framework.autoconfigure.nova.registrar;
+package com.terra.framework.nova.prompt.scanner;
 
 import com.terra.framework.nova.prompt.annotation.PromptMapper;
 import com.terra.framework.nova.prompt.factory.PromptMapperFactoryBean;
@@ -31,7 +31,7 @@ public class ClassPathPromptMapperScanner extends ClassPathBeanDefinitionScanner
     }
 
     @Override
-    protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
+    public Set<BeanDefinitionHolder> doScan(String... basePackages) {
         Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
 
         if (!beanDefinitions.isEmpty()) {

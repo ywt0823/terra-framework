@@ -1,11 +1,8 @@
 package com.terra.framework.nova.prompt.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.springframework.stereotype.Repository;
+
+import java.lang.annotation.*;
 
 /**
  * A marker annotation to identify interfaces as Prompt Mappers.
@@ -19,5 +16,6 @@ import java.lang.annotation.Target;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
+@Repository
 public @interface PromptMapper {
-} 
+}

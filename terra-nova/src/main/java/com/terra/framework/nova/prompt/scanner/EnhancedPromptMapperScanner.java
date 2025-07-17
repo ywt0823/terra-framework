@@ -1,4 +1,4 @@
-package com.terra.framework.nova.prompt.registrar;
+package com.terra.framework.nova.prompt.scanner;
 
 import com.terra.framework.nova.prompt.annotation.PromptMapper;
 import com.terra.framework.nova.prompt.config.PromptMapperScanConfiguration;
@@ -78,7 +78,7 @@ public class EnhancedPromptMapperScanner extends ClassPathBeanDefinitionScanner 
         addExcludeFilter(new TypeFilter() {
             @Override
             public boolean match(org.springframework.core.type.classreading.MetadataReader metadataReader,
-                               org.springframework.core.type.classreading.MetadataReaderFactory metadataReaderFactory) {
+                                 org.springframework.core.type.classreading.MetadataReaderFactory metadataReaderFactory) {
                 String className = metadataReader.getClassMetadata().getClassName();
                 return className.endsWith("package-info");
             }

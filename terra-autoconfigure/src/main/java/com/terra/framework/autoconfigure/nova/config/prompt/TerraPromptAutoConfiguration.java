@@ -3,7 +3,7 @@ package com.terra.framework.autoconfigure.nova.config.prompt;
 import com.terra.framework.autoconfigure.nova.config.deepseek.TerraDeepSeekAutoConfiguration;
 import com.terra.framework.autoconfigure.nova.config.openai.TerraOpenaiAutoConfiguration;
 import com.terra.framework.autoconfigure.nova.properties.TerraPromptProperties;
-import com.terra.framework.autoconfigure.nova.registrar.PromptMapperRegistrar;
+import com.terra.framework.nova.prompt.registrar.PromptMapperRegistrar;
 import com.terra.framework.nova.prompt.template.PromptTemplateRegistry;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;

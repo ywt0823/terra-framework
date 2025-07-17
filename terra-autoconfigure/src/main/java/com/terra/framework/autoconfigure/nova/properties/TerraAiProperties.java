@@ -19,9 +19,5 @@ public class TerraAiProperties {
 
     private List<String> enabledModels = Lists.newArrayList(DEEPSEEK);
 
-    private TerraAiDynamicClientProperties dynamicClient;
-
-    private TerraAiDynamicModelProperties aiDynamicModel;
-
 
 }

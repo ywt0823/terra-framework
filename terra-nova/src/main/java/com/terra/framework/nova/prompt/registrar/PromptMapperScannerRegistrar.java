@@ -4,12 +4,15 @@ import com.terra.framework.nova.prompt.annotation.PromptMapperScan;
 import com.terra.framework.nova.prompt.annotation.PromptMapperScans;
 import com.terra.framework.nova.prompt.config.PromptConfig;
 import com.terra.framework.nova.prompt.config.PromptMapperScanConfiguration;
+import com.terra.framework.nova.prompt.scanner.EnhancedPromptMapperScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -28,7 +31,10 @@ import java.util.List;
  * @author DeavyJones
  * @since 1.0.0
  */
-public class PromptMapperScannerRegistrar implements ImportBeanDefinitionRegistrar {
+public class PromptMapperScannerRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
+
+    // Note: Do not move resourceLoader via cleanup
+    private ResourceLoader resourceLoader;
 
     private static final Logger logger = LoggerFactory.getLogger(PromptMapperScannerRegistrar.class);
 
@@ -220,5 +226,10 @@ public class PromptMapperScannerRegistrar implements ImportBeanDefinitionRegistr
 
         int beanCount = scanner.scan(basePackages);
         logger.info("Registered {} PromptMapper beans from packages: {}", beanCount, Arrays.toString(basePackages));
+    }
+
+    @Override
+    public void setResourceLoader(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
     }
 }
