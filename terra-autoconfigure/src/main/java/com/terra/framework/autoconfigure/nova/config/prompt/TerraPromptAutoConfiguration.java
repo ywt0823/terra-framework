@@ -1,6 +1,6 @@
 package com.terra.framework.autoconfigure.nova.config.prompt;
 
-import com.terra.framework.autoconfigure.nova.config.deepseek.TerraDeepSeekAutoConfiguration;
+import com.terra.framework.autoconfigure.nova.config.deepseek.TerraDeepSeekClientAutoConfiguration;
 import com.terra.framework.autoconfigure.nova.config.openai.TerraOpenaiAutoConfiguration;
 import com.terra.framework.autoconfigure.nova.properties.TerraPromptProperties;
 import com.terra.framework.nova.prompt.registrar.PromptMapperRegistrar;
@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
 @Import(PromptMapperRegistrar.class)
 @ConditionalOnBean(ChatModel.class)
 @EnableConfigurationProperties(TerraPromptProperties.class)
-@AutoConfigureAfter({TerraDeepSeekAutoConfiguration.class, TerraOpenaiAutoConfiguration.class})
+@AutoConfigureAfter({TerraDeepSeekClientAutoConfiguration.class, TerraOpenaiAutoConfiguration.class})
 public class TerraPromptAutoConfiguration {
 
 

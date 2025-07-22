@@ -13,10 +13,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "terra.httpclient")
 public class HttpclientConnectProperties {
 
-    /**
-     * 是否开启HttpClient
-     */
-    private Boolean enabled = true;
 
     /**
      * 连接请求超时时间（毫秒）

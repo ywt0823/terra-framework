@@ -43,51 +43,45 @@
   ],
   "properties": [
     {
-      "name": "terra.httpclient.enabled",
-      "type": "java.lang.Boolean",
-      "description": "是否开启HttpClient",
-      "defaultValue": true
-    },
-    {
       "name": "terra.httpclient.connection-request-timeout",
       "type": "java.lang.Integer",
-      "description": "连接请求超时时间（毫秒）",
+      "description": "连接请求超时时间（毫秒）.",
       "defaultValue": 100000
     },
     {
       "name": "terra.httpclient.connect-timeout",
       "type": "java.lang.Integer",
-      "description": "连接超时时间（毫秒）",
+      "description": "连接超时时间（毫秒）.",
       "defaultValue": 100000
     },
     {
       "name": "terra.httpclient.socket-timeout",
       "type": "java.lang.Integer",
-      "description": "Socket超时时间（毫秒）",
+      "description": "Socket超时时间（毫秒）.",
       "defaultValue": 100000
     },
     {
       "name": "terra.httpclient.request-max-num",
       "type": "java.lang.Integer",
-      "description": "连接池最大生成连接数",
+      "description": "连接池最大生成连接数.",
       "defaultValue": 500
     },
     {
       "name": "terra.httpclient.max-per-route",
       "type": "java.lang.Integer",
-      "description": "每个路由最大连接数",
+      "description": "每个路由最大连接数.",
       "defaultValue": 100
     },
     {
       "name": "terra.httpclient.retry-enabled",
       "type": "java.lang.Boolean",
-      "description": "是否开启自动重试",
+      "description": "是否开启自动重试.",
       "defaultValue": true
     },
     {
       "name": "terra.httpclient.max-retry-count",
       "type": "java.lang.Integer",
-      "description": "最大重试次数",
+      "description": "最大重试次数.",
       "defaultValue": 3
     },
     {
@@ -101,12 +95,6 @@
       "type": "java.lang.Integer",
       "description": "线程池大小",
       "defaultValue": 100
-    },
-    {
-      "name": "terra.json.enabled",
-      "type": "java.lang.Boolean",
-      "description": "是否启用自定义JSON配置",
-      "defaultValue": true
     },
     {
       "name": "terra.json.date-format",

@@ -3,8 +3,9 @@ com.terra.framework.autoconfigure.bedrock.config.json.JsonAutoConfiguration
 com.terra.framework.autoconfigure.bedrock.config.log.LogAutoConfiguration
 com.terra.framework.autoconfigure.bedrock.config.snowflake.SnowflakeAutoconfiguration
 com.terra.framework.autoconfigure.crust.config.TerraWebAutoConfiguration
+com.terra.framework.autoconfigure.crust.config.TerraWebClientAutoConfiguration
 com.terra.framework.autoconfigure.geyser.config.CacheAutoConfiguration
-com.terra.framework.autoconfigure.nova.config.deepseek.TerraDeepSeekAutoConfiguration
+com.terra.framework.autoconfigure.nova.config.deepseek.TerraDeepSeekClientAutoConfiguration
 com.terra.framework.autoconfigure.nova.config.openai.TerraOpenaiAutoConfiguration
 com.terra.framework.autoconfigure.nova.config.prompt.TerraPromptAutoConfiguration
 com.terra.framework.autoconfigure.strata.redis.config.TerraRedisAutoConfiguration

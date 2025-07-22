@@ -28,7 +28,7 @@ import static org.springframework.ai.model.SpringAIModels.DEEPSEEK;
 @ConditionalOnClass({DeepSeekConnectionProperties.class, DeepSeekChatProperties.class})
 @AutoConfigureAfter({DeepSeekChatAutoConfiguration.class})
 @ConditionalOnModelEnabled(DEEPSEEK)
-public class TerraDeepSeekAutoConfiguration {
+public class TerraDeepSeekClientAutoConfiguration {
 
     /**
      * 创建 DeepSeekChatClient Bean。

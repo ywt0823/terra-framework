@@ -14,11 +14,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class JsonProperties {
 
     /**
-     * 是否启用自定义JSON配置
-     */
-    private Boolean enabled = true;
-
-    /**
      * 日期格式
      */
     private String dateFormat = "yyyy-MM-dd HH:mm:ss";
