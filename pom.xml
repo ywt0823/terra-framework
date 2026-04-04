@@ -8,29 +8,16 @@
     <artifactId>terra-framework</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>terra-framework</name>
 
     <modules>
-        <module>terra-bedrock</module>
-        <module>terra-crust</module>
-        <module>terra-geyser</module>
-        <module>terra-nova</module>
-        <module>terra-strata</module>
-        <module>terra-sediment</module>
-        <module>terra-spring-boot-projects</module>
-        <module>terra-autoconfigure</module>
-        <module>terra-spring-boot-starter</module>
-        <module>terra-bedrock-spring-boot-starter</module>
-        <module>terra-strata-spring-boot-starter</module>
-        <module>terra-geyser-spring-boot-starter</module>
-        <module>terra-nova-spring-boot-starter</module>
-        <module>terra-crust-spring-boot-starter</module>
+        <module>terra-springboot-starter</module>
     </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.boot.version>3.4.5</spring.boot.version>
     </properties>
 
 </project>

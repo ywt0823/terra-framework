@@ -1,0 +1,5 @@
+com.terra.framework.autoconfigure.bedrock.config.log.LogAutoConfiguration
+com.terra.framework.autoconfigure.bedrock.config.json.JsonAutoConfiguration
+com.terra.framework.autoconfigure.bedrock.config.snowflake.SnowflakeAutoConfiguration
+com.terra.framework.autoconfigure.crust.config.TerraTraceAutoConfiguration
+com.terra.framework.autoconfigure.crust.config.TerraWebAutoConfiguration
