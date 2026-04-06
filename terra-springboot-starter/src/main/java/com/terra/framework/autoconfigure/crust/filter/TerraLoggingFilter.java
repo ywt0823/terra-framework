@@ -113,6 +113,9 @@ public class TerraLoggingFilter extends OncePerRequestFilter {
     }
 
     private boolean isExcluded(HttpServletRequest request) {
+        if (loggingProperties.getExcludeUrls() == null) {
+            return false;
+        }
         return Arrays.stream(loggingProperties.getExcludeUrls())
             .anyMatch(pattern -> pathMatcher.match(pattern, request.getRequestURI()));
     }

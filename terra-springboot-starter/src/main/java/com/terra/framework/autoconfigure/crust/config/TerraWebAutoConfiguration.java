@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -52,8 +53,8 @@ public class TerraWebAutoConfiguration {
     @ConditionalOnMissingBean(ResponseAdvice.class)
     @ConditionalOnProperty(prefix = "terra.web.response-advice", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnClass(ResponseBodyAdvice.class)
-    public ResponseAdvice terraResponseAdvice() {
-        return new ResponseAdvice();
+    public ResponseAdvice terraResponseAdvice(ObjectMapper objectMapper) {
+        return new ResponseAdvice(objectMapper);
     }
 
     @Bean

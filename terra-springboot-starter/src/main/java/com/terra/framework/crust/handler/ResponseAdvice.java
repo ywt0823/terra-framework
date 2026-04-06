@@ -1,11 +1,14 @@
 package com.terra.framework.crust.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terra.framework.common.result.Result;
 import com.terra.framework.common.util.result.ResultUtils;
 import com.terra.framework.crust.annotation.IgnoreResponseAdvice;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.ui.Model;
@@ -23,6 +26,12 @@ import java.util.Objects;
  */
 @RestControllerAdvice
 public class ResponseAdvice implements ResponseBodyAdvice<Object> {
+
+    private final ObjectMapper objectMapper;
+
+    public ResponseAdvice(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
@@ -47,7 +56,15 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
         if (Arrays.stream(Objects.requireNonNull(methodParameter.getMethod()).getDeclaredAnnotations()).anyMatch(annotation -> annotation.annotationType().equals(IgnoreResponseAdvice.class))) {
             return resultValue;
         }
-        return ResultUtils.success(resultValue);
+        Object wrapped = ResultUtils.success(resultValue);
+        if (StringHttpMessageConverter.class.isAssignableFrom(aClass)) {
+            try {
+                return objectMapper.writeValueAsString(wrapped);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("Failed to serialize Result to JSON string", e);
+            }
+        }
+        return wrapped;
     }
 
 }
