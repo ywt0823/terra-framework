@@ -3,6 +3,8 @@ package com.terra.framework.common.util.sequence;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
@@ -14,6 +16,8 @@ import java.util.List;
  * @author ywt
  */
 public class SnowflakeUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(SnowflakeUtils.class);
 
     private final SnowflakeSequence snowflakeSequence;
 
@@ -34,7 +38,7 @@ public class SnowflakeUtils {
             }
             return (long) (sums % 32);
         } catch (UnknownHostException e) {
-            // 如果获取失败，则使用随机数备用
+            log.warn("Failed to resolve local host for snowflake workerId, using random fallback", e);
             return RandomUtils.nextLong(0, 31);
         }
     }
@@ -83,6 +87,11 @@ public class SnowflakeUtils {
         private final long workerId;
 
         /**
+         * 数据中心 ID(0~31)，构造时固定，避免每次生成 ID 重复计算
+         */
+        private final long datacenterId;
+
+        /**
          * 上次生成ID的时间截
          */
         private long lastTimestamp = -1L;
@@ -104,22 +113,31 @@ public class SnowflakeUtils {
          */
         public SnowflakeSequence(long sequence) {
 
-            // 检查工作ID和数据中心的合法性
+            // 检查工作ID和数据中心的合法性（各只解析一次，避免多次调用产生不一致）
             long maxWorkerId = ~(-1L << workerIdBits);
-            if (getWorkId() > maxWorkerId || getWorkId() < 0) {
+            long resolvedWorkerId = getWorkId();
+            if (resolvedWorkerId > maxWorkerId || resolvedWorkerId < 0) {
                 throw new IllegalArgumentException(String.format("workerId can't be greater than %d or less than 0", maxWorkerId));
             }
             /**
              * 数据标识id所占的位数
              */
-            long dataCenterIdBits = 5L;
-            long maxDataCenterId = ~(-1L << dataCenterIdBits);
-            if (getDataCenterId() > maxDataCenterId || getDataCenterId() < 0) {
+            long dataCenterIdBitsLocal = 5L;
+            long maxDataCenterId = ~(-1L << dataCenterIdBitsLocal);
+            long resolvedDatacenterId = getDataCenterId();
+            if (resolvedDatacenterId > maxDataCenterId || resolvedDatacenterId < 0) {
                 throw new IllegalArgumentException(String.format("dataCenterId can't be greater than %d or less than 0", maxDataCenterId));
             }
-            System.out.printf("worker starting. timestamp left shift %d, datacenter id bits %d, worker id bits %d, sequence bits %d, workerid %d",
-                    timestampLeftShift, datacenterIdBits, workerIdBits, sequenceBits, getWorkId());
-            this.workerId = getWorkId();
+            log.info(
+                    "Snowflake worker starting. timestamp left shift {}, datacenter id bits {}, worker id bits {}, sequence bits {}, workerId {}, datacenterId {}",
+                    timestampLeftShift,
+                    datacenterIdBits,
+                    workerIdBits,
+                    sequenceBits,
+                    resolvedWorkerId,
+                    resolvedDatacenterId);
+            this.workerId = resolvedWorkerId;
+            this.datacenterId = resolvedDatacenterId;
             this.sequence = sequence;
         }
 
@@ -133,7 +151,7 @@ public class SnowflakeUtils {
             long timestamp = timeGen();
 
             if (timestamp < lastTimestamp) {
-                System.err.printf("clock is moving backwards.  Rejecting requests until %d.", lastTimestamp);
+                log.warn("clock is moving backwards. Rejecting requests until {}.", lastTimestamp);
                 throw new RuntimeException(String.format("Clock moved backwards.  Refusing to generate id for %d milliseconds",
                         lastTimestamp - timestamp));
             }
@@ -167,7 +185,7 @@ public class SnowflakeUtils {
             //数据id需要左移位数 12+5=17位
             long datacenterIdShift = sequenceBits + workerIdBits;
             return ((timestamp - twepoch) << timestampLeftShift) |
-                    (getDataCenterId() << datacenterIdShift) |
+                    (datacenterId << datacenterIdShift) |
                     (workerId << sequenceBits) |
                     sequence;
         }
