@@ -3,3 +3,6 @@ com.terra.framework.autoconfigure.bedrock.config.json.JsonAutoConfiguration
 com.terra.framework.autoconfigure.bedrock.config.snowflake.SnowflakeAutoConfiguration
 com.terra.framework.autoconfigure.crust.config.TerraTraceAutoConfiguration
 com.terra.framework.autoconfigure.crust.config.TerraWebAutoConfiguration
+com.terra.framework.autoconfigure.crust.config.TerraSchedulingTraceAutoConfiguration
+com.terra.framework.autoconfigure.crust.config.TerraWebMvcAsyncAutoConfiguration
+com.terra.framework.autoconfigure.crust.config.TerraReactorNettyRestClientAutoConfiguration

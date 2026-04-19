@@ -75,6 +75,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- RestClient + Reactor Netty 连接池（可选自动配置，见 TerraReactorNettyRestClientAutoConfiguration） -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
