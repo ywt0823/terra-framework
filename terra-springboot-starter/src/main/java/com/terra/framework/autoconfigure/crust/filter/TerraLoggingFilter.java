@@ -90,7 +90,11 @@ public class TerraLoggingFilter extends OncePerRequestFilter {
 
     private String contentToString(byte[] buf, int maxLength, String characterEncoding) {
         try {
-            String content = new String(buf, characterEncoding);
+            String encoding = characterEncoding;
+            if (encoding == null || encoding.isBlank() || "ISO-8859-1".equalsIgnoreCase(encoding)) {
+                encoding = "UTF-8";
+            }
+            String content = new String(buf, encoding);
             if (content.length() > maxLength) {
                 return content.substring(0, maxLength) + "...(truncated)";
             }
